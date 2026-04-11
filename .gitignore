@@ -1,0 +1,19 @@
+# Dependency directories
+node_modules/
+
+# Debug and data files (Sensitive!)
+drops.json
+debug_inventory.json
+debug_campaigns.json
+debug_inventory_raw.json
+debug.log
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build files
+dist/
+out/
+.electron-builder/
