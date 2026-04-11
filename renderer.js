@@ -362,9 +362,45 @@ if (btnStopMaster) {
     };
 }
 
-function isCampaignFinished(c) {
+function isCampaignFinished(c, inventory) {
     if (!c || !c.timeBasedDrops || c.timeBasedDrops.length === 0) return true;
-    return c.timeBasedDrops.every(d => d.self?.isClaimed === true || (d.self?.currentMinutesWatched || 0) >= d.requiredMinutesWatched);
+    
+    // METHOD 1: Check in-progress campaign data from inventory
+    const ipCamp = inventory?.dropCampaignsInProgress?.find(ip => ip.id === c.id);
+    if (ipCamp) {
+        const allClaimedOrWatched = ipCamp.timeBasedDrops.every(d => 
+            d.self?.isClaimed === true || 
+            (d.self?.currentMinutesWatched || 0) >= d.requiredMinutesWatched
+        );
+        if (allClaimedOrWatched) return true;
+    }
+
+    // METHOD 2: Check GameEventDrops (Archive) + Timestamps
+    const eventDrops = inventory?.gameEventDrops || [];
+    let unfinishedFound = false;
+
+    for (const drop of c.timeBasedDrops) {
+        if (drop.self?.isClaimed) continue;
+
+        const benefitId = drop.benefitEdges?.[0]?.benefit?.id;
+        const matchingReward = eventDrops.find(ed => ed.id === benefitId);
+
+        if (matchingReward) {
+            const awardedAt = new Date(matchingReward.lastAwardedAt);
+            const dropStart = new Date(drop.startAt || c.startAt);
+            const dropEnd = new Date(drop.endAt || c.endAt);
+
+            // Alorf Logic: Was it awarded during THIS campaign period?
+            if (awardedAt >= dropStart && awardedAt <= dropEnd) {
+                continue; 
+            }
+        }
+
+        unfinishedFound = true;
+        break;
+    }
+
+    return !unfinishedFound;
 }
 
 function isWatchableCampaign(c) {
@@ -378,39 +414,28 @@ function isWatchableCampaign(c) {
    const hasSubRequirement = c.timeBasedDrops.some(d => (d.requiredSubs || 0) > 0);
    if (hasSubRequirement) return false;
 
+   // Alorf: Date validation (Must be actually active right now)
+   const now = new Date();
+   const start = new Date(c.startAt);
+   const end = new Date(c.endAt);
+   if (now < start || now > end) return false;
+
    return true;
 }
 
-function cycleCampaign(direction) {
+async function cycleCampaign(direction) {
     if (!allCampaigns.length) return;
     
-    let eligible = [];
-    
-    if (farmAllMode) {
-        // In Farm All mode, we cycle through EVERY watchable active campaign
-        eligible = allCampaigns.filter(c => 
-            c.status === 'ACTIVE' && 
-            isWatchableCampaign(c) &&
-            !isCampaignFinished(c)
-        );
-    } else {
-        // In Selective mode, we only cycle through the saved priority list
-        const savedList = (localStorage.getItem('autoFarmGames') || '').split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
-        if (savedList.length === 0) {
-            addLog("No priority games found in settings.", "warn");
-            return;
-        }
+    // Triple-check: Fetch inventory for precise cycling
+    const inventoryRes = await window.electronAPI.getInventory(accountTokens);
+    const inventory = inventoryRes?.data?.currentUser?.inventory;
 
-        for (const name of savedList) {
-            const activeUnfinished = allCampaigns.filter(c => 
-                c.game?.displayName?.toLowerCase() === name && 
-                c.status === 'ACTIVE' && 
-                isWatchableCampaign(c) &&
-                !isCampaignFinished(c)
-            );
-            eligible.push(...activeUnfinished);
-        }
-    }
+    // Manual cycling should ALWAYS allow seeing all active watchable campaigns
+    let eligible = allCampaigns.filter(c => 
+        c.status === 'ACTIVE' && 
+        isWatchableCampaign(c) &&
+        !isCampaignFinished(c, inventory)
+    );
     
     if (eligible.length === 0) {
         addLog("No unfinished campaigns found to cycle to.", "warn");
@@ -438,52 +463,52 @@ function cycleCampaign(direction) {
     const farmStatus = document.getElementById('farmStatus');
     if (farmStatus) farmStatus.innerText = 'Switching...';
     
-    // 3. Start new one
-    startFarmingSimulation(target, true);
+    // 3. Just SHOW the info, don't start farming automatically
+    startFarmingSimulation(target, false);
 }
 
 async function runMasterFarmLoop() {
     if (!masterAutoFarmEnabled) return;
     
+    // Triple-check: Get FRESH inventory before making decisions
+    const inventoryRes = await window.electronAPI.getInventory(accountTokens);
+    const inventory = inventoryRes?.data?.currentUser?.inventory;
+    
     const now = Date.now();
     const savedList = (localStorage.getItem('autoFarmGames') || '').split(',').map(s=>s.trim().toLowerCase());
     
     // 1. Monitor progression of CURRENTLY farming campaign
-    if (currentFarmCampaignId && currentGlobalDropSession) {
-        const stats = progressionTracker[currentFarmCampaignId] || { mins: -1, time: now };
-        const currentMins = currentGlobalDropSession.currentMinutesWatched || 0;
+    const curr = allCampaigns.find(c => c.id === currentFarmCampaignId);
+    if (curr) {
+        const ipCamp = inventory?.dropCampaignsInProgress?.find(ip => ip.id === curr.id);
+        // We sum ALL minutes of ALL rewards to see if ANY of them move
+        const currentMins = ipCamp ? ipCamp.timeBasedDrops.reduce((acc, d) => acc + (d.self?.currentMinutesWatched || 0), 0) : 0;
+        const stats = progressionTracker[curr.id] || { mins: -1, time: now };
         
         if (currentMins > stats.mins) {
-            // Progress! Reset tracker
-            progressionTracker[currentFarmCampaignId] = { mins: currentMins, time: now };
-            addLog(`Progression: ${currentMins}m / ${currentGlobalDropSession.requiredMinutesWatched}m`, 'farm');
-        } else if (now - stats.time > 2 * 60 * 1000) { 
-            // 2 minutes stuck - try RECOVERING (maybe streamer went offline)
-            addLog(`Progress stalled on ${currentFarmCampaignId}. Attempting to find another streamer...`, 'warn');
-            
-            const currentCamp = allCampaigns.find(c => c.id === currentFarmCampaignId);
-            if (currentCamp) {
-                const res = await window.electronAPI.findStreamer(currentCamp.game?.displayName || '', accountTokens);
-                const streams = res?.data?.game?.streams?.edges || [];
-                const newStreamer = streams[0]?.node?.broadcaster?.login;
-                
-                if (newStreamer && newStreamer !== currentFarmingChannelId) {
-                    addLog(`Found new streamer: ${newStreamer}. Switching...`, 'farm');
-                    startFarmingSimulationById(currentFarmCampaignId, true);
-                    progressionTracker[currentFarmCampaignId] = { mins: currentMins, time: now }; // Give it another chance
-                    return;
-                }
+            // PROGRESS DETECTED!
+            if (stats.mins !== -1) {
+                const diff = currentMins - stats.mins;
+                addLog(`[${curr.game?.displayName}] Progress: +${diff}m (Total: ${currentMins}m)`, 'farm');
             }
-
-            addLog(`No alternatives found or still stuck. Blacklisting ${currentFarmCampaignId} for 15m.`, 'error');
-            campaignBlacklist[currentFarmCampaignId] = now + 15 * 60 * 1000;
+            progressionTracker[curr.id] = { mins: currentMins, time: now };
+        } else {
+            // Check for STALL. 
+            // If it's a NEW session (mins === -1), wait 45s. If established, wait 2min.
+            const threshold = stats.mins === -1 ? 45 * 1000 : 2.2 * 60 * 1000;
             
-            window.electronAPI.stopFarm();
-            currentFarmCampaignId = null;
-            currentFarmingChannelId = null;
-            masterToggleStatus.innerHTML = `Auto Mode: Skipping inactive campaign...`;
-            setTimeout(runMasterFarmLoop, 2000);
-            return;
+            if ((now - stats.time) > threshold) {
+                addLog(`Verified stall! No progress on ${curr.game?.displayName} after ${Math.round(threshold/1000)}s. Moving on...`, 'warn');
+                progressionTracker[curr.id] = { mins: currentMins, time: now }; 
+
+                // Automatic recovery
+                if (farmAllMode) {
+                    cycleCampaign(1);
+                } else {
+                    startFarmAction(curr, false);
+                }
+                return;
+            }
         }
     }
     
@@ -495,16 +520,15 @@ async function runMasterFarmLoop() {
         eligible = allCampaigns.filter(c => 
             c.status === 'ACTIVE' && 
             isWatchableCampaign(c) &&
-            !isCampaignFinished(c) && 
-            (!campaignBlacklist[c.id] || now >= campaignBlacklist[c.id])
+            !isCampaignFinished(c, inventory)
         );
     } else {
         // Mode: Priority only
         for (const name of savedList) {
             const matchingCamps = allCampaigns.filter(c => c.game?.displayName?.toLowerCase() === name && c.status === 'ACTIVE');
             for (const camp of matchingCamps) {
-                 if (isWatchableCampaign(camp) && (!campaignBlacklist[camp.id] || now >= campaignBlacklist[camp.id])) {
-                    if (!isCampaignFinished(camp)) {
+                 if (isWatchableCampaign(camp)) {
+                    if (!isCampaignFinished(camp, inventory)) {
                         eligible.push(camp);
                     }
                  }
@@ -539,8 +563,9 @@ async function runMasterFarmLoop() {
          if (currentFarmCampaignId !== targetCampaign.id) {
              addLog(`Auto-Farm: Selected campaign ${targetCampaign.game?.displayName}`, 'system');
              
-             // Reset state for new campaign
+             // Reset state for new campaign - -1 means "new session, use 45s grace period"
              currentFarmingChannelId = null;
+             progressionTracker[targetCampaign.id] = { mins: -1, time: Date.now() };
              startFarmingSimulationById(targetCampaign.id, true);
          } else {
              // Already farming this - just update the UI bars and stats
@@ -701,10 +726,6 @@ async function fetchAndUpdateCampaigns() {
       finalCampaigns.push(c);
   }
   
-  if (skippedCount > 0) {
-      addLog(`Filtered out ${skippedCount} subscription/invalid campaigns and updated the view.`, 'system');
-  }
-
   // UPDATE GLOBAL DATA STORES
   allCampaigns = finalCampaigns;
   
@@ -941,7 +962,7 @@ function stopFarmAction(campaign) {
     if (campaign) startFarmingSimulation(campaign);
 }
 
-async function startFarmAction(campaign) {
+async function startFarmAction(campaign, isAuto = false) {
     const btnRunFarm = document.getElementById('btnRunFarm');
     const btnStopFarm = document.getElementById('btnStopFarm');
     const farmStatus = document.getElementById('farmStatus');
@@ -963,16 +984,23 @@ async function startFarmAction(campaign) {
             if (farmStatus) farmStatus.innerText = 'No live streamers found.';
             if (btnRunFarm) btnRunFarm.style.display = 'block';
             if (btnStopFarm) btnStopFarm.style.display = 'none';
+            if (isAuto && farmAllMode) cycleCampaign(1);
             return;
         }
-        
-        const streamerLogin = validStreams[0].node.broadcaster.login;
-        const streamerId = validStreams[0].node.broadcaster.id;
+
+        // Just pick the first candidate and START - no more blocking checks
+        const targetStreamer = validStreams[0].node.broadcaster;
+        const streamerLogin = targetStreamer.login;
+        const streamerId = targetStreamer.id;
 
         currentFarmingChannelId = streamerId;
         window.electronAPI.startFarm(streamerLogin);
-        addLog(`Watching ${streamerLogin}`, 'farm');
+        addLog(`Watching ${streamerLogin}... (Grace period 45s started)`, 'farm');
         if (farmStatus) farmStatus.innerHTML = `<span style="color: #00e676;">✅ Watching <b>${streamerLogin}</b></span>`;
+        
+        // Reset progression tracker: -1 tells the loop this is a NEW session
+        progressionTracker[campaign.id] = { mins: -1, time: Date.now() };
+
         setTimeout(fetchAndUpdateCampaigns, 3000);
     } catch (e) {
         if (btnRunFarm) btnRunFarm.style.display = 'block';
@@ -1102,7 +1130,7 @@ function startFarmingSimulation(campaign, autoStart = false, updateOnly = false)
     const btnPrevGame = document.getElementById('btnPrevGame');
     const btnNextGame = document.getElementById('btnNextGame');
     
-    if (btnRunFarm) btnRunFarm.onclick = () => startFarmAction(campaign);
+    if (btnRunFarm) btnRunFarm.onclick = () => startFarmAction(campaign, false);
     if (btnStopFarm) btnStopFarm.onclick = () => stopFarmAction(campaign);
     if (btnPrevGame) btnPrevGame.onclick = () => cycleCampaign(-1);
     if (btnNextGame) btnNextGame.onclick = () => cycleCampaign(1);
@@ -1125,7 +1153,7 @@ function startFarmingSimulation(campaign, autoStart = false, updateOnly = false)
       setTimeout(() => {
           const btn = document.getElementById('btnRunFarm');
           if (btn && btn.style.display !== 'none') {
-              startFarmAction(campaign);
+              startFarmAction(campaign, true);
           }
       }, 100);
   }

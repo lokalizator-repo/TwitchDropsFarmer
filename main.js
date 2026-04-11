@@ -1,6 +1,9 @@
 const { app, BrowserWindow, session, ipcMain } = require('electron')
 const path = require('node:path')
 
+// Campaign Cache (Alorf-style optimization)
+let inventoryCache = { data: null, timestamp: 0, ttl: 20000 }; 
+
 let mainWindow;
 
 const createWindow = () => {
@@ -130,6 +133,8 @@ ipcMain.handle('fetch-campaign-details', async (event, campaignId, tokens) => {
         'Client-Id': tokens.clientId || 'kimne78kx3ncx6brgo4mv6wki5h1ko',
         'Authorization': tokens.auth,
         'Client-Integrity': tokens.integrity || '',
+        'X-Device-Id': tokens.deviceId || '',
+        'Device-Id': tokens.deviceId || '',
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -175,7 +180,7 @@ ipcMain.handle('find-streamer', async (event, gameName, tokens) => {
   }
 });
 
-ipcMain.handle('get-drop-session', async (event, channelId, tokens) => {
+ipcMain.handle('get-drop-session', async (event, channelId, tokens, channelLogin = "") => {
   try {
     const headers = {
         'Client-Id': tokens.clientId || 'kimne78kx3ncx6brgo4mv6wki5h1ko',
@@ -191,7 +196,29 @@ ipcMain.handle('get-drop-session', async (event, channelId, tokens) => {
     const res = await fetch('https://gql.twitch.tv/gql', {
       method: 'POST',
       headers: headers,
-      body: JSON.stringify([{"operationName":"DropCurrentSessionContext","variables":{"channelLogin":"","channelID":channelId.toString()},"extensions":{"persistedQuery":{"version":1,"sha256Hash":"4d06b702d25d652afb9ef835d2a550031f1cf762b193523a92166f40ea3d142b"}}}])
+      body: JSON.stringify([
+        {
+          "operationName": "DropCurrentSessionContext",
+          "variables": {
+            "channelLogin": channelLogin,
+            "channelID": channelId.toString()
+          },
+          "query": `query DropCurrentSessionContext($channelLogin: String, $channelID: ID) {
+            currentUser {
+              dropCurrentSession(channelLogin: $channelLogin, channelID: $channelID) {
+                dropID
+                currentMinutesWatched
+                requiredMinutesWatched
+                status
+                game {
+                  id
+                  displayName
+                }
+              }
+            }
+          }`
+        }
+      ])
     });
     const text = await res.text();
     console.log('DROP_SESSION_RAW:', text.substring(0, 500));
@@ -202,6 +229,11 @@ ipcMain.handle('get-drop-session', async (event, channelId, tokens) => {
 });
 
 ipcMain.handle('get-inventory', async (event, tokens) => {
+  const now = Date.now();
+  if (inventoryCache.data && (now - inventoryCache.timestamp) < inventoryCache.ttl) {
+    return inventoryCache.data;
+  }
+
   try {
     const res = await fetch('https://gql.twitch.tv/gql', {
       method: 'POST',
@@ -209,6 +241,7 @@ ipcMain.handle('get-inventory', async (event, tokens) => {
         'Client-Id': tokens.clientId || 'kimne78kx3ncx6brgo4mv6wki5h1ko',
         'Authorization': tokens.auth,
         'Client-Integrity': tokens.integrity || '',
+        'X-Device-Id': tokens.deviceId || '',
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -217,7 +250,7 @@ ipcMain.handle('get-inventory', async (event, tokens) => {
       })
     });
     const invData = await res.json();
-    try { require('fs').writeFileSync(require('path').join(__dirname, 'debug_inventory.json'), JSON.stringify(invData, null, 2)); } catch(e) {}
+    inventoryCache = { data: invData, timestamp: now, ttl: 20000 };
     return invData;
   } catch(e) {
     return { error: e.message };
