@@ -46,6 +46,30 @@ body {
   z-index: 1000;
 }
 
+.btn-minimize-tray {
+  margin-left: auto;
+  margin-right: 15px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.btn-minimize-tray:hover {
+  background: rgba(255,255,255,0.1);
+  color: white;
+}
+
 /* ===== LAYOUT ===== */
 .app-container {
   display: flex;

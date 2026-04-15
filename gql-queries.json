@@ -1,0 +1,95 @@
+{
+  "info": {
+    "name": "Twitch Drops GQL API",
+    "version": "2.0.0",
+    "description": "All GraphQL queries used by Twitch Drops Farmer"
+  },
+  "queries": {
+    "ViewerDropsDashboard": {
+      "operationName": "ViewerDropsDashboard",
+      "variables": {},
+      "query": "query ViewerDropsDashboard { currentUser { dropCurrentSession { dropID game { id displayName } currentMinutesWatched requiredMinutesWatched } dropCampaigns { id status detailsURL game { id displayName viewersCount boxArtURL } name startAt endAt timeBasedDrops { id requiredMinutesWatched requiredSubs name startAt endAt benefitEdges { benefit { id name imageAssetURL } } self { dropInstanceID currentMinutesWatched isClaimed hasPreconditionsMet } } } } }"
+    },
+    "Inventory": {
+      "operationName": "Inventory",
+      "variables": {},
+      "query": "query Inventory { currentUser { inventory { dropCampaignsInProgress { id status detailsURL game { id displayName viewersCount boxArtURL } name startAt endAt timeBasedDrops { id requiredMinutesWatched requiredSubs name startAt endAt benefitEdges { benefit { id name imageAssetURL } } self { dropInstanceID currentMinutesWatched isClaimed hasPreconditionsMet } } } gameEventDrops { id name lastAwardedAt } } } }"
+    },
+    "DropCurrentSessionContext": {
+      "operationName": "DropCurrentSessionContext",
+      "variables": {
+        "channelLogin": "",
+        "channelID": ""
+      },
+      "query": "query DropCurrentSessionContext($channelLogin: String, $channelID: ID) {\n  currentUser {\n    dropCurrentSession(channelLogin: $channelLogin, channelID: $channelID) {\n      dropID\n      currentMinutesWatched\n      requiredMinutesWatched\n      status\n      game {\n        id\n        displayName\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",
+      "extensions": {
+        "persistedQuery": {
+          "version": 1,
+          "sha256Hash": "4d06b702d25d652afb9ef835d2a550031f1cf762b193523a92166f40ea3d142b"
+        }
+      }
+    },
+    "DropCampaignDetails": {
+      "operationName": "DropCampaignDetails",
+      "variables": {
+        "channelLogin": "",
+        "campaignID": ""
+      },
+      "extensions": {
+        "persistedQuery": {
+          "version": 1,
+          "sha256Hash": "14b5e8a50777165cfc3971e1d93b4758613fe1c817d5542c398dce70b7a45571"
+        }
+      }
+    },
+    "DirectoryPage_Game": {
+      "operationName": "DirectoryPage_Game",
+      "variables": {
+        "name": "",
+        "options": {
+          "freeformTags": ["DropsEnabled"],
+          "sort": "VIEWER_COUNT"
+        },
+        "sortTypeIsRecency": false,
+        "limit": 20
+      },
+      "extensions": {
+        "persistedQuery": {
+          "version": 1,
+          "sha256Hash": "df4bb6cc45055c92c540076dbe8e6bba8b79aead099bf053a6781b2b1d tried"
+        }
+      }
+    },
+    "GetUserInfo": {
+      "operationName": "GetUserInfo",
+      "query": "query GetUserInfo { currentUser { id login displayName profileImageURL(width: 70) } }"
+    },
+    "FindStreamer": {
+      "useRawQuery": true,
+      "variables": {
+        "gameName": ""
+      }
+    },
+    "StreamStatus": {
+      "query": "query($login: String!) { user(login: $login) { stream { id } } }",
+      "variables": {
+        "login": ""
+      }
+    },
+    "MultiStreamStatus": {
+      "query": "query($logins: [String!]) { users(logins: $logins) { id login stream { id } } }",
+      "variables": {
+        "logins": []
+      }
+    },
+    "ClaimDrop": {
+      "operationName": "ClaimDrop",
+      "variables": {
+        "input": {
+          "dropInstanceID": ""
+        }
+      },
+      "query": "mutation ClaimDrop($input: ClaimDropInput!) { claimDrop(input: $input) { error { code message } dropSelf { dropInstanceID isClaimed } } }"
+    }
+  }
+}

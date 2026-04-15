@@ -70,13 +70,15 @@ if (btnNavLogs) btnNavLogs.onclick = () => switchView('logs');
 let accountTokens = JSON.parse(localStorage.getItem('accountTokens') || 'null');
 let allCampaigns = [];
 let filteredCampaigns = [];
-let autoClaimEnabled = true;
+let autoClaimEnabled = localStorage.getItem('autoClaimEnabled') !== 'false'; // Default to true
 let currentGlobalDropSession = null;
 let currentFarmingChannelId = null;
 let masterAutoFarmEnabled = false;
 let tokenProcessingStarted = false;
 let manualOverrideId = null;
 let farmAllMode = false; // New mode to farm EVERYTHING active
+let currentUserId = null; // For WebSocket
+let wsDropProgress = {}; // Real-time drop progress from WebSocket { dropId: { current, required } }
 
 // Global helper for consistent image URLs
 function fixTwitchUrl(url, w, h) {
@@ -104,19 +106,31 @@ const btnToggleClaim = document.getElementById('btnToggleClaim');
 if (btnToggleClaim) {
   btnToggleClaim.addEventListener('click', () => {
     autoClaimEnabled = !autoClaimEnabled;
-    if (autoClaimEnabled) {
-      btnToggleClaim.innerText = 'Toggle (Enabled)';
-      btnToggleClaim.className = 'btn-primary';
-      btnToggleClaim.style.background = 'linear-gradient(135deg, var(--accent-color), var(--accent-hover))';
-      btnToggleClaim.style.borderColor = 'transparent';
-      btnToggleClaim.style.color = 'white';
-    } else {
-      btnToggleClaim.innerText = 'Toggle (Disabled)';
-      btnToggleClaim.className = 'btn-outline';
-      btnToggleClaim.style.background = 'transparent';
-    }
+    localStorage.setItem('autoClaimEnabled', autoClaimEnabled);
+    updateAutoClaimUI();
   });
 }
+
+function updateAutoClaimUI() {
+    const btn = document.getElementById('btnToggleClaim');
+    if (!btn) return;
+    if (autoClaimEnabled) {
+      btn.innerText = 'Toggle (Enabled)';
+      btn.className = 'btn-primary';
+      btn.style.background = 'linear-gradient(135deg, var(--accent-color), var(--accent-hover))';
+      btn.style.borderColor = 'transparent';
+      btn.style.color = 'white';
+    } else {
+      btn.innerText = 'Toggle (Disabled)';
+      btn.className = 'btn-outline';
+      btn.style.background = 'transparent';
+      btn.style.color = 'var(--text-secondary)';
+      btn.style.borderColor = 'var(--border-color)';
+    }
+}
+
+// Set initial UI state
+updateAutoClaimUI();
 
 const autoFarmSearch = document.getElementById('autoFarmSearch');
 const selectedGamesChips = document.getElementById('selectedGamesChips');
@@ -285,6 +299,7 @@ let farmingInterval = null;
 let currentFarmCampaignId = null;
 let progressionTracker = {}; // { campaignId: { mins, time } }
 let campaignBlacklist = {}; // { campaignId: expiryTime }
+let pendingClaims = new Set();
 
 function updateMasterAutoFarmUI() {
     const status = document.getElementById('masterToggleStatus');
@@ -403,27 +418,78 @@ function isCampaignFinished(c, inventory) {
     return !unfinishedFound;
 }
 
-function isWatchableCampaign(c) {
-   if (!c || !c.timeBasedDrops || c.timeBasedDrops.length === 0) return false;
-   
-   // No Just Chatting (badges)
-   const gameName = (c.game?.displayName || '').toLowerCase();
-   if (gameName === 'just chatting' || gameName === 'общение') return false;
+/**
+ * Comprehensive campaign validation (Alorf-style)
+ * Returns { isValid: boolean, reason: string }
+ */
+function validateCampaign(c, inventory) {
+    // 1. Basic existence
+    if (!c) return { isValid: false, reason: 'Campaign is null' };
+    if (!c.timeBasedDrops || c.timeBasedDrops.length === 0) {
+        return { isValid: false, reason: 'No time-based drops' };
+    }
 
-   // No Sub-only drops
-   const hasSubRequirement = c.timeBasedDrops.some(d => (d.requiredSubs || 0) > 0);
-   if (hasSubRequirement) return false;
+    // 2. Status check
+    if (c.status !== 'ACTIVE') {
+        return { isValid: false, reason: `Status: ${c.status}` };
+    }
 
-   // Alorf: Date validation (Must be actually active right now)
-   const now = new Date();
-   const start = new Date(c.startAt);
-   const end = new Date(c.endAt);
-   if (now < start || now > end) return false;
+    // 3. Game linkage
+    if (!c.game || !c.game.displayName) {
+        return { isValid: false, reason: 'No game linked' };
+    }
 
-   return true;
+    // 4. Just Chatting / IRL filter
+    const gameName = (c.game.displayName || '').toLowerCase();
+    const badGames = ['just chatting', 'общение', 'irl'];
+    if (badGames.some(bad => gameName.includes(bad))) {
+        return { isValid: false, reason: 'Just Chatting (badge-only)' };
+    }
+
+    // 5. Date validation
+    const now = new Date();
+    const start = new Date(c.startAt);
+    const end = new Date(c.endAt);
+    
+    // Add a 5-minute "buffer" for start/end times to account for clock drift
+    if (now < new Date(start.getTime() - 5 * 60000)) return { isValid: false, reason: 'Not started yet' };
+    if (now > new Date(end.getTime() + 5 * 60000)) return { isValid: false, reason: 'Already ended' };
+
+    // 6. Time remaining check
+    const minutesLeft = (end.getTime() - now.getTime()) / (1000 * 60);
+    // Only check if it's even POSSIBLE to finish at least one drop from scratch or current progress
+    const minRequired = Math.min(...c.timeBasedDrops.map(d => d.requiredMinutesWatched || 0));
+    
+    // Alorf: If less than 5 minutes left total, it's probably not worth it
+    if (minutesLeft < 5) {
+        return { isValid: false, reason: `Campaign ending in < 5m` };
+    }
+
+    // 7. Sub-only filter
+    const hasSubRequirement = c.timeBasedDrops.some(d => (d.requiredSubs || 0) > 0);
+    if (hasSubRequirement) {
+        return { isValid: false, reason: 'Requires subscription' };
+    }
+
+    // 8. Valid drops
+    const validDrops = c.timeBasedDrops.filter(d => (d.requiredMinutesWatched || 0) > 0);
+    if (validDrops.length === 0) {
+        return { isValid: false, reason: 'All drops have 0 minutes requirement' };
+    }
+
+    return { isValid: true, reason: 'OK' };
 }
 
-async function cycleCampaign(direction) {
+function isWatchableCampaign(c) {
+    const res = validateCampaign(c);
+    if (!res.isValid) {
+        console.log(`[Validator] Skipping ${c?.game?.displayName || 'Unknown'}: ${res.reason}`);
+    }
+    return res.isValid;
+}
+
+
+async function cycleCampaign(direction, autoStart = false) {
     if (!allCampaigns.length) return;
     
     // Triple-check: Fetch inventory for precise cycling
@@ -464,7 +530,7 @@ async function cycleCampaign(direction) {
     if (farmStatus) farmStatus.innerText = 'Switching...';
     
     // 3. Just SHOW the info, don't start farming automatically
-    startFarmingSimulation(target, false);
+    startFarmingSimulation(target, autoStart);
 }
 
 async function runMasterFarmLoop() {
@@ -503,7 +569,7 @@ async function runMasterFarmLoop() {
 
                 // Automatic recovery
                 if (farmAllMode) {
-                    cycleCampaign(1);
+                    cycleCampaign(1, true);
                 } else {
                     startFarmAction(curr, false);
                 }
@@ -613,6 +679,7 @@ async function fetchAndUpdateCampaigns() {
   }
   
   const rawCampaigns = userData.dropCampaigns || [];
+  console.log(`Received ${rawCampaigns.length} total campaigns from Twitch`);
   
   // Apply GLOBAL FILTER: Only campaigns with real watchable rewards
   allCampaigns = rawCampaigns.filter(c => isWatchableCampaign(c));
@@ -656,30 +723,27 @@ async function fetchAndUpdateCampaigns() {
   
   // 2. CONSOLIDATED FILTERING & PROCESSING
   let finalCampaigns = [];
-  let skippedCount = 0;
+  let skipStats = {};
 
   for (const c of rawCampaigns) {
       if (!c) continue;
       
-      const isOk = isWatchableCampaign(c);
-      if (!isOk) {
-          skippedCount++;
+      const validation = validateCampaign(c);
+      if (!validation.isValid) {
+          skipStats[validation.reason] = (skipStats[validation.reason] || 0) + 1;
           continue;
       }
 
       const now = new Date();
-      const end = new Date(c.endAt);
       const start = new Date(c.startAt);
+      const end = new Date(c.endAt);
       
-      // Step B: Basic sanity checks
-      if (c.status !== 'ACTIVE' || !c.timeBasedDrops) {
-          skippedCount++;
-          continue;
-      }
+      // Step B: Extract valid drops (safely)
+      const drops = c.timeBasedDrops || [];
+      const validDrops = drops.filter(d => (d.requiredMinutesWatched || 0) > 0);
       
-      const validDrops = c.timeBasedDrops.filter(d => (d.requiredMinutesWatched || 0) > 0);
-      if (validDrops.length === 0 || now < start || now > end) {
-          skippedCount++;
+      if (validDrops.length === 0) {
+          skipStats['No active drops'] = (skipStats['No active drops'] || 0) + 1;
           continue;
       }
       
@@ -695,6 +759,7 @@ async function fetchAndUpdateCampaigns() {
                   if (!d.self) d.self = {};
                   d.self.currentMinutesWatched = ipDrop.self?.currentMinutesWatched || 0;
                   if (ipDrop.self?.isClaimed) d.self.isClaimed = true;
+                  if (ipDrop.self?.dropInstanceID) d.self.dropInstanceID = ipDrop.self.dropInstanceID;
               }
           }
       } else {
@@ -725,6 +790,12 @@ async function fetchAndUpdateCampaigns() {
       
       finalCampaigns.push(c);
   }
+
+  // Log why we have what we have
+  if (Object.keys(skipStats).length > 0) {
+      const summary = Object.entries(skipStats).map(([reason, count]) => `${reason}: ${count}`).join(', ');
+      console.log(`Filtering results: ${finalCampaigns.length} kept, skipped: ${summary}`);
+  }
   
   // UPDATE GLOBAL DATA STORES
   allCampaigns = finalCampaigns;
@@ -749,6 +820,10 @@ async function fetchAndUpdateCampaigns() {
 
   renderCampaignsList();
   renderPriorityGrid(autoFarmSearch ? autoFarmSearch.value : '');
+  
+  if (autoClaimEnabled) {
+      processAutoClaims();
+  }
   
   // Handle auto-farm loop
   if (masterAutoFarmEnabled) {
@@ -784,8 +859,25 @@ async function processTokens(tokens, fromStorage = false) {
       displayName = user.displayName || user.login || 'User';
       login = user.login || '';
       avatarUrl = user.profileImageURL || '';
+      currentUserId = user.id;
+      addLog(`Logged in as ${displayName}`, 'system');
+    } else {
+      addLog('Could not fetch user profile details, using default "Connected"', 'warn');
+      if (userRes.error) console.error("UserInfo Error:", userRes.error);
     }
-  } catch(e) {}
+  } catch(e) {
+    console.error("UserInfo Exception:", e);
+  }
+
+  // Initialize WebSocket for real-time drop progress
+  if (currentUserId && tokens.auth) {
+    try {
+      await window.electronAPI.wsConnect(currentUserId, tokens.auth);
+      addLog('⚡ WebSocket connected — real-time drop updates active', 'system');
+    } catch (e) {
+      addLog('WebSocket connection failed, falling back to polling', 'warn');
+    }
+  }
   
   // Update stat card
   const statsAccountName = document.getElementById('statsAccountName');
@@ -838,9 +930,10 @@ async function processTokens(tokens, fromStorage = false) {
         </div>
       `;
   }
-  
-  if (farmingInterval) clearInterval(farmingInterval);
-  farmingInterval = setInterval(fetchAndUpdateCampaigns, 30000); // More frequent updates (30s)
+  farmingInterval = setInterval(fetchAndUpdateCampaigns, 30000); // Polling fallback (30s)
+
+  // Setup WebSocket real-time listeners
+  setupWebSocketListeners();
 }
 
 window.electronAPI.onTokenCaptured(async (data) => {
@@ -959,6 +1052,7 @@ function stopFarmAction(campaign) {
     currentFarmingChannelId = null;
     currentFarmCampaignId = null;
     manualOverrideId = null;
+    window.electronAPI.updateTrayTooltip('Idle');
     if (campaign) startFarmingSimulation(campaign);
 }
 
@@ -995,6 +1089,7 @@ async function startFarmAction(campaign, isAuto = false) {
 
         currentFarmingChannelId = streamerId;
         window.electronAPI.startFarm(streamerLogin);
+        window.electronAPI.updateTrayTooltip(`Farming: ${campaign.game?.displayName || 'Game'}`);
         addLog(`Watching ${streamerLogin}... (Grace period 45s started)`, 'farm');
         if (farmStatus) farmStatus.innerHTML = `<span style="color: #00e676;">✅ Watching <b>${streamerLogin}</b></span>`;
         
@@ -1036,6 +1131,15 @@ window.startFarmingSimulationById = (id, autoStart = false) => {
     btnNavDashboard.click();
     startFarmingSimulation(campaign, autoStart);
   }
+}
+
+function cycleCampaign(dir) {
+    if (allCampaigns.length === 0) return;
+    const idx = allCampaigns.findIndex(c => c.id === currentFarmCampaignId);
+    let nextIdx = idx + dir;
+    if (nextIdx < 0) nextIdx = allCampaigns.length - 1;
+    if (nextIdx >= allCampaigns.length) nextIdx = 0;
+    startFarmingSimulation(allCampaigns[nextIdx]);
 }
 
 function startFarmingSimulation(campaign, autoStart = false, updateOnly = false) {
@@ -1125,6 +1229,19 @@ function startFarmingSimulation(campaign, autoStart = false, updateOnly = false)
         </div>
     `;
     
+    // Update tray with overall progress
+    if (campaign && currentFarmCampaignId === campaign.id) {
+        // Find current and required mins for the next unclaimed drop to show real progress
+        const activeDrop = drops.find(d => !d.self?.isClaimed);
+        if (activeDrop) {
+            const { currentMins } = getAccurateDropProgress(activeDrop, campaign);
+            const percent = Math.floor((currentMins / activeDrop.requiredMinutesWatched) * 100);
+            window.electronAPI.updateTrayTooltip(`Farming: ${campaign.game?.displayName} (${percent}%)`);
+        } else if (drops.length > 0) {
+            window.electronAPI.updateTrayTooltip(`Farming: ${campaign.game?.displayName} (100%)`);
+        }
+    }
+
     const btnRunFarm = document.getElementById('btnRunFarm');
     const btnStopFarm = document.getElementById('btnStopFarm');
     const btnPrevGame = document.getElementById('btnPrevGame');
@@ -1154,7 +1271,133 @@ function startFarmingSimulation(campaign, autoStart = false, updateOnly = false)
           const btn = document.getElementById('btnRunFarm');
           if (btn && btn.style.display !== 'none') {
               startFarmAction(campaign, true);
+              window.electronAPI.updateTrayTooltip(`Farming: ${campaign.game?.displayName || 'Game'}`);
           }
       }, 100);
   }
+}
+
+// ============================================================
+// WebSocket Real-Time Drop Progress
+// ============================================================
+
+function setupWebSocketListeners() {
+  // Real-time drop progress updates
+  window.electronAPI.onWsDropProgress((data) => {
+    if (data.dropId) {
+      wsDropProgress[data.dropId] = {
+        current: data.currentProgress,
+        required: data.requiredProgress,
+        timestamp: Date.now()
+      };
+      addLog(`⚡ Real-time: ${data.currentProgress}/${data.requiredProgress}m`, 'farm');
+      
+      // Immediately update the UI progress bars without full refresh
+      const curr = allCampaigns.find(c => c.id === currentFarmCampaignId);
+      if (curr) {
+        startFarmingSimulation(curr, false, true);
+      }
+    }
+  });
+
+  // Drop claimed notification
+  window.electronAPI.onWsDropClaim((data) => {
+    addLog(`🎁 Drop claimed via WebSocket! (${data.dropId})`, 'farm');
+    // Force inventory refresh
+    fetchAndUpdateCampaigns();
+  });
+
+  // WebSocket disconnection
+  window.electronAPI.onWsDisconnected((data) => {
+    if (data.permanent) {
+      addLog('⚠️ WebSocket permanently disconnected. Using polling only.', 'warn');
+    }
+  });
+
+  // Generic drop event (for debugging)
+  window.electronAPI.onWsDropEvent((data) => {
+    console.log('[WS Event]', data.type, data.raw);
+  });
+}
+
+/**
+ * Get the most accurate drop progress for a given drop.
+ * Priority: WebSocket data > Inventory data > Campaign data
+ * 
+ * @param {object} drop - A timeBasedDrop object from allCampaigns
+ * @param {object} inventoryDrop - Matching drop from inventory (if available)
+ * @returns {{ currentMins: number, isClaimed: boolean }}
+ */
+function getAccurateDropProgress(drop, inventoryDrop) {
+  let currentMins = 0;
+  let isClaimed = false;
+
+  // Layer 1: Campaign data (least fresh)
+  if (drop.self) {
+    currentMins = drop.self.currentMinutesWatched || 0;
+    isClaimed = drop.self.isClaimed || false;
+  }
+
+  // Layer 2: Inventory data (fresher)
+  if (inventoryDrop?.self) {
+    currentMins = Math.max(currentMins, inventoryDrop.self.currentMinutesWatched || 0);
+    if (inventoryDrop.self.isClaimed) isClaimed = true;
+  }
+
+  // Layer 3: WebSocket real-time data (freshest)
+  const wsData = wsDropProgress[drop.id];
+  if (wsData && (Date.now() - wsData.timestamp) < 5 * 60 * 1000) {
+    // Only use WS data if it's less than 5 minutes old
+    currentMins = Math.max(currentMins, wsData.current || 0);
+  }
+
+  return { currentMins, isClaimed };
+}
+
+async function processAutoClaims() {
+    if (!autoClaimEnabled || !accountTokens) return;
+    
+    let candidates = 0;
+    for (const campaign of allCampaigns) {
+        for (const drop of (campaign.timeBasedDrops || [])) {
+            const self = drop.self || {};
+            
+            if (!self.isClaimed && self.currentMinutesWatched >= drop.requiredMinutesWatched) {
+                const claimId = self.dropInstanceID || `missing-${campaign.id}-${drop.id}`;
+                
+                // If we already tried this recently, skip to avoid spamming windows
+                if (pendingClaims.has(claimId)) continue;
+                
+                if (self.hasPreconditionsMet === false) continue;
+
+                addLog(`[Auto-Claim] Detected ready reward: ${drop.name}. Triggering window-based claim...`, 'system');
+                window.electronAPI.claimViaWindow();
+                
+                candidates++;
+                pendingClaims.add(claimId);
+                // Mark as pending for 10 minutes
+                setTimeout(() => pendingClaims.delete(claimId), 10 * 60 * 1000);
+            }
+        }
+    }
+}
+
+window.electronAPI.onLogMsg((data) => {
+    if (data && data.msg) {
+        addLog(data.msg, data.type || 'info');
+        if (data.refresh) {
+            fetchAndUpdateCampaigns();
+        }
+    }
+});
+
+// Tray initialization
+window.electronAPI.updateTrayTooltip('Idle');
+
+// Minimize to tray button
+const btnMinimizeTray = document.getElementById('btnMinimizeTray');
+if (btnMinimizeTray) {
+    btnMinimizeTray.onclick = () => {
+        window.electronAPI.minimizeToTray();
+    };
 }
