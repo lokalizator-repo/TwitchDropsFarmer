@@ -168,7 +168,7 @@ async function checkUpdates() {
 
     try {
         // !!! IMPORTANT: Replace this URL with your actual GitHub repository raw package.json link
-        const repoUrl = "https://raw.githubusercontent.com/Lokalizator-repo/twitchdropsfarm/main/package.json";
+        const repoUrl = "https://raw.githubusercontent.com/lokalizator-repo/TwitchDropsFarmer/main/package.json";
         const res = await fetch(repoUrl);
         if (!res.ok) throw new Error('Network error');
         
@@ -177,7 +177,7 @@ async function checkUpdates() {
 
         if (remote.version !== currentVersion) {
             notice.innerHTML = `<span style="color: var(--warning); cursor: pointer; text-decoration: underline;">New version ${remote.version} available! Click here.</span>`;
-            notice.onclick = () => window.electronAPI.openExternal("https://github.com/Lokalizator-repo/twitchdropsfarm/releases");
+            notice.onclick = () => window.electronAPI.openExternal("https://github.com/lokalizator-repo/TwitchDropsFarmer/releases");
         } else {
             notice.innerHTML = `<span style="color: var(--success);">You have the latest version.</span>`;
         }
