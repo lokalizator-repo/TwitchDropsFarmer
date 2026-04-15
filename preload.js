@@ -34,5 +34,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onWsDropClaim: (callback) => ipcRenderer.on('ws-drop-claim', (_event, data) => callback(data)),
   onWsDropEvent: (callback) => ipcRenderer.on('ws-drop-event', (_event, data) => callback(data)),
   onWsDisconnected: (callback) => ipcRenderer.on('ws-disconnected', (_event, data) => callback(data)),
-  onLogMsg: (callback) => ipcRenderer.on('log-msg', (_event, data) => callback(data))
+  onLogMsg: (callback) => ipcRenderer.on('log-msg', (_event, data) => callback(data)),
+  
+  // App utilities
+  openExternal: (url) => ipcRenderer.send('open-external', url)
 })

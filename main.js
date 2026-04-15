@@ -1,8 +1,31 @@
-const { app, BrowserWindow, session, ipcMain, Tray, Menu, nativeImage } = require('electron')
+const { app, BrowserWindow, session, ipcMain, Tray, Menu, nativeImage, shell } = require('electron')
 const path = require('node:path')
 const fs = require('fs')
+
+ipcMain.on('open-external', (event, url) => {
+  shell.openExternal(url);
+});
 const TwitchWebSocketManager = require('./websocket-manager')
 const GraphQLManager = require('./gql-manager')
+
+process.on('uncaughtException', (err) => {
+  console.error('!!! UNCAUGHT EXCEPTION !!!', err);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('!!! UNHANDLED REJECTION !!!', reason);
+});
+
+// Basic optimization flags
+app.commandLine.appendSwitch('disable-gpu');
+app.commandLine.appendSwitch('no-sandbox');
+app.commandLine.appendSwitch('disable-extensions');
+app.commandLine.appendSwitch('disable-site-isolation-trials');
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=256');
+app.commandLine.appendSwitch('disable-webgl');
+app.commandLine.appendSwitch('disable-webgl2');
+app.commandLine.appendSwitch('enable-unsafe-swiftshader');
+app.commandLine.appendSwitch('log-level', '3'); // Show only fatal errors to keep console clean
 
 // Managers
 const gql = new GraphQLManager();
@@ -33,7 +56,7 @@ function buildHeaders(tokens) {
 }
 
 function createTray() {
-  const iconPath = path.join(__dirname, 'icon.png');
+  const iconPath = path.join(__dirname, 'assets/icon.png');
   let icon;
   if (fs.existsSync(iconPath)) {
       icon = nativeImage.createFromPath(iconPath);
@@ -78,6 +101,7 @@ const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 1100,
     height: 720,
+    icon: path.join(__dirname, 'assets/icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -96,7 +120,16 @@ const createWindow = () => {
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show()
+    mainWindow.focus()
   })
+
+  // Fallback if ready-to-show is delayed
+  setTimeout(() => {
+    if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.isVisible()) {
+      mainWindow.show()
+      mainWindow.focus()
+    }
+  }, 2000)
 
   mainWindow.on('minimize', (event) => {
     event.preventDefault();
@@ -216,9 +249,10 @@ ipcMain.handle('find-streamer', async (event, gameName, tokens) => {
       body: JSON.stringify({
         query: `query { 
           game(name: "${gameName}") { 
-            streams(first: 20, options: {freeformTags: ["DropsEnabled"]}) { 
+            streams(first: 50) { 
               edges { 
                 node { 
+                  title
                   broadcaster { id login } 
                   freeformTags { name }
                 } 
@@ -348,27 +382,46 @@ ipcMain.on('start-farm', (event, username) => {
   if (!username) return;
 
   farmWin = new BrowserWindow({
-    width: 600, height: 400,
+    width: 800, height: 600,
     show: false,
-    webPreferences: { backgroundThrottling: false }
+    webPreferences: { 
+      backgroundThrottling: false
+    }
   });
 
   farmWin.webContents.setAudioMuted(true);
+  // Disabled setFrameRate(5) for better compatibility
+
   farmWin.loadURL(`https://www.twitch.tv/${username}`);
 
   farmWin.webContents.on('did-finish-load', () => {
     farmWin.webContents.executeJavaScript(`
-       const style = document.createElement('style');
-       style.innerHTML = '.side-nav, .top-nav, .right-column, .chat-shell { display: none !important; } .video-player__container { width: 100vw !important; height: 100vh !important; }';
-       document.head.appendChild(style);
-       setInterval(() => {
-           const stayActive = document.querySelector('button[aria-label="Yes, I am still watching"], .tw-button--success');
-           if (stayActive) stayActive.click();
-           const video = document.querySelector('video');
-           if (video && video.paused) video.play().catch(() => {});
-       }, 30000);
+       (function() {
+         const style = document.createElement('style');
+         style.innerHTML = \`
+           .side-nav, .top-nav, .right-column, .chat-shell, 
+           .channel-root__right-column, .video-chat { 
+              display: none !important; 
+           } 
+           .video-player__container { width: 100vw !important; height: 100vh !important; }
+         \`;
+         document.head.appendChild(style);
+         
+         const removeList = ['.side-nav', '.chat-shell', '.top-nav'];
+         removeList.forEach(sel => {
+           const el = document.querySelector(sel);
+           if (el) el.remove();
+         });
+
+         setInterval(() => {
+             const stayActive = document.querySelector('button[aria-label="Yes, I am still watching"], .tw-button--success');
+             if (stayActive) stayActive.click();
+             const video = document.querySelector('video');
+             if (video && video.paused) video.play().catch(() => {});
+         }, 30000);
+       })();
     `).catch(e => {});
-    console.log(`Started farming: ${username}`);
+    console.log('[Farm] Window active for: ' + username);
   });
 });
 
@@ -377,8 +430,11 @@ ipcMain.on('stop-farm', () => {
 });
 
 let claimWin = null;
+let isProcessingClaim = false;
+
 ipcMain.on('claim-via-window', () => {
-    if (claimWin) return; // Already claim in progress
+    if (claimWin || isProcessingClaim) return;
+    isProcessingClaim = true;
     
     console.log("[ClaimBot] Opening hidden claim window...");
     claimWin = new BrowserWindow({
@@ -448,6 +504,7 @@ ipcMain.on('claim-via-window', () => {
                     claimWin.destroy();
                     claimWin = null;
                 }
+                isProcessingClaim = false;
                 // Notify renderer to refresh inventory after window work
                 if (mainWindow) mainWindow.webContents.send('log-msg', { msg: `[Window-Claim] Process finished. Refreshing inventory...`, type: 'system', refresh: true });
             }, 3000);

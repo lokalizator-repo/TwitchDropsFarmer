@@ -4,12 +4,35 @@
   "description": "Auto Farm Twitch Drops Dashboard",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
   },
-  "author": "",
+  "build": {
+    "appId": "com.twitch.drops.farmer.pro",
+    "productName": "Twitch Drops Farmer PRO",
+    "artifactName": "TwitchDropsFarmerPRO-${version}-Setup.${ext}",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.png"
+    },
+    "files": [
+      "**/*",
+      "!node_modules/*",
+      "node_modules/ws/**/*"
+    ],
+    "asar": true
+  },
+  "author": "Lokalizator",
   "license": "ISC",
   "dependencies": {
-    "electron": "^34.0.0",
     "ws": "^8.20.0"
+  },
+  "devDependencies": {
+    "electron": "^34.0.0",
+    "electron-builder": "^25.1.8"
   }
 }

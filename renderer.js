@@ -73,12 +73,16 @@ let filteredCampaigns = [];
 let autoClaimEnabled = localStorage.getItem('autoClaimEnabled') !== 'false'; // Default to true
 let currentGlobalDropSession = null;
 let currentFarmingChannelId = null;
+let currentFarmCampaignId = null; // Currently VIEWED campaign
+let activeFarmingCampaignId = null; // Currently FARMED campaign
+let activeFarmingChannelLogin = null; // Name of current streamer for UI
 let masterAutoFarmEnabled = false;
 let tokenProcessingStarted = false;
 let manualOverrideId = null;
 let farmAllMode = false; // New mode to farm EVERYTHING active
 let currentUserId = null; // For WebSocket
 let wsDropProgress = {}; // Real-time drop progress from WebSocket { dropId: { current, required } }
+let uiTimerInterval = null; // High-frequency UI update interval
 
 // Global helper for consistent image URLs
 function fixTwitchUrl(url, w, h) {
@@ -108,6 +112,11 @@ if (btnToggleClaim) {
     autoClaimEnabled = !autoClaimEnabled;
     localStorage.setItem('autoClaimEnabled', autoClaimEnabled);
     updateAutoClaimUI();
+    
+    if (autoClaimEnabled) {
+        addLog('Auto-Claim enabled. Checking rewards...', 'system');
+        processAutoClaims();
+    }
   });
 }
 
@@ -143,6 +152,44 @@ function savePriorityGames() {
     localStorage.setItem('autoFarmGames', selectedPriorityGames.join(', '));
 }
 
+const btnCheckUpdate = document.getElementById('btnCheckUpdate');
+if (btnCheckUpdate) {
+    btnCheckUpdate.onclick = () => checkUpdates();
+}
+
+async function checkUpdates() {
+    const btn = document.getElementById('btnCheckUpdate');
+    const notice = document.getElementById('updateNotice');
+    if (!btn || !notice) return;
+
+    btn.innerText = 'Checking...';
+    btn.disabled = true;
+    notice.innerText = '';
+
+    try {
+        // !!! IMPORTANT: Replace this URL with your actual GitHub repository raw package.json link
+        const repoUrl = "https://raw.githubusercontent.com/Lokalizator-repo/twitchdropsfarm/main/package.json";
+        const res = await fetch(repoUrl);
+        if (!res.ok) throw new Error('Network error');
+        
+        const remote = await res.json();
+        const currentVersion = "1.0.0"; 
+
+        if (remote.version !== currentVersion) {
+            notice.innerHTML = `<span style="color: var(--warning); cursor: pointer; text-decoration: underline;">New version ${remote.version} available! Click here.</span>`;
+            notice.onclick = () => window.electronAPI.openExternal("https://github.com/Lokalizator-repo/twitchdropsfarm/releases");
+        } else {
+            notice.innerHTML = `<span style="color: var(--success);">You have the latest version.</span>`;
+        }
+    } catch (e) {
+        console.error("Update check failed:", e);
+        notice.innerHTML = `<span style="color: var(--danger);">Error checking updates.</span>`;
+    } finally {
+        btn.innerText = 'Check for Updates';
+        btn.disabled = false;
+    }
+}
+
 function addCustomGame() {
     if (!autoFarmSearch) return;
     const val = autoFarmSearch.value.trim();
@@ -168,9 +215,9 @@ function renderPriorityChips() {
        const imgTag = miniImg ? `<img src="${miniImg}" style="width:18px; height:24px; border-radius:3px; object-fit:cover;" onerror="this.onerror=null; this.src='https://static-cdn.jtvnw.net/ttv-boxart/488190-36x48.jpg'">` : '🎮';
        return `
         <div style="background: rgba(191,148,255,0.12); border: 1px solid var(--accent-color); color: white; padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
-            <div style="display:flex; flex-direction: column; gap: 2px; line-height: 1;">
-                <span onclick="movePriorityGame(${index}, -1)" style="cursor:pointer; opacity: 0.6; font-size: 10px; padding: 2px;">▲</span>
-                <span onclick="movePriorityGame(${index}, 1)" style="cursor:pointer; opacity: 0.6; font-size: 10px; padding: 2px;">▼</span>
+            <div style="display:flex; flex-direction: row; gap: 4px; line-height: 1;">
+                <span onclick="movePriorityGame(${index}, -1)" style="cursor:pointer; opacity: 0.8; font-size: 11px; padding: 2px;">◀</span>
+                <span onclick="movePriorityGame(${index}, 1)" style="cursor:pointer; opacity: 0.8; font-size: 11px; padding: 2px;">▶</span>
             </div>
             ${imgTag}
             <span>${game}</span>
@@ -296,8 +343,8 @@ if (loginBtn) {
 
 
 let farmingInterval = null;
-let currentFarmCampaignId = null;
 let progressionTracker = {}; // { campaignId: { mins, time } }
+let stallBlacklist = {}; // campaignId -> timestamp to ignore until
 let campaignBlacklist = {}; // { campaignId: expiryTime }
 let pendingClaims = new Set();
 
@@ -544,34 +591,69 @@ async function runMasterFarmLoop() {
     const savedList = (localStorage.getItem('autoFarmGames') || '').split(',').map(s=>s.trim().toLowerCase());
     
     // 1. Monitor progression of CURRENTLY farming campaign
-    const curr = allCampaigns.find(c => c.id === currentFarmCampaignId);
+    const curr = allCampaigns.find(c => c.id === activeFarmingCampaignId);
     if (curr) {
         const ipCamp = inventory?.dropCampaignsInProgress?.find(ip => ip.id === curr.id);
-        // We sum ALL minutes of ALL rewards to see if ANY of them move
-        const currentMins = ipCamp ? ipCamp.timeBasedDrops.reduce((acc, d) => acc + (d.self?.currentMinutesWatched || 0), 0) : 0;
-        const stats = progressionTracker[curr.id] || { mins: -1, time: now };
+        const activeDrop = ipCamp?.timeBasedDrops?.find(d => !d.self?.isClaimed);
+        
+        // Track the specific progress of the FIRST unclaimed drop
+        const currentMins = activeDrop?.self?.currentMinutesWatched || 0;
+        const dropName = activeDrop?.name || 'Unknown';
+        const stats = progressionTracker[curr.id] || { mins: -1, time: now, lastDropName: '' };
         
         if (currentMins > stats.mins) {
             // PROGRESS DETECTED!
             if (stats.mins !== -1) {
                 const diff = currentMins - stats.mins;
-                addLog(`[${curr.game?.displayName}] Progress: +${diff}m (Total: ${currentMins}m)`, 'farm');
+                addLog(`[${curr.game?.displayName}] Progress on "${dropName}": +${diff}m (${currentMins}m)`, 'farm');
             }
-            progressionTracker[curr.id] = { mins: currentMins, time: now };
+            progressionTracker[curr.id] = { mins: currentMins, time: now, lastDropName: dropName };
         } else {
-            // Check for STALL. 
-            // If it's a NEW session (mins === -1), wait 45s. If established, wait 2min.
-            const threshold = stats.mins === -1 ? 45 * 1000 : 2.2 * 60 * 1000;
+            // Check for STALL (Decrease threshold to 120s as requested)
+            const threshold = stats.mins === -1 ? 45 * 1000 : 2 * 60 * 1000;
+            const elapsed = now - stats.time;
             
-            if ((now - stats.time) > threshold) {
-                addLog(`Verified stall! No progress on ${curr.game?.displayName} after ${Math.round(threshold/1000)}s. Moving on...`, 'warn');
-                progressionTracker[curr.id] = { mins: currentMins, time: now }; 
+            // Dedicated UI Timer
+            if (!uiTimerInterval) {
+                uiTimerInterval = setInterval(() => {
+                    const statusArea = document.getElementById('stallStatus');
+                    const c = allCampaigns.find(currCamp => currCamp.id === activeFarmingCampaignId);
+                    if (statusArea && c && progressionTracker[c.id]) {
+                        const s = progressionTracker[c.id];
+                        const th = s.mins === -1 ? 45 * 1000 : 2 * 60 * 1000;
+                        const el = Date.now() - s.time;
+                        const rem = Math.max(0, Math.floor((th - el) / 1000));
+                        if (rem > 0) {
+                            statusArea.innerHTML = `<span style="color: var(--warning); font-size: 11px; opacity: 0.8;">⏳ Stall check: ${rem}s / ${Math.round(th/1000)}s</span>`;
+                        } else if (rem === 0) {
+                             statusArea.innerHTML = `<span style="color: var(--danger); font-size: 11px;">🚨 Stall verified!</span>`;
+                        }
+                    } else if (uiTimerInterval) {
+                        statusArea.innerHTML = '';
+                        clearInterval(uiTimerInterval);
+                        uiTimerInterval = null;
+                    }
+                }, 1000);
+            }
 
-                // Automatic recovery
+            if (elapsed > threshold) {
+                if (uiTimerInterval) { clearInterval(uiTimerInterval); uiTimerInterval = null; }
+                const timerArea = document.getElementById('stallStatus');
+                if (timerArea) timerArea.innerHTML = '';
+
+                const campaignName = curr.name || curr.game?.displayName || 'Unknown';
+                addLog(`Verified stall on campaign "${campaignName}"! Ignoring for 1 hour.`, 'warn');
+                stallBlacklist[curr.id] = now + 60 * 60 * 1000; // Ignore for 1 hour
+                progressionTracker[curr.id] = { mins: currentMins, time: now, lastDropName: dropName }; 
+
+                // Reset broadcaster so we find a new one for the next campaign
+                currentFarmingChannelId = null;
+
                 if (farmAllMode) {
                     cycleCampaign(1, true);
                 } else {
-                    startFarmAction(curr, false);
+                    stopFarmAction(curr);
+                    currentFarmCampaignId = null;
                 }
                 return;
             }
@@ -586,12 +668,17 @@ async function runMasterFarmLoop() {
         eligible = allCampaigns.filter(c => 
             c.status === 'ACTIVE' && 
             isWatchableCampaign(c) &&
-            !isCampaignFinished(c, inventory)
+            !isCampaignFinished(c, inventory) &&
+            (!stallBlacklist[c.id] || now > stallBlacklist[c.id])
         );
     } else {
         // Mode: Priority only
         for (const name of savedList) {
-            const matchingCamps = allCampaigns.filter(c => c.game?.displayName?.toLowerCase() === name && c.status === 'ACTIVE');
+            const matchingCamps = allCampaigns.filter(c => 
+                c.game?.displayName?.toLowerCase() === name && 
+                c.status === 'ACTIVE' &&
+                (!stallBlacklist[c.id] || now > stallBlacklist[c.id])
+            );
             for (const camp of matchingCamps) {
                  if (isWatchableCampaign(camp)) {
                     if (!isCampaignFinished(camp, inventory)) {
@@ -1050,7 +1137,8 @@ function stopFarmAction(campaign) {
     addLog(`Stopping farm session...`, 'system');
     window.electronAPI.stopFarm();
     currentFarmingChannelId = null;
-    currentFarmCampaignId = null;
+    activeFarmingCampaignId = null;
+    activeFarmingChannelLogin = null;
     manualOverrideId = null;
     window.electronAPI.updateTrayTooltip('Idle');
     if (campaign) startFarmingSimulation(campaign);
@@ -1069,8 +1157,14 @@ async function startFarmAction(campaign, isAuto = false) {
         const streams = res?.data?.game?.streams?.edges || [];
         
         const validStreams = streams.filter(s => {
-            const tags = s.node.freeformTags || [];
-            return tags.some(t => t.name === 'DropsEnabled');
+            const tags = (s.node.freeformTags || []).map(t => t.name.toLowerCase());
+            const title = (s.node.title || '').toLowerCase();
+            
+            // Look for "drops" in tags (localized like "Drops有効" or "DropsВключены") or in title
+            return tags.some(t => t.includes('drops')) || 
+                   title.includes('drops') || 
+                   title.includes('!drops') || 
+                   title.includes('дропс');
         });
 
         if (validStreams.length === 0) {
@@ -1088,6 +1182,8 @@ async function startFarmAction(campaign, isAuto = false) {
         const streamerId = targetStreamer.id;
 
         currentFarmingChannelId = streamerId;
+        activeFarmingCampaignId = campaign.id;
+        activeFarmingChannelLogin = streamerLogin;
         window.electronAPI.startFarm(streamerLogin);
         window.electronAPI.updateTrayTooltip(`Farming: ${campaign.game?.displayName || 'Game'}`);
         addLog(`Watching ${streamerLogin}... (Grace period 45s started)`, 'farm');
@@ -1133,13 +1229,13 @@ window.startFarmingSimulationById = (id, autoStart = false) => {
   }
 }
 
-function cycleCampaign(dir) {
+function cycleCampaign(dir, autoStart = false) {
     if (allCampaigns.length === 0) return;
     const idx = allCampaigns.findIndex(c => c.id === currentFarmCampaignId);
     let nextIdx = idx + dir;
     if (nextIdx < 0) nextIdx = allCampaigns.length - 1;
     if (nextIdx >= allCampaigns.length) nextIdx = 0;
-    startFarmingSimulation(allCampaigns[nextIdx]);
+    startFarmingSimulation(allCampaigns[nextIdx], autoStart);
 }
 
 function startFarmingSimulation(campaign, autoStart = false, updateOnly = false) {
@@ -1223,6 +1319,7 @@ function startFarmingSimulation(campaign, autoStart = false, updateOnly = false)
                 </div>
             </div>
             <div id="farmStatus" style="margin-top: 15px; font-size: 13px; color: var(--text-secondary);">Select the channel to start farming...</div>
+            <div id="stallStatus" style="margin-top: 4px; height: 16px;"></div>
         </div>
         <div id="dropItemsList" style="width: 100%; max-width: 600px;">
             ${itemsHtml}
@@ -1253,11 +1350,11 @@ function startFarmingSimulation(campaign, autoStart = false, updateOnly = false)
     if (btnNextGame) btnNextGame.onclick = () => cycleCampaign(1);
 
     // If already farming this same game, show active UI
-    if (currentFarmingChannelId && currentFarmCampaignId === campaign.id) {
+    if (currentFarmingChannelId && activeFarmingCampaignId === campaign.id) {
         if (btnRunFarm) btnRunFarm.style.display = 'none';
         if (btnStopFarm) btnStopFarm.style.display = 'block';
         const farmStatus = document.getElementById('farmStatus');
-        if (farmStatus) farmStatus.innerHTML = `<span style="color: #00e676;">✅ Watching...</span>`;
+        if (farmStatus) farmStatus.innerHTML = `<span style="color: #00e676;">✅ Watching <b>${activeFarmingChannelLogin || '...'}</b></span>`;
     }
 
   } else {
@@ -1285,12 +1382,25 @@ function setupWebSocketListeners() {
   // Real-time drop progress updates
   window.electronAPI.onWsDropProgress((data) => {
     if (data.dropId) {
+      const oldData = wsDropProgress[data.dropId];
+      const newMins = data.currentProgress;
+      const oldMins = oldData ? oldData.current : -1;
+
       wsDropProgress[data.dropId] = {
-        current: data.currentProgress,
+        current: newMins,
         required: data.requiredProgress,
         timestamp: Date.now()
       };
-      addLog(`⚡ Real-time: ${data.currentProgress}/${data.requiredProgress}m`, 'farm');
+
+      // Explicitly log the progress when it increases
+      if (newMins > oldMins && oldMins !== -1) {
+        const diff = newMins - oldMins;
+        const curr = allCampaigns.find(c => c.id === currentFarmCampaignId);
+        const gameName = curr?.game?.displayName || 'Game';
+        addLog(`[${gameName}] Real-time progress: +${diff}m (${newMins}m)`, 'farm');
+      } else if (oldMins === -1) {
+        addLog(`[WS] Real-time tracking active for drop. Current: ${newMins}m`, 'system');
+      }
       
       // Immediately update the UI progress bars without full refresh
       const curr = allCampaigns.find(c => c.id === currentFarmCampaignId);
@@ -1365,20 +1475,21 @@ async function processAutoClaims() {
             if (!self.isClaimed && self.currentMinutesWatched >= drop.requiredMinutesWatched) {
                 const claimId = self.dropInstanceID || `missing-${campaign.id}-${drop.id}`;
                 
-                // If we already tried this recently, skip to avoid spamming windows
+                // If we already tried this recently, skip
                 if (pendingClaims.has(claimId)) continue;
-                
                 if (self.hasPreconditionsMet === false) continue;
 
-                addLog(`[Auto-Claim] Detected ready reward: ${drop.name}. Triggering window-based claim...`, 'system');
-                window.electronAPI.claimViaWindow();
-                
                 candidates++;
                 pendingClaims.add(claimId);
                 // Mark as pending for 10 minutes
                 setTimeout(() => pendingClaims.delete(claimId), 10 * 60 * 1000);
             }
         }
+    }
+
+    if (candidates > 0) {
+        addLog(`[Auto-Claim] Detected ${candidates} ready reward(s). Triggering one hidden claim window...`, 'system');
+        window.electronAPI.claimViaWindow();
     }
 }
 
