@@ -1,31 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Twitch Drops Farmer</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <div class="titlebar">
-    <span>Twitch Drop Farmer Pro</span>
+    <span>Twitch Drops Farmer</span>
     <button id="btnMinimizeTray" title="Minimize to Tray" class="btn-minimize-tray">—</button>
   </div>
 
   <div class="app-container">
     <aside class="sidebar">
       <div class="logo">
-        <svg fill="#bf94ff" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4.286 2.286 2 8v11.429h5.143V22.857L10.571 19.429H14l6.857-6.857V2.286H4.286zm14.285 9.143-3.428 3.428H11.43l-3.429 3.429v-3.429H5.143V4.571h13.428v6.858zM14.857 7.429v4.571h-2v-4.571h2zm-4.571 0v4.571h-2v-4.571h2z"/>
-        </svg>
-        Farmer Pro
+        <img src="assets/icon.png" style="width: 32px; height: 32px; object-fit: contain;">
+        <div style="display: flex; flex-direction: column; line-height: 1.1;">
+          <span style="font-size: 16px; font-weight: 800; letter-spacing: -0.5px; color: white;">Drops Farmer</span>
+          <span style="font-size: 9px; color: var(--accent-hover); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px;">v1.0 STABLE</span>
+        </div>
       </div>
       <nav class="sidebar-nav">
         <div class="nav-item active" id="btnNavDashboard">
-          <span style="margin-right: 10px;">🏠</span>Dashboard
+          <span style="margin-right: 10px;">🏠</span> Hub
         </div>
         <div class="nav-item" id="btnNavCampaigns">
           <span style="margin-right: 10px;">🎮</span>Campaigns
+        </div>
+        <div class="nav-item" id="btnNavInventory">
+          <span style="margin-right: 10px;">🎁</span>Inventory
         </div>
         <div class="nav-item" id="btnNavSettings">
           <span style="margin-right: 10px;">⚙️</span>Settings
@@ -42,12 +50,12 @@
         <button id="loginBtn" class="btn-primary">Login to Twitch</button>
       </div>
     </aside>
-    
+
     <main class="main-content">
       <!-- DASHBOARD VIEW -->
       <div id="viewDashboard" style="display: block;">
         <header>
-          <h1>Dashboard</h1>
+          <h1>Control Hub</h1>
           <div class="stats-row">
             <div class="stat-card">
               <h3>Active Farm</h3>
@@ -63,21 +71,25 @@
             </div>
           </div>
         </header>
-        
+
         <section class="content-section">
           <div class="control-center-panel">
             <div style="display: flex; flex-direction: column; gap: 4px;">
-              <span style="color: var(--text-secondary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px;">Auto-Farm Center</span>
-              <h3 id="currentModeDisplay" style="margin: 0; font-size: 16px; font-weight: 600;">System: <span id="masterToggleStatus">Idle</span></h3>
+              <span
+                style="color: var(--text-secondary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px;">Auto-Farm
+                Center</span>
+              <h3 id="currentModeDisplay" style="margin: 0; font-size: 16px; font-weight: 600;">System: <span
+                  id="masterToggleStatus">Idle</span></h3>
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
-               <button id="btnTogglePriority" class="btn-toggle">
-                  <span class="icon">★</span> Priority Only
-               </button>
-               <button id="btnToggleGlobal" class="btn-toggle">
-                  <span class="icon">⚡</span> Global Mode
-               </button>
-               <button id="btnStopMaster" class="btn-danger" style="display: none; padding: 10px 18px; width: auto; border-radius: 10px;">⏹ Stop</button>
+              <button id="btnTogglePriority" class="btn-toggle">
+                <span class="icon">★</span> Priority Only
+              </button>
+              <button id="btnToggleGlobal" class="btn-toggle">
+                <span class="icon">⚡</span> Global Mode
+              </button>
+              <button id="btnStopMaster" class="btn-danger"
+                style="display: none; padding: 10px 18px; width: auto; border-radius: 10px;">⏹ Stop</button>
             </div>
           </div>
           <div class="farm-panel" id="farmPanel">
@@ -91,19 +103,54 @@
 
       <!-- CAMPAIGNS VIEW -->
       <div id="viewCampaigns" style="display: none;">
-        <header style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+        <header
+          style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
           <div style="flex: 1; min-width: 250px;">
             <h1 style="margin-bottom: 8px;">Active Campaigns</h1>
-            <p style="color: var(--text-secondary); margin-bottom: 0;">Browse and start farming any active drop campaign.</p>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span
+                style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Sort:</span>
+              <button id="btnSortViewers" class="btn-secondary active-sort"
+                style="padding: 5px 10px; font-size: 11px; border-radius: 6px; border: 1px solid var(--accent-color); background: var(--accent-light); color: var(--accent-hover);">⚡
+                Viewers</button>
+              <button id="btnSortEnd" class="btn-secondary"
+                style="padding: 5px 10px; font-size: 11px; border-radius: 6px;">⏰ Ending Soon</button>
+            </div>
           </div>
           <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-            <button id="btnFarmAll" class="btn-primary" style="background: linear-gradient(135deg, #00e676, #00c853); font-size:12px; padding: 10px 20px; width: auto; border: none; cursor: pointer;">⚡ Farm All Available Drops</button>
-            <input type="text" id="campaignSearch" placeholder="Search games..." style="padding: 10px 16px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-primary); color: white; outline: none; width: 220px; font-size: 14px;">
+            <button id="btnFarmAll" class="btn-primary"
+              style="background: linear-gradient(135deg, #00e676, #00c853); font-size:12px; padding: 10px 20px; width: auto; border: none; cursor: pointer;">⚡
+              Farm All Available Drops</button>
+            <input type="text" id="campaignSearch" placeholder="Search games..."
+              style="padding: 10px 16px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-primary); color: white; outline: none; width: 220px; font-size: 14px;">
           </div>
         </header>
-        
-        <div id="campaignsContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px;">
-           <p style="color: var(--text-secondary);">Authenticate to view campaigns...</p>
+
+        <div style="display: flex; gap: 20px; align-items: flex-start;">
+          <div id="campaignsContainer"
+            style="flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px;">
+            <p style="color: var(--text-secondary);">Authenticate to view campaigns...</p>
+          </div>
+
+          <div id="previewPanel" class="farm-panel"
+            style="width: 400px; position: sticky; top: 10px; min-height: 400px; display: none; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px;">
+            <!-- Preview details will load here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- INVENTORY VIEW -->
+      <div id="viewInventory" style="display: none;">
+        <header style="margin-bottom: 25px;">
+          <h1>My Inventory</h1>
+          <p style="color: var(--text-secondary);">History of all your successfully claimed drops.</p>
+        </header>
+
+        <div id="inventoryContainer" class="inventory-grid">
+          <!-- Grid of claimed items -->
+          <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+            Loading your rewards...
+          </div>
         </div>
       </div>
 
@@ -113,67 +160,90 @@
           <h1 style="margin-bottom: 8px;">Settings</h1>
           <p style="color: var(--text-secondary); margin-bottom: 25px;">Configure your farming preferences.</p>
         </header>
-        
+
         <!-- SELECTED GAMES + SEARCH -->
         <div class="farm-panel settings-panel" style="margin-bottom: 16px;">
-           <h3 style="margin-bottom: 5px;">Priority Auto-Farm Games</h3>
-           <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 13px;">Selected games will be farmed automatically when you enable Auto-Farm.</p>
-           
-           <!-- Selected Games Chips -->
-           <div id="selectedGamesChips" style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; min-height: 34px;">
-               <span style="color: var(--text-secondary); font-size: 13px; font-style: italic; align-self: center;">No games selected yet.</span>
-           </div>
+          <h3 style="margin-bottom: 5px;">Priority Auto-Farm Games</h3>
+          <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 13px;">Selected games will be farmed
+            automatically when you enable Auto-Farm.</p>
 
-           <div style="display: flex; gap: 10px; width: 100%;">
-               <input type="text" id="autoFarmSearch" placeholder="Type a game name and press Enter or click + Add" style="flex: 1; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-primary); color: white; outline: none; font-size: 13px;">
-               <button id="btnAddCustomGame" class="btn-primary" style="width: auto; padding: 0 18px; white-space: nowrap; font-size: 13px;">+ Add</button>
-           </div>
+          <!-- Selected Games Chips -->
+          <div id="selectedGamesChips"
+            style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; min-height: 34px;">
+            <span style="color: var(--text-secondary); font-size: 13px; font-style: italic; align-self: center;">No
+              games selected yet.</span>
+          </div>
+
+          <div style="display: flex; gap: 10px; width: 100%;">
+            <input type="text" id="autoFarmSearch" placeholder="Type a game name and press Enter or click + Add"
+              style="flex: 1; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-primary); color: white; outline: none; font-size: 13px;">
+            <button id="btnAddCustomGame" class="btn-primary"
+              style="width: auto; padding: 0 18px; white-space: nowrap; font-size: 13px;">+ Add</button>
+          </div>
         </div>
 
         <!-- AUTO CLAIM -->
         <div class="farm-panel settings-panel" style="margin-bottom: 16px;">
-           <h3 style="margin-bottom: 10px;">Auto-Claim Drops</h3>
-           <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 13px;">Automatically claim drops when they reach 100%.</p>
-           <button id="btnToggleClaim" class="btn-primary" style="width: 200px;">Toggle (Enabled)</button>
+          <h3 style="margin-bottom: 10px;">Auto-Claim Drops</h3>
+          <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 13px;">Automatically claim drops when
+            they reach 100%.</p>
+          <button id="btnToggleClaim" class="btn-primary" style="width: 200px;">Toggle (Enabled)</button>
         </div>
 
         <!-- APP UPDATES -->
         <div class="farm-panel settings-panel" style="margin-bottom: 16px; border: 1px dashed var(--accent-color);">
-           <h3 style="margin-bottom: 10px;">App Updates</h3>
-           <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 13px;">Check if a new version is available on GitHub.</p>
-           <div style="display: flex; align-items: center; gap: 12px;">
-              <button id="btnCheckUpdate" class="btn-secondary" style="width: 200px;">Check for Updates</button>
-              <span id="updateNotice" style="font-size: 13px; font-weight: 500;"></span>
-           </div>
+          <h3 style="margin-bottom: 10px;">App Updates</h3>
+          <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 13px;">Check if a new version is
+            available on GitHub.</p>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button id="btnCheckUpdate" class="btn-secondary" style="width: 200px;">Check for Updates</button>
+            <span id="updateNotice" style="font-size: 13px; font-weight: 500;"></span>
+          </div>
         </div>
 
-        <!-- GAME SELECTOR GRID (scrollable) -->
+        <!-- GAME SELECTOR GRID -->
+        <div class="farm-panel settings-panel" style="margin-bottom: 
+16px;">
+          <h3 style="margin-bottom: 5px;">Browse Active Campaigns</h3>
+          <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 13px;">Click a game to add or remove it from your priority list.</p>
+          <div id="priorityGameGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); grid-auto-rows: max-content; align-items: start; gap: 10px; width: 100%; max-height: 400px; overflow-y: auto;">
+            <p style="color: var(--text-secondary); font-size: 13px; grid-column: 1/-1;">Connect your Twitch account to load games here.</p>
+          </div>
+        </div>
+
+        <!-- MAINTENANCE -->
         <div class="farm-panel settings-panel">
-           <h3 style="margin-bottom: 5px;">Browse Active Campaigns</h3>
-           <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 13px;">Click a game to add or remove it from your priority list.</p>
-           <div id="priorityGameGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); grid-auto-rows: max-content; align-items: start; gap: 10px; width: 100%; max-height: 400px; overflow-y: auto;">
-              <p style="color: var(--text-secondary); font-size: 13px; grid-column: 1/-1;">Connect your Twitch account to load games here.</p>
-           </div>
+          <h3 style="margin-bottom: 10px;">Maintenance & Tools</h3>
+          <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 13px;">General maintenance and cleanup tools.</p>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button id="btnClearLogs" class="btn" style="background: rgba(255,255,255,0.05); color: var(--text-secondary); height: 38px; padding: 0 18px; font-size: 13px; border: 1px solid var(--border-color);">Clear App Logs</button>
+            <button id="btnClearIgnored" class="btn" style="background: rgba(255,255,255,0.05); color: var(--text-secondary); height: 38px; padding: 0 18px; font-size: 13px; border: 1px solid var(--border-color);">Reset Ignored List</button>
+          </div>
         </div>
       </div>
-      
+
       <!-- LOGS VIEW -->
       <div id="logsView" style="display: none;">
-         <header class="view-header">
-           <h1 style="margin-bottom: 8px;">System Logs</h1>
-           <p style="color: var(--text-secondary); margin-bottom: 25px;">Real-time activity and debugging information.</p>
-         </header>
-         <div class="farm-panel" style="padding: 0; overflow: hidden; background: #000; border: 1px solid var(--border-color); border-radius: 8px;">
-            <div id="logConsole" style="height: 500px; overflow-y: auto; padding: 15px; font-family: 'Consolas', 'Monaco', monospace; font-size: 12px; line-height: 1.6; color: #d1d1d1;">
-               <div style="color: #bf94ff; margin-bottom: 8px;">[SYSTEM] Logger initialized...</div>
-            </div>
-         </div>
-         <div style="margin-top: 10px; text-align: right;">
-            <button class="btn-outline" style="width: auto; padding: 8px 18px; font-size: 13px;" onclick="document.getElementById('logConsole').innerHTML = ''">Clear Logs</button>
-         </div>
+        <header class="view-header">
+          <h1 style="margin-bottom: 8px;">System Logs</h1>
+          <p style="color: var(--text-secondary); margin-bottom: 25px;">Real-time activity and debugging information.
+          </p>
+        </header>
+        <div class="farm-panel"
+          style="padding: 0; overflow: hidden; background: #000; border: 1px solid var(--border-color); border-radius: 8px;">
+          <div id="logConsole"
+            style="height: 500px; overflow-y: auto; padding: 15px; font-family: 'Consolas', 'Monaco', monospace; font-size: 12px; line-height: 1.6; color: #d1d1d1;">
+            <div style="color: #bf94ff; margin-bottom: 8px;">[SYSTEM] Logger initialized...</div>
+          </div>
+        </div>
+        <div style="margin-top: 10px; text-align: right;">
+          <button class="btn-outline" style="width: auto; padding: 8px 18px; font-size: 13px;"
+            onclick="document.getElementById('logConsole').innerHTML = ''">Clear Logs</button>
+        </div>
       </div>
     </main>
   </div>
   <script src="renderer.js"></script>
 </body>
+
 </html>

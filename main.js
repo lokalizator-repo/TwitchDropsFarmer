@@ -9,11 +9,11 @@ const TwitchWebSocketManager = require('./websocket-manager')
 const GraphQLManager = require('./gql-manager')
 
 process.on('uncaughtException', (err) => {
-  console.error('!!! UNCAUGHT EXCEPTION !!!', err);
+  console.error('Core: Uncaught Exception:', err);
 });
 
 process.on('unhandledRejection', (reason) => {
-  console.error('!!! UNHANDLED REJECTION !!!', reason);
+  console.error('Core: Unhandled Rejection:', reason);
 });
 
 // Basic optimization flags
@@ -38,9 +38,9 @@ let mainWindow;
 let tray = null;
 let isQuitting = false;
 
-// ============================================================
-// Helper: build standard GQL headers
-// ============================================================
+/**
+ * Build standard Twitch GQL headers including optional Integrity and Device-Id
+ */
 function buildHeaders(tokens) {
   const headers = {
     'Client-Id': tokens.clientId || 'kimne78kx3ncx6brgo4mv6wki5h1ko',
@@ -177,9 +177,9 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
 })
 
-// ============================================================
-// GQL IPC Handlers (all use GraphQLManager)
-// ============================================================
+/**
+ * IPC Handlers for Twitch GraphQL operations
+ */
 
 ipcMain.handle('get-user-info', async (event, tokens) => {
   return await gql.execute('GetUserInfo', {}, buildHeaders(tokens));
@@ -333,12 +333,18 @@ ipcMain.handle('claim-drop', async (event, dropInstanceId, tokens) => {
   }, buildHeaders(tokens));
 });
 
-// ============================================================
-// WebSocket IPC
-// ============================================================
+/**
+ * WebSocket communication handlers for real-time progress updates
+ */
 
 ipcMain.handle('ws-connect', async (event, userId, authToken) => {
   try {
+    const status = wsManager.getStatus();
+    if (status.connected && status.userId === userId && status.subscribed) {
+      console.log(`[WS] Already connected and subscribed for userId ${userId}. Skipping redundant connect.`);
+      return { success: true, alreadyConnected: true };
+    }
+
     wsManager.removeAllListeners();
 
     wsManager.on('drop-progress', (data) => {
