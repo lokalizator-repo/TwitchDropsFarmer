@@ -19,12 +19,25 @@
       "target": "nsis",
       "icon": "assets/icon.png"
     },
+    "electronLanguages": ["en", "ru"],
     "files": [
-      "**/*",
-      "!node_modules/*",
+      "main.js",
+      "renderer.js",
+      "preload.js",
+      "index.html",
+      "style.css",
+      "gql-manager.js",
+      "websocket-manager.js",
+      "gql-queries.json",
+      "assets/**/*",
       "node_modules/ws/**/*"
     ],
-    "asar": true
+    "asar": true,
+    "compression": "maximum",
+    "nsis": {
+      "oneClick": true,
+      "allowToChangeInstallationDirectory": false
+    }
   },
   "author": "Lokalizator",
   "license": "ISC",
@@ -32,7 +45,7 @@
     "ws": "^8.20.0"
   },
   "devDependencies": {
-    "electron": "^41.2.0",
-    "electron-builder": "^26.8.1"
+    "electron": "^32.0.0",
+    "electron-builder": "^25.1.8"
   }
 }
