@@ -17,7 +17,6 @@ process.on('unhandledRejection', (reason) => {
 });
 
 // Basic optimization flags
-app.commandLine.appendSwitch('disable-gpu');
 app.commandLine.appendSwitch('no-sandbox');
 app.commandLine.appendSwitch('disable-extensions');
 app.commandLine.appendSwitch('disable-site-isolation-trials');
@@ -59,24 +58,26 @@ function createTray() {
   const iconPath = path.join(__dirname, 'assets/icon.png');
   let icon;
   if (fs.existsSync(iconPath)) {
-      icon = nativeImage.createFromPath(iconPath);
+    icon = nativeImage.createFromPath(iconPath);
   } else {
-      icon = nativeImage.createFromDataURL('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAMUlEQVQ4T2NkoBAwUqifAWowf//+P8MIGEQUvH/fGEYDGBkhY0ZDYDBR8P99Y7CHAACOWSAFAgsPhQAAAABJRU5ErkJggg==');
+    icon = nativeImage.createFromDataURL('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAMUlEQVQ4T2NkoBAwUqifAWowf//+P8MIGEQUvH/fGEYDGBkhY0ZDYDBR8P99Y7CHAACOWSAFAgsPhQAAAABJRU5ErkJggg==');
   }
-  
+
   tray = new Tray(icon);
   const contextMenu = Menu.buildFromTemplate([
     { label: 'Show App', click: () => mainWindow.show() },
     { type: 'separator' },
-    { label: 'Quit', click: () => {
+    {
+      label: 'Quit', click: () => {
         isQuitting = true;
         app.quit();
-    }}
+      }
+    }
   ]);
-  
+
   tray.setToolTip('Twitch Drops Farmer');
   tray.setContextMenu(contextMenu);
-  
+
   tray.on('click', () => {
     mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
   });
@@ -202,7 +203,7 @@ ipcMain.handle('fetch-campaigns', async (event, tokens) => {
     return await _fetchCampaignsFallback(headers);
   }
 
-  try { require('fs').writeFileSync(path.join(__dirname, 'debug_campaigns.json'), JSON.stringify(data, null, 2)); } catch(e) {}
+  try { require('fs').writeFileSync(path.join(__dirname, 'debug_campaigns.json'), JSON.stringify(data, null, 2)); } catch (e) { }
   return data;
 });
 
@@ -328,8 +329,8 @@ ipcMain.handle('get-stream-status', async (event, login, tokens) => {
 });
 
 ipcMain.handle('claim-drop', async (event, dropInstanceId, tokens) => {
-  return await gql.execute('ClaimDrop', { 
-    input: { dropInstanceID: dropInstanceId } 
+  return await gql.execute('ClaimDrop', {
+    input: { dropInstanceID: dropInstanceId }
   }, buildHeaders(tokens));
 });
 
@@ -390,7 +391,7 @@ ipcMain.on('start-farm', (event, username) => {
   farmWin = new BrowserWindow({
     width: 800, height: 600,
     show: false,
-    webPreferences: { 
+    webPreferences: {
       backgroundThrottling: false
     }
   });
@@ -401,7 +402,7 @@ ipcMain.on('start-farm', (event, username) => {
   farmWin.loadURL(`https://www.twitch.tv/${username}`);
 
   farmWin.webContents.on('did-finish-load', () => {
-    farmWin.webContents.executeJavaScript(`
+        farmWin.webContents.executeJavaScript(`
        (function() {
          const style = document.createElement('style');
          style.innerHTML = \`
@@ -409,7 +410,12 @@ ipcMain.on('start-farm', (event, username) => {
            .channel-root__right-column, .video-chat { 
               display: none !important; 
            } 
-           .video-player__container { width: 100vw !important; height: 100vh !important; }
+           .video-player__container { 
+               width: 10px !important; 
+               height: 10px !important; 
+               opacity: 0.01 !important; 
+               pointer-events: none !important;
+           }
          \`;
          document.head.appendChild(style);
          
@@ -425,8 +431,37 @@ ipcMain.on('start-farm', (event, username) => {
              const video = document.querySelector('video');
              if (video && video.paused) video.play().catch(() => {});
          }, 30000);
+
+         // Force lowest quality immediately by polling
+         let qualityAttempts = 0;
+         let qInterval = setInterval(() => {
+            qualityAttempts++;
+            if (qualityAttempts > 60) clearInterval(qInterval); // Stop trying after 30s
+            
+            const settingsBtn = document.querySelector('[data-a-target="player-settings-button"]');
+            if (settingsBtn) {
+                settingsBtn.click();
+                setTimeout(() => {
+                    const qualityMenu = document.querySelector('[data-a-target="player-settings-menu-item-quality"]');
+                    if (qualityMenu) {
+                        qualityMenu.click();
+                        setTimeout(() => {
+                            const qualities = Array.from(document.querySelectorAll('input[name="player-settings-submenu-quality-option"]'));
+                            const lowest = qualities[qualities.length - 1]; // 160p is usually last
+                            if (lowest) {
+                                lowest.parentElement.click();
+                                clearInterval(qInterval); // Success, stop polling
+                            }
+                            setTimeout(() => settingsBtn.click(), 100); // Close menu
+                        }, 300);
+                    } else {
+                        settingsBtn.click(); // Close if no quality menu found
+                    }
+                }, 300);
+            }
+         }, 500); 
        })();
-    `).catch(e => {});
+    `).catch(e => { });
     console.log('[Farm] Window active for: ' + username);
   });
 });
@@ -439,83 +474,73 @@ let claimWin = null;
 let isProcessingClaim = false;
 
 ipcMain.on('claim-via-window', () => {
-    if (claimWin || isProcessingClaim) return;
-    isProcessingClaim = true;
-    
-    console.log("[ClaimBot] Opening hidden claim window...");
-    claimWin = new BrowserWindow({
-        width: 1000, height: 800,
-        show: false, // Keep it hidden
-        webPreferences: { backgroundThrottling: false }
-    });
-    
-    // Mute it just in case
-    claimWin.webContents.setAudioMuted(true);
-    
-    claimWin.loadURL('https://www.twitch.tv/drops/inventory');
-    
-    claimWin.webContents.on('did-finish-load', async () => {
-        // Wait longer for Twitch's inventory to load (initial fetch + react render)
-        if (mainWindow) mainWindow.webContents.send('log-msg', { msg: `[Window-Claim] Inventory page loaded. Waiting 10s for items to appear...`, type: 'info' });
-        await new Promise(r => setTimeout(r, 10000));
-        
-        try {
-            const results = await claimWin.webContents.executeJavaScript(`
+  if (claimWin || isProcessingClaim) return;
+  isProcessingClaim = true;
+
+  console.log("[ClaimBot] Opening hidden claim window...");
+  claimWin = new BrowserWindow({
+    width: 1000, height: 800,
+    show: false, // Keep it hidden
+    webPreferences: { backgroundThrottling: false }
+  });
+
+  // Mute it just in case
+  claimWin.webContents.setAudioMuted(true);
+
+  claimWin.loadURL('https://www.twitch.tv/drops/inventory');
+
+  claimWin.webContents.on('did-finish-load', async () => {
+    // Wait longer for Twitch's inventory to load (initial fetch + react render)
+    if (mainWindow) mainWindow.webContents.send('log-msg', { msg: `[Window-Claim] Inventory page loaded. Waiting 10s for items to appear...`, type: 'info' });
+    await new Promise(r => setTimeout(r, 10000));
+
+    try {
+      const results = await claimWin.webContents.executeJavaScript(`
                 (() => {
                     const findAndClick = () => {
-                        const selectors = [
-                            'button', 
-                            '[data-a-target="tw-core-button-label-text"]',
-                            '.tw-core-button--primary'
-                        ];
-                        
                         let clickedCount = 0;
                         const seen = new Set();
 
-                        selectors.forEach(sel => {
-                            document.querySelectorAll(sel).forEach(el => {
-                                const btn = el.tagName === 'BUTTON' ? el : el.closest('button');
-                                if (!btn || seen.has(btn)) return;
+                        // Twitch uses data-test-selector="DropsCampaignInProgressReward-claim-button"
+                        document.querySelectorAll('button').forEach(btn => {
+                            if (seen.has(btn)) return;
 
-                                const html = btn.innerHTML.toLowerCase();
-                                const text = btn.innerText?.toLowerCase() || "";
-                                
-                                const isClaimButton = text.includes('получить сейчас') || 
-                                                   text.includes('claim now') || 
-                                                   text.includes('claim reward') ||
-                                                   html.includes('tw-core-button-label-text');
-                                
-                                if (isClaimButton && btn.offsetParent !== null) {
-                                    btn.click();
-                                    clickedCount++;
-                                    seen.add(btn);
-                                }
-                            });
+                            const html = btn.outerHTML.toLowerCase();
+                            const text = (btn.innerText || "").toLowerCase().trim();
+                            
+                            const isClaimText = text === 'claim' || text === 'claim now' || text === 'получить' || text === 'получить сейчас';
+                            const isClaimAttr = html.includes('claim-button') || html.includes('claim_drop');
+                            
+                            if ((isClaimText || isClaimAttr) && btn.offsetParent !== null) {
+                                btn.click();
+                                clickedCount++;
+                                seen.add(btn);
+                            }
                         });
                         return clickedCount;
                     };
                     return findAndClick();
                 })();
             `);
-            
-            console.log(`[ClaimBot] Script executed. Buttons clicked: ${results}`);
-            if (mainWindow) mainWindow.webContents.send('log-msg', { msg: `[Window-Claim] Search complete. Buttons clicked: ${results}`, type: results > 0 ? 'farm' : 'info' });
-        } catch (e) {
-            console.error("[ClaimBot] Script failed:", e);
-            if (mainWindow) mainWindow.webContents.send('log-msg', { msg: `[Window-Claim] ${e.message}`, type: 'warn' });
-        } finally {
-            // Close after work
-            setTimeout(() => {
-                if (claimWin && !claimWin.isDestroyed()) {
-                    claimWin.destroy();
-                    claimWin = null;
-                }
-                isProcessingClaim = false;
-                // Notify renderer to refresh inventory after window work
-                if (mainWindow) mainWindow.webContents.send('log-msg', { msg: `[Window-Claim] Process finished. Refreshing inventory...`, type: 'system', refresh: true });
-            }, 3000);
+
+      console.log(`[ClaimBot] Script executed. Buttons clicked: ${results}`);
+      if (mainWindow) mainWindow.webContents.send('log-msg', { msg: `[Window-Claim] Search complete. Buttons clicked: ${results}`, type: results > 0 ? 'farm' : 'info' });
+    } catch (e) {
+      console.error("[ClaimBot] Script failed:", e);
+      if (mainWindow) mainWindow.webContents.send('log-msg', { msg: `[Window-Claim] ${e.message}`, type: 'warn' });
+    } finally {
+      // Close after work
+      setTimeout(() => {
+        if (claimWin && !claimWin.isDestroyed()) {
+          claimWin.destroy();
+          claimWin = null;
         }
-    });
+        isProcessingClaim = false;
+        // Notify renderer to refresh inventory after window work
+        if (mainWindow) mainWindow.webContents.send('log-msg', { msg: `[Window-Claim] Process finished. Refreshing inventory...`, type: 'system', refresh: true });
+      }, 3000);
+    }
+  });
 });
 
 let loginWin;

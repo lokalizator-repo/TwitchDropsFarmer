@@ -18,32 +18,79 @@ const viewInventory = getEl('viewInventory');
 const viewSettings = getEl('viewSettings');
 const viewLogs = getEl('logsView');
 // Persistent application state
+let ignoredGameNames = JSON.parse(localStorage.getItem('ignoredGameNames') || '[]');
 let ignoredCampaignIds = JSON.parse(localStorage.getItem('ignoredCampaignIds') || '[]');
 
 function toggleIgnoreCampaign(id) {
+    if (!id) return;
     if (ignoredCampaignIds.includes(id)) {
         ignoredCampaignIds = ignoredCampaignIds.filter(i => i !== id);
     } else {
         ignoredCampaignIds.push(id);
     }
     localStorage.setItem('ignoredCampaignIds', JSON.stringify(ignoredCampaignIds));
-    renderCampaignsListItems(); // Refresh the list
-    // If we're farming this game, we should probably stop and move to next
-    if (activeFarmingCampaignId === id) {
-        addLog(`[Ignore] Current farming campaign ignored. Choosing next candidate...`, 'system');
-        runMasterFarmLoop();
-    }
-}
-
-function clearIgnoredCampaigns() {
-    ignoredCampaignIds = [];
-    localStorage.setItem('ignoredCampaignIds', '[]');
     renderCampaignsListItems();
-    addLog(`[Ignore] Cleared all ignored campaigns.`, 'system');
 }
 
 window.toggleIgnoreCampaign = toggleIgnoreCampaign;
-window.clearIgnoredCampaigns = clearIgnoredCampaigns;
+
+function toggleIgnoreGame(gameName) {
+    if (!gameName) return;
+    const nameLower = gameName.toLowerCase();
+    
+    if (ignoredGameNames.includes(nameLower)) {
+        ignoredGameNames = ignoredGameNames.filter(i => i !== nameLower);
+    } else {
+        ignoredGameNames.push(nameLower);
+    }
+    localStorage.setItem('ignoredGameNames', JSON.stringify(ignoredGameNames));
+    renderCampaignsListItems(); // Refresh the list
+    renderBannedGames(); // Update settings UI
+    
+    // If we're farming this game, we should probably stop and move to next
+    const currentActiveCamp = allCampaigns?.find(c => c.id === activeFarmingCampaignId);
+    if (currentActiveCamp && currentActiveCamp.game?.displayName?.toLowerCase() === nameLower) {
+        addLog(`[Ignore] Current farming game banned. Choosing next candidate...`, 'warn');
+        if (masterAutoFarmEnabled && farmAllMode) {
+             cycleCampaign(1, true);
+        } else {
+             stopFarmAction(currentActiveCamp);
+        }
+    }
+}
+
+function clearIgnoredGames() {
+    ignoredGameNames = [];
+    localStorage.setItem('ignoredGameNames', '[]');
+    renderCampaignsListItems();
+    renderBannedGames();
+    addLog(`[Ignore] Cleared all banned games.`, 'system');
+}
+
+function renderBannedGames() {
+    const container = document.getElementById('bannedGamesChips');
+    if (!container) return;
+    
+    if (ignoredGameNames.length === 0) {
+        container.innerHTML = '<span style="color: var(--text-secondary); font-size: 13px; font-style: italic; align-self: center;">No games are currently banned.</span>';
+        return;
+    }
+    
+    container.innerHTML = ignoredGameNames.map(name => {
+        const camp = allCampaigns.find(c => c.game?.displayName?.toLowerCase() === name.toLowerCase());
+        const miniImg = getGameImageUrl(camp?.game, 36, 48);
+        const imgTag = miniImg ? `<img src="${miniImg}" style="width:18px; height:24px; border-radius:3px; object-fit:cover;" onerror="this.onerror=null; this.src='https://static-cdn.jtvnw.net/ttv-boxart/488190-36x48.jpg'">` : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12h.01"/><path d="M17 12h.01"/><path d="M7 12h.01"/></svg>';
+        
+        return `<div class="game-chip" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--text-primary); padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s;" onclick="toggleIgnoreGame('${name}')">
+            ${imgTag}
+            <span>${name}</span>
+            <span style="display: flex; align-items: center; justify-content: center; color: var(--danger); margin-left: 2px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+        </div>`;
+    }).join('');
+}
+
+window.toggleIgnoreGame = toggleIgnoreGame;
+window.clearIgnoredGames = clearIgnoredGames;
 
 let campaignSortMode = 'viewers';
 const btnSortViewers = getEl('btnSortViewers');
@@ -116,10 +163,10 @@ function switchView(viewName) {
         if (btnNavLogs) btnNavLogs.classList.remove('active');
 
         if (viewName === 'dashboard' && viewDashboard) { viewDashboard.style.display = 'block'; btnNavDashboard.classList.add('active'); }
-        if (viewName === 'campaigns' && viewCampaigns) { 
-            viewCampaigns.style.display = 'block'; 
+        if (viewName === 'campaigns' && viewCampaigns) {
+            viewCampaigns.style.display = 'block';
             btnNavCampaigns.classList.add('active');
-            renderCampaignsListItems(); 
+            renderCampaignsListItems();
         }
         if (viewName === 'inventory' && viewInventory) { viewInventory.style.display = 'block'; btnNavInventory.classList.add('active'); renderInventory(); }
         if (viewName === 'settings' && viewSettings) { viewSettings.style.display = 'block'; btnNavSettings.classList.add('active'); }
@@ -148,7 +195,6 @@ let activeFarmingChannelLogin = null; // Name of current streamer for UI
 let masterAutoFarmEnabled = false;
 let tokenProcessingStarted = false;
 let manualOverrideId = null;
-let farmAllMode = false; // If true, farms all active campaigns based on priority
 let currentUserId = null; // Stored for WebSocket authentication
 let wsDropProgress = {}; // Real-time drop progress metrics { dropId: { current, required } }
 let uiTimerInterval = null; // High-frequency UI update loop pointer
@@ -167,6 +213,11 @@ function getGameImageUrl(game, w, h) {
     if (game.id) return `https://static-cdn.jtvnw.net/ttv-boxart/${game.id}-${w}x${h}.jpg`;
     return '';
 }
+
+let farmAllMode = localStorage.getItem('farmAllMode') === 'true'; // If true, farms all active campaigns based on priority
+
+let stallThresholdSec = parseInt(localStorage.getItem('stallThresholdSec')) || 180;
+let showStallTimer = localStorage.getItem('showStallTimer') !== 'false';
 
 // Auto-run if tokens exist
 if (accountTokens && accountTokens.auth) {
@@ -207,8 +258,56 @@ function updateAutoClaimUI() {
     }
 }
 
+// Stall Settings UI
+const btnToggleStallTimer = document.getElementById('btnToggleStallTimer');
+if (btnToggleStallTimer) {
+    btnToggleStallTimer.addEventListener('click', () => {
+        showStallTimer = !showStallTimer;
+        localStorage.setItem('showStallTimer', showStallTimer);
+        updateStallTimerUI();
+    });
+}
+
+function updateStallTimerUI() {
+    const btn = document.getElementById('btnToggleStallTimer');
+    if (!btn) return;
+    if (showStallTimer) {
+        btn.innerText = 'Show UI Timer (Enabled)';
+        btn.className = 'btn-primary';
+        btn.style.background = 'linear-gradient(135deg, var(--accent-color), var(--accent-hover))';
+        btn.style.borderColor = 'transparent';
+        btn.style.color = 'white';
+    } else {
+        btn.innerText = 'Show UI Timer (Disabled)';
+        btn.className = 'btn-outline';
+        btn.style.background = 'transparent';
+        btn.style.color = 'var(--text-secondary)';
+        btn.style.borderColor = 'var(--border-color)';
+    }
+}
+
+const stallThresholdInput = document.getElementById('stallThresholdInput');
+const btnSaveStallThreshold = document.getElementById('btnSaveStallThreshold');
+const stallThresholdNotice = document.getElementById('stallThresholdNotice');
+if (stallThresholdInput && btnSaveStallThreshold) {
+    stallThresholdInput.value = stallThresholdSec;
+    btnSaveStallThreshold.onclick = () => {
+        let val = parseInt(stallThresholdInput.value);
+        if (isNaN(val) || val < 30) val = 180;
+        stallThresholdSec = val;
+        stallThresholdInput.value = val;
+        localStorage.setItem('stallThresholdSec', val);
+        if (stallThresholdNotice) {
+            stallThresholdNotice.innerText = 'Saved!';
+            setTimeout(() => stallThresholdNotice.innerText = '', 2000);
+        }
+        addLog(`Stall threshold updated to ${val} seconds`, 'system');
+    };
+}
+
 // Set initial UI state
 updateAutoClaimUI();
+updateStallTimerUI();
 
 const autoFarmSearch = document.getElementById('autoFarmSearch');
 const selectedGamesChips = document.getElementById('selectedGamesChips');
@@ -234,16 +333,6 @@ if (btnClearLogs) {
         addLog('Logs cleared.', 'system');
     };
 }
-
-const btnClearIgnored = document.getElementById('btnClearIgnored');
-if (btnClearIgnored) {
-    btnClearIgnored.onclick = () => {
-        if (confirm('Are you sure you want to reset the ignored campaigns list?')) {
-            clearIgnoredCampaigns();
-        }
-    };
-}
-
 // Remote update check
 async function checkUpdates() {
     const btn = document.getElementById('btnCheckUpdate');
@@ -300,16 +389,16 @@ function renderPriorityChips() {
     selectedGamesChips.innerHTML = selectedPriorityGames.map((game, index) => {
         const camp = allCampaigns.find(c => c.game?.displayName?.toLowerCase() === game.toLowerCase());
         const miniImg = getGameImageUrl(camp?.game, 36, 48);
-        const imgTag = miniImg ? `<img src="${miniImg}" style="width:18px; height:24px; border-radius:3px; object-fit:cover;" onerror="this.onerror=null; this.src='https://static-cdn.jtvnw.net/ttv-boxart/488190-36x48.jpg'">` : '🎮';
+        const imgTag = miniImg ? `<img src="${miniImg}" style="width:18px; height:24px; border-radius:3px; object-fit:cover;" onerror="this.onerror=null; this.src='https://static-cdn.jtvnw.net/ttv-boxart/488190-36x48.jpg'">` : '<div style="display:flex; align-items:center; opacity:0.7;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12h.01"/><path d="M17 12h.01"/><path d="M7 12h.01"/></svg></div>';
         return `
         <div style="background: rgba(191,148,255,0.12); border: 1px solid var(--accent-color); color: white; padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
             <div style="display:flex; flex-direction: row; gap: 4px; line-height: 1;">
-                <span onclick="movePriorityGame(${index}, -1)" style="cursor:pointer; opacity: 0.8; font-size: 11px; padding: 2px;">◀</span>
-                <span onclick="movePriorityGame(${index}, 1)" style="cursor:pointer; opacity: 0.8; font-size: 11px; padding: 2px;">▶</span>
+                <span onclick="movePriorityGame(${index}, -1)" style="cursor:pointer; opacity: 0.6; display:flex; align-items:center; padding: 2px;" title="Move Up"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+                <span onclick="movePriorityGame(${index}, 1)" style="cursor:pointer; opacity: 0.6; display:flex; align-items:center; padding: 2px;" title="Move Down"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></span>
             </div>
             ${imgTag}
             <span>${game}</span>
-            <span style="cursor: pointer; font-size: 18px; font-weight: bold; color: var(--danger); margin-left: 4px;" onclick="removePriorityGame('${encodeURIComponent(game)}')">×</span>
+            <span style="cursor: pointer; display:flex; align-items:center; color: var(--danger); margin-left: 2px;" onclick="removePriorityGame('${encodeURIComponent(game)}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
         </div>`;
     }).join('');
 }
@@ -382,7 +471,7 @@ function renderPriorityGrid(searchTerm = '') {
            <div style="padding: 8px 10px; flex-shrink: 0; background: ${isSelected ? 'rgba(191, 148, 255, 0.08)' : 'var(--bg-tertiary)'};">
                <p style="font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;">${game.displayName}</p>
            </div>
-           ${isSelected ? '<div style="position: absolute; top: 6px; right: 6px; background: var(--accent-color); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; box-shadow: 0 2px 6px rgba(0,0,0,0.4);">✓</div>' : ''}
+           ${isSelected ? '<div style="position: absolute; top: 6px; right: 6px; background: var(--accent-color); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; box-shadow: 0 2px 6px rgba(0,0,0,0.4);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>' : ''}
        </div>
        `;
     }).join('');
@@ -442,31 +531,30 @@ function updateMasterAutoFarmUI() {
     const btnPriority = document.getElementById('btnTogglePriority');
     const btnGlobal = document.getElementById('btnToggleGlobal');
     const btnStop = document.getElementById('btnStopMaster');
+    const btnStart = document.getElementById('btnStartMaster');
     const btnFarmAll = document.getElementById('btnFarmAll');
 
     // Reset classes
     if (btnPriority) btnPriority.classList.remove('active-priority');
     if (btnGlobal) btnGlobal.classList.remove('active-global');
-    if (btnStop) btnStop.style.display = 'none';
+
+    if (farmAllMode) {
+        if (btnGlobal) btnGlobal.classList.add('active-global');
+    } else {
+        if (btnPriority) btnPriority.classList.add('active-priority');
+    }
 
     if (masterAutoFarmEnabled) {
+        if (btnStart) btnStart.style.display = 'none';
         if (btnStop) btnStop.style.display = 'block';
-        if (farmAllMode) {
-            if (status) status.innerHTML = '<span style="color: var(--warning);">GLOBAL MODE</span>';
-            if (btnGlobal) btnGlobal.classList.add('active-global');
-            if (btnFarmAll) {
-                btnFarmAll.innerText = '⏹ Stop Global Farm';
-                btnFarmAll.style.background = 'var(--danger)';
-            }
-        } else {
-            if (status) status.innerHTML = '<span style="color: var(--success);">PRIORITY MODE</span>';
-            if (btnPriority) btnPriority.classList.add('active-priority');
-            if (btnFarmAll) {
-                btnFarmAll.innerText = '⚡ Start Global Auto-Farm';
-                btnFarmAll.style.background = 'linear-gradient(135deg, #00e676, #00c853)';
-            }
+        if (status) status.innerHTML = `<span style="color: var(--success);">Running (${farmAllMode ? 'Global' : 'Priority'}) Mode</span>`;
+        if (btnFarmAll) {
+            btnFarmAll.innerText = '⏹ Stop Global Farm';
+            btnFarmAll.style.background = 'var(--danger)';
         }
     } else {
+        if (btnStart) btnStart.style.display = 'block';
+        if (btnStop) btnStop.style.display = 'none';
         if (status) status.innerText = 'Idle';
         if (btnFarmAll) {
             btnFarmAll.innerText = isFetchingCampaigns ? '⏳ Loading Data...' : '⚡ Start Global Auto-Farm';
@@ -479,24 +567,31 @@ function updateMasterAutoFarmUI() {
 const btnTogglePriority = document.getElementById('btnTogglePriority');
 const btnToggleGlobal = document.getElementById('btnToggleGlobal');
 const btnStopMaster = document.getElementById('btnStopMaster');
+const btnStartMaster = document.getElementById('btnStartMaster');
 
 if (btnTogglePriority) {
     btnTogglePriority.onclick = () => {
-        masterAutoFarmEnabled = true;
         farmAllMode = false;
-        activeFarmingCampaignId = null;
-        addLog('Switched to PRIORITY auto-farm.', 'system');
+        localStorage.setItem('farmAllMode', 'false');
+        addLog('Switched to PRIORITY auto-farm mode.', 'system');
         updateMasterAutoFarmUI();
-        runMasterFarmLoop();
     };
 }
 
 if (btnToggleGlobal) {
     btnToggleGlobal.onclick = () => {
-        masterAutoFarmEnabled = true;
         farmAllMode = true;
+        localStorage.setItem('farmAllMode', 'true');
+        addLog('Switched to GLOBAL auto-farm mode.', 'system');
+        updateMasterAutoFarmUI();
+    };
+}
+
+if (btnStartMaster) {
+    btnStartMaster.onclick = () => {
+        masterAutoFarmEnabled = true;
         activeFarmingCampaignId = null;
-        addLog('Switched to GLOBAL auto-farm.', 'system');
+        addLog(`Auto-Farm STARTED in ${farmAllMode ? 'GLOBAL' : 'PRIORITY'} mode.`, 'system');
         updateMasterAutoFarmUI();
         runMasterFarmLoop();
     };
@@ -505,7 +600,7 @@ if (btnToggleGlobal) {
 if (btnStopMaster) {
     btnStopMaster.onclick = () => {
         masterAutoFarmEnabled = false;
-
+        
         // Use the existing comprehensive stop helper
         stopFarmAction();
 
@@ -691,7 +786,8 @@ async function cycleCampaign(direction, autoStart = false) {
 let isFarmingLoopBusy = false;
 
 async function runMasterFarmLoop() {
-    if (!masterAutoFarmEnabled || isFarmingLoopBusy) return;
+    if (isFarmingLoopBusy) return;
+    if (!masterAutoFarmEnabled && !activeFarmingCampaignId) return;
 
     // Safety check: if campaigns aren't loaded yet, try to load them first
     if (!allCampaigns || allCampaigns.length === 0) {
@@ -731,8 +827,8 @@ async function runMasterFarmLoop() {
                 }
                 progressionTracker[curr.id] = { mins: currentMins, time: now, lastDropName: dropName };
             } else {
-                // Check for STALL (Decrease threshold to 120s as requested)
-                const threshold = stats.mins === -1 ? 45 * 1000 : 2 * 60 * 1000;
+                // Check for STALL 
+                const threshold = stallThresholdSec * 1000;
                 const elapsed = now - stats.time;
 
                 // Dedicated UI Timer
@@ -742,13 +838,13 @@ async function runMasterFarmLoop() {
                         const c = allCampaigns.find(currCamp => currCamp.id === activeFarmingCampaignId);
                         if (statusArea && c && progressionTracker[c.id]) {
                             const s = progressionTracker[c.id];
-                            const th = s.mins === -1 ? 45 * 1000 : 2 * 60 * 1000;
+                            const th = stallThresholdSec * 1000;
                             const el = Date.now() - s.time;
                             const rem = Math.max(0, Math.floor((th - el) / 1000));
                             if (rem > 0) {
-                                statusArea.innerHTML = `<span style="color: var(--warning); font-size: 11px; opacity: 0.8;">⏳ Stall check: ${rem}s / ${Math.round(th / 1000)}s</span>`;
+                                statusArea.innerHTML = showStallTimer ? `<span style="color: var(--warning); font-size: 11px; opacity: 0.8; display: flex; align-items: center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Stall check: ${rem}s / ${Math.round(th / 1000)}s</span>` : '';
                             } else if (rem === 0) {
-                                statusArea.innerHTML = `<span style="color: var(--danger); font-size: 11px;">🚨 Stall verified!</span>`;
+                                statusArea.innerHTML = showStallTimer ? `<span style="color: var(--danger); font-size: 11px; display: flex; align-items: center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Stall verified!</span>` : '';
                             }
                         } else if (uiTimerInterval) {
                             statusArea.innerHTML = '';
@@ -771,11 +867,10 @@ async function runMasterFarmLoop() {
                     // Reset broadcaster so we find a new one for the next campaign
                     currentFarmingChannelId = null;
 
-                    if (farmAllMode) {
+                    if (masterAutoFarmEnabled && farmAllMode) {
                         cycleCampaign(1, true);
                     } else {
                         stopFarmAction(curr);
-                        currentFarmCampaignId = null;
                     }
                     return;
                 }
@@ -791,7 +886,7 @@ async function runMasterFarmLoop() {
             if (!isFinished && isValid) {
                 // Check if we are stalled. If not stalled, STAY on this campaign.
                 const stats = progressionTracker[activeCamp.id];
-                const threshold = stats?.mins === -1 ? 45 * 1000 : 2 * 60 * 1000;
+                const threshold = stallThresholdSec * 1000;
                 const elapsed = now - (stats?.time || 0);
 
                 if (elapsed < threshold) {
@@ -805,6 +900,14 @@ async function runMasterFarmLoop() {
             activeFarmingCampaignId = null;
         }
 
+        // --- END OF TRACKING SECTION ---
+        
+        // If auto-farm is OFF, do not pick new campaigns:
+        if (!masterAutoFarmEnabled) {
+            isFarmingLoopBusy = false;
+            return;
+        }
+
         // 2. Find eligible campaigns (ACTIVE)
         let eligible = [];
 
@@ -814,6 +917,7 @@ async function runMasterFarmLoop() {
                 c.status === 'ACTIVE' &&
                 validateCampaign(c, inventory).isValid &&
                 !isCampaignFinished(c, inventory) &&
+                !ignoredGameNames.includes(c.game?.displayName?.toLowerCase() || '') &&
                 !ignoredCampaignIds.includes(c.id) &&
                 (!stallBlacklist[c.id] || now > stallBlacklist[c.id])
             );
@@ -824,7 +928,7 @@ async function runMasterFarmLoop() {
             } else {
                 eligible.sort((a, b) => (b.game?.viewersCount || 0) - (a.game?.viewersCount || 0));
             }
-            
+
             if (eligible.length > 0) {
                 const topStr = eligible.slice(0, 3).map(e => `${e.game?.displayName} (${e.game?.viewersCount || 0} viewers)`).join(', ');
                 console.log(`[AutoFarm] Top 3 Candidates: ${topStr}`);
@@ -835,6 +939,7 @@ async function runMasterFarmLoop() {
                 const matchingCamps = allCampaigns.filter(c =>
                     c.game?.displayName?.toLowerCase() === name &&
                     c.status === 'ACTIVE' &&
+                    !ignoredGameNames.includes(c.game?.displayName?.toLowerCase() || '') &&
                     !ignoredCampaignIds.includes(c.id) &&
                     (!stallBlacklist[c.id] || now > stallBlacklist[c.id])
                 );
@@ -854,7 +959,7 @@ async function runMasterFarmLoop() {
                 currentFarmCampaignId = null;
                 currentFarmingChannelId = null;
             }
-            masterToggleStatus.innerHTML = `<span style="color:#ffd700;">✅ Standby: waiting for new drops</span>`;
+            masterToggleStatus.innerHTML = `<span style="color:#ffd700; display:flex; align-items:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Standby: waiting for new drops</span>`;
             return;
         }
 
@@ -879,7 +984,7 @@ async function runMasterFarmLoop() {
                 addLog(`Auto-Farm: Switching to ${targetCampaign.game?.displayName} — ${reason}`, 'system');
 
                 // 1. STOP previous session in background
-                stopFarmAction();
+                haltCurrentFarmWorker();
 
                 // 2. Clear old state
                 activeFarmingCampaignId = targetCampaign.id;
@@ -891,7 +996,9 @@ async function runMasterFarmLoop() {
                 }
             } else {
                 // Just update percentages if we are staying on the same game
-                startFarmingSimulation(targetCampaign, false, true, 'farmPanel');
+                if (!document.hidden) {
+                    startFarmingSimulation(targetCampaign, false, true, 'farmPanel');
+                }
             }
         }
     } catch (err) {
@@ -1031,6 +1138,15 @@ async function fetchAndUpdateCampaigns() {
                 if (target) {
                     const isSameAsViewed = (currentFarmCampaignId === target.id);
                     startFarmingSimulation(target, false, isSameAsViewed, 'farmPanel');
+
+                    // AUTO-SWITCH LOGIC: If we are farming this campaign and it just finished,
+                    // and we are NOT in global auto-farm mode, we should still try to find the next drop
+                    // to avoid idling.
+                    if (targetId === activeFarmingCampaignId && isCampaignFinished(target, inventory)) {
+                        addLog(`Campaign for ${target.game?.displayName} finished! Looking for next drops...`, 'system');
+                        masterAutoFarmEnabled = true; // Temporarily enable to let the loop pick next
+                        runMasterFarmLoop();
+                    }
                 }
             } else {
                 renderIdlePlaceholder();
@@ -1058,7 +1174,19 @@ async function processTokens(tokens, fromStorage = false) {
     if (!fromStorage && !tokens.integrity) return;
 
     tokenProcessingStarted = true;
-    addLog(`Tokens captured for user`, 'system');
+
+    // Test token validity before closing the login window
+    if (!fromStorage) {
+        addLog(`Testing captured tokens for integrity...`, 'system');
+        const testRes = await window.electronAPI.getCampaigns(tokens);
+        if (testRes && testRes.error === 'INTEGRITY_REQUIRED') {
+            tokenProcessingStarted = false;
+            addLog(`Captured integrity token is invalid. Waiting for a better one...`, 'warn');
+            return;
+        }
+    }
+
+    addLog(`Tokens validated and captured`, 'system');
     localStorage.setItem('accountTokens', JSON.stringify(tokens));
     window.electronAPI.authSuccess();
 
@@ -1160,7 +1288,6 @@ window.electronAPI.onTokenCaptured(async (data) => {
 
     if (accountTokens.auth && accountTokens.auth.includes('OAuth')) {
         if (!tokenProcessingStarted) {
-            tokenProcessingStarted = true;
             processTokens(accountTokens);
         } else if (data.integrity && !hadIntegrity) {
             // If we just got our first integrity token, force a refresh
@@ -1172,7 +1299,7 @@ window.electronAPI.onTokenCaptured(async (data) => {
 
 // Set a recurring loop for fast decision making (every 10s)
 setInterval(() => {
-    if (masterAutoFarmEnabled) runMasterFarmLoop();
+    if (masterAutoFarmEnabled || activeFarmingCampaignId) runMasterFarmLoop();
 }, 10000);
 
 function renderCampaignsList() {
@@ -1258,7 +1385,10 @@ function renderCampaignsListItems() {
 
                 const isFinished = c.timeBasedDrops?.every(d => d.self?.isClaimed) || false;
                 const isPriority = savedList.includes(c.game?.displayName?.toLowerCase() || '');
-                const isIgnored = ignoredCampaignIds.includes(c.id);
+                const isGameBanned = ignoredGameNames.includes(c.game?.displayName?.toLowerCase() || '');
+                const isCampIgnored = ignoredCampaignIds.includes(c.id);
+                const isIgnored = isGameBanned || isCampIgnored;
+
                 const card = document.createElement('div');
                 card.className = 'campaign-card fade-in';
                 card.onclick = () => startFarmingSimulationById(c.id, false);
@@ -1266,9 +1396,12 @@ function renderCampaignsListItems() {
                 if (isFinished) {
                     card.style.opacity = '0.35';
                     card.style.filter = 'grayscale(0.8)';
-                } else if (isIgnored) {
+                } else if (isGameBanned) {
                     card.style.opacity = '0.2';
                     card.style.filter = 'grayscale(1)';
+                } else if (isCampIgnored) {
+                    card.style.opacity = '0.4';
+                    card.style.filter = 'grayscale(0.5)';
                 } else if (isPriority) {
                     card.style.borderColor = 'var(--success)';
                     card.style.boxShadow = '0 0 10px rgba(0, 230, 118, 0.1)';
@@ -1295,13 +1428,21 @@ function renderCampaignsListItems() {
 
                 card.innerHTML = `
           <div style="display:flex; gap:12px; padding:12px; position: relative;">
-            <button class="btn-ignore-campaign" title="${isIgnored ? 'Unignore' : 'Ignore Campaign'}" onclick="event.stopPropagation(); toggleIgnoreCampaign('${c.id}')">
-                ${isIgnored ? '✖' : '🚫'}
-            </button>
+            <div style="position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; z-index: 10;">
+                <button class="btn-ignore-campaign" style="position: static; opacity: 1; padding: 4px;" title="${isCampIgnored ? 'Unignore Campaign' : 'Ignore Campaign'}" onclick="event.stopPropagation(); toggleIgnoreCampaign('${c.id}')">
+                    ${isCampIgnored ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'}
+                </button>
+                <button class="btn-ignore-campaign" style="position: static; opacity: 1; padding: 4px;" title="${isGameBanned ? 'Unban Game' : 'Ban Game'}" onclick="event.stopPropagation(); toggleIgnoreGame('${c.game?.displayName?.replace(/'/g, "\\'")}')">
+                    ${isGameBanned ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20z"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>' : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>'}
+                </button>
+            </div>
             <img src="${imgUrl}" style="width:48px; height:64px; border-radius:8px; object-fit:cover; flex-shrink:0; background:#2a2a2e; ${isFinished || isIgnored ? 'filter: grayscale(1);' : ''}" onerror="this.onerror=null; this.src='https://static-cdn.jtvnw.net/ttv-boxart/488190-144x192.jpg'"/>
             <div style="flex:1; min-width:0;">
-              <div style="font-weight:700; font-size:14px; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${c.game?.displayName}">${c.game?.displayName}</div>
-              <div style="font-size:12px; margin-top:2px;">${statusLabel}</div>
+              <div style="font-weight:600; font-size:13px; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${c.name} · ${c.game?.displayName}">
+                <span style="color: var(--text-secondary); font-size: 11px; font-weight: 500;">${c.game?.displayName}</span><br/>
+                ${c.name}
+              </div>
+              <div style="font-size:12px; margin-top:4px;">${statusLabel}</div>
               <div style="font-size:11px; color:var(--text-secondary); margin-top:4px;">${totalDrops} Items · ${claimedDrops} Claimed</div>
               
               <div style="margin-top: 6px; height: 4px; width: 100%; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden;">
@@ -1321,25 +1462,34 @@ function renderCampaignsListItems() {
     }
 }
 
-function stopFarmAction(campaign) {
-    addLog(`Stopping farm session...`, 'system');
+function haltCurrentFarmWorker() {
     window.electronAPI.stopFarm();
     currentFarmingChannelId = null;
     activeFarmingCampaignId = null;
     activeFarmingChannelLogin = null;
     manualOverrideId = null;
+    
     window.electronAPI.updateTrayTooltip('Idle');
 
     const farmStatus = document.getElementById('farmStatus');
     if (farmStatus) farmStatus.innerText = 'Idle';
 
+    const stallStatus = document.getElementById('stallStatus');
+    if (stallStatus) stallStatus.innerHTML = '';
+}
+
+function stopFarmAction(campaign) {
+    addLog(`Stopping farm session...`, 'system');
+    masterAutoFarmEnabled = false; // User manually clicked stop, halt auto-farm too
+    
+    haltCurrentFarmWorker();
+
     const btnRunFarm = document.getElementById('btnRunFarm');
     const btnStopFarm = document.getElementById('btnStopFarm');
     if (btnRunFarm) btnRunFarm.style.display = 'block';
     if (btnStopFarm) btnStopFarm.style.display = 'none';
-
-    const stallStatus = document.getElementById('stallStatus');
-    if (stallStatus) stallStatus.innerHTML = '';
+    
+    updateMasterAutoFarmUI();
 
     if (campaign) startFarmingSimulation(campaign);
 }
@@ -1377,7 +1527,10 @@ async function startFarmAction(campaign, isAuto = false) {
             if (farmStatus) farmStatus.innerText = 'No live streamers found.';
             if (btnRunFarm) btnRunFarm.style.display = 'block';
             if (btnStopFarm) btnStopFarm.style.display = 'none';
-            if (isAuto && farmAllMode) cycleCampaign(1);
+            if (isAuto) {
+                stallBlacklist[campaign.id] = Date.now() + 15 * 60 * 1000; // Ignore for 15 mins
+                setTimeout(() => runMasterFarmLoop(), 1000);
+            }
             return;
         }
 
@@ -1398,7 +1551,7 @@ async function startFarmAction(campaign, isAuto = false) {
         window.electronAPI.startFarm(streamerLogin);
         window.electronAPI.updateTrayTooltip(`Farming: ${campaign.game?.displayName || 'Game'}`);
         addLog(`Watching ${streamerLogin}... (Grace period 45s started)`, 'farm');
-        if (farmStatus) farmStatus.innerHTML = `<span style="color: #00e676;">✅ Watching <b>${streamerLogin}</b></span>`;
+        if (farmStatus) farmStatus.innerHTML = `<span style="color: #00e676; display: flex; align-items: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><polygon points="5 3 19 12 5 21 5 3"/></svg> <span>Watching <b>${streamerLogin}</b></span></span>`;
 
         // Reset progression tracker: -1 tells the loop this is a NEW session
         progressionTracker[campaign.id] = { mins: -1, time: Date.now() };
@@ -1469,6 +1622,10 @@ function startFarmingSimulation(campaign, autoStart = false, updateOnly = false,
 
     const drops = (campaign.timeBasedDrops || []).slice().sort((a, b) => a.requiredMinutesWatched - b.requiredMinutesWatched);
 
+    const isFarmingThis = (activeFarmingCampaignId === campaign.id);
+    let currentlyFoundUnfinished = false;
+    let activeDropNameForUI = '';
+
     let itemsHtml = drops.map((drop, index) => {
         const dropName = drop.benefitEdges?.[0]?.benefit?.name || `Reward ${index + 1}`;
         let dropImg = drop.benefitEdges?.[0]?.benefit?.imageAssetURL || '';
@@ -1491,14 +1648,22 @@ function startFarmingSimulation(campaign, autoStart = false, updateOnly = false,
         if (currentMins > requiredMins) currentMins = requiredMins;
         if (isClaimed) currentMins = requiredMins;
         let percent = requiredMins > 0 ? Math.floor((currentMins / requiredMins) * 100) : 0;
+        
+        const isCompleted = isClaimed || (percent >= 100 && requiredMins > 0);
+        let isActiveDrop = false;
+        if (isFarmingThis && !isCompleted && !currentlyFoundUnfinished && requiredMins > 0) {
+            currentlyFoundUnfinished = true;
+            isActiveDrop = true;
+            activeDropNameForUI = dropName;
+        }
 
         let statusHtml;
         let barColor;
         if (isClaimed) {
-            statusHtml = `<span style="color: var(--success);">✅ Claimed</span>`;
+            statusHtml = `<span style="color: var(--success); display: flex; align-items: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Claimed</span>`;
             barColor = 'var(--success)';
         } else if (percent === 100) {
-            statusHtml = `<span style="color: var(--warning);">🎁 Ready to claim</span>`;
+            statusHtml = `<span style="color: var(--warning); display: flex; align-items: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg> Ready to claim</span>`;
             barColor = 'var(--warning)';
         } else {
             statusHtml = `<span style="color: var(--text-secondary);">${percent}% · ${currentMins}m / ${requiredMins}m</span>`;
@@ -1511,7 +1676,7 @@ function startFarmingSimulation(campaign, autoStart = false, updateOnly = false,
          <div class="drop-info">
              <h4>${dropName}</h4>
              <div class="drop-progress-bar">
-                 <div class="drop-progress-bar-fill" style="width:${percent}%; background:${barColor};"></div>
+                 <div class="drop-progress-bar-fill ${isActiveDrop ? 'progress-active' : ''}" style="width:${percent}%; background:${barColor};"></div>
              </div>
          </div>
          <div class="drop-status">
@@ -1521,11 +1686,11 @@ function startFarmingSimulation(campaign, autoStart = false, updateOnly = false,
     }).join('');
 
     if (!updateOnly) {
-        const isFarmingThis = (activeFarmingCampaignId === campaign.id);
         const isDashboard = (targetPanelId === 'farmPanel');
+        const isIgnored = ignoredGameNames.includes(campaign.game?.displayName?.toLowerCase() || '');
 
         targetPanel.innerHTML = `
-        <div style="width: 100%; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px;">
+        <div style="width: 100%; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px; position: relative;">
             <div id="gameHeaderUIArea" style="display: flex; align-items: center; gap: 20px; width: 100%; max-width: 600px;">
                 <img src="${getGameImageUrl(campaign.game, 120, 160)}" style="width: 80px; height: 106px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);" />
                 <div style="flex: 1;">
@@ -1533,22 +1698,23 @@ function startFarmingSimulation(campaign, autoStart = false, updateOnly = false,
                     <p style="color: var(--text-secondary); font-size: 13px; margin: 0 0 15px 0;">Status: <b>${campaign.status}</b></p>
                     
                     <div id="farmingControlsArea" style="display: flex; align-items: center; gap: 12px;">
-                        ${isDashboard ? '<button id="btnPrevGame" class="btn-secondary" style="padding: 8px 12px; font-size: 14px;">◀</button>' : ''}
+                        ${isDashboard ? '<button id="btnPrevGame" class="btn-secondary" style="padding: 8px 12px; font-size: 14px; display: flex; align-items: center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>' : ''}
                         
-                        <div id="mainActionArea">
-                            <button id="btnRunFarm" class="btn-primary" style="width: 140px; height: 38px; display: ${isFarmingThis ? 'none' : 'block'};">Start Farming</button>
-                            <button id="btnStopFarm" class="btn-outline" style="display: ${isFarmingThis ? 'block' : 'none'}; width: 140px; height: 38px; color: var(--danger); border-color: var(--danger);">Stop Farming</button>
+                        <div id="mainActionArea" style="display: flex; gap: 8px;">
+                            <button id="btnRunFarm" class="btn-primary" style="width: auto; padding: 0 16px; height: 38px; display: ${isFarmingThis ? 'none' : 'block'}; white-space: nowrap; font-size: 13px;">Start Farming</button>
+                            <button id="btnStopFarm" class="btn-outline" style="display: ${isFarmingThis ? 'block' : 'none'}; width: auto; padding: 0 16px; height: 38px; color: var(--danger); border-color: var(--danger); white-space: nowrap; font-size: 13px;">Stop Farming</button>
+                            ${!isDashboard ? `<button id="btnIgnoreCampaign" class="btn-outline" style="width: auto; padding: 0 16px; height: 38px; color: var(--text-secondary); border-color: var(--border-color); white-space: nowrap; font-size: 13px;"><div style="display: flex; align-items: center; gap: 6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> ${isIgnored ? 'Unban Game' : 'Ban Game'}</div></button>` : ''}
                         </div>
 
-                        ${isDashboard ? '<button id="btnNextGame" class="btn-secondary" style="padding: 8px 12px; font-size: 14px;">▶</button>' : ''}
+                        ${isDashboard ? '<button id="btnNextGame" class="btn-secondary" style="padding: 8px 12px; font-size: 14px; display: flex; align-items: center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>' : ''}
                     </div>
                 </div>
             </div>
             ${isFarmingThis ? `
-                <div id="farmStatus" style="margin-top: 15px; font-size: 13px; color: #00e676;">✅ Watching <b>${activeFarmingChannelLogin || '...'}</b></div>
-                <div id="stallStatus" style="margin-top: 4px; height: 16px;"></div>
+                <div id="farmStatus" style="margin-top: 15px; font-size: 13px; color: #00e676; display: flex; align-items: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><polygon points="5 3 19 12 5 21 5 3"/></svg> <span>Watching <b>${activeFarmingChannelLogin || '...'}</b> for <b>${activeDropNameForUI || 'Drop'}</b></span></div>
+                <div id="stallStatus" style="position: absolute; top: 0px; right: 0px; background: rgba(0,0,0,0.3); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text-secondary); pointer-events: none; backdrop-filter: blur(4px);"></div>
             ` : `
-                <div id="farmStatus" style="margin-top: 15px; font-size: 13px; color: var(--text-secondary);">Select the channel to start farming...</div>
+                <div id="farmStatus" style="margin-top: 15px; font-size: 13px; color: var(--text-secondary);">Idle. Press Start Farming to attach a worker.</div>
             `}
         </div>
         <div id="dropItemsList" style="width: 100%; max-width: 600px;">
@@ -1560,6 +1726,7 @@ function startFarmingSimulation(campaign, autoStart = false, updateOnly = false,
         const btnStopFarm = targetPanel.querySelector('#btnStopFarm');
         const btnPrevGame = targetPanel.querySelector('#btnPrevGame');
         const btnNextGame = targetPanel.querySelector('#btnNextGame');
+        const btnIgnoreCampaign = targetPanel.querySelector('#btnIgnoreCampaign');
 
         if (btnRunFarm) btnRunFarm.onclick = () => {
             if (targetPanelId === 'previewPanel') btnNavDashboard.click();
@@ -1568,6 +1735,10 @@ function startFarmingSimulation(campaign, autoStart = false, updateOnly = false,
         if (btnStopFarm) btnStopFarm.onclick = () => stopFarmAction(campaign);
         if (btnPrevGame) btnPrevGame.onclick = () => cycleCampaign(-1);
         if (btnNextGame) btnNextGame.onclick = () => cycleCampaign(1);
+        if (btnIgnoreCampaign) btnIgnoreCampaign.onclick = () => {
+            toggleIgnoreGame(campaign.game?.displayName);
+            startFarmingSimulation(campaign, false, false, targetPanelId);
+        };
     } else {
         // Partial update (updateOnly=true)
         const list = targetPanel.querySelector('#dropItemsList');
@@ -1575,7 +1746,7 @@ function startFarmingSimulation(campaign, autoStart = false, updateOnly = false,
 
         const statusText = targetPanel.querySelector('#farmStatus');
         if (statusText && isFarmingThis) {
-            statusText.innerHTML = `✅ Watching <b>${activeFarmingChannelLogin || '...'}</b>`;
+            statusText.innerHTML = `<div style="display:flex; align-items:center; color: #00e676;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><polygon points="5 3 19 12 5 21 5 3"/></svg> <span>Watching <b>${activeFarmingChannelLogin || '...'}</b></span></div>`;
         }
     }
 
@@ -1620,7 +1791,7 @@ function setupWebSocketListeners() {
 
             // Immediately update the UI progress bars without full refresh
             const curr = allCampaigns.find(c => c.id === currentFarmCampaignId);
-            if (curr) {
+            if (curr && !document.hidden) {
                 startFarmingSimulation(curr, false, true);
             }
         }
@@ -1628,7 +1799,7 @@ function setupWebSocketListeners() {
 
     // Drop claimed notification
     window.electronAPI.onWsDropClaim((data) => {
-        addLog(`🎁 Drop claimed via WebSocket! (${data.dropId})`, 'farm');
+        addLog(`[Drop Claimed] Reward claimed via WebSocket! (${data.dropId})`, 'farm');
         // Force inventory refresh
         fetchAndUpdateCampaigns();
     });
@@ -1693,7 +1864,6 @@ async function processAutoClaims() {
 
                 // If we already tried this recently, skip
                 if (pendingClaims.has(claimId)) continue;
-                if (self.hasPreconditionsMet === false) continue;
 
                 candidates++;
                 pendingClaims.add(claimId);
@@ -1770,10 +1940,21 @@ async function renderInventory() {
         let gameBoxArt = "";
 
         // Find matching campaign for game info
-        const camp = allKnownCampaigns.find(c => c.timeBasedDrops?.some(d => d.benefitEdges?.some(be => be.benefit?.id === item.id)));
+        const camp = allKnownCampaigns.find(c => {
+            // Check if ANY benefit in this campaign matches the history item's ID
+            return c.timeBasedDrops?.some(d => d.benefitEdges?.some(be => be.benefit?.id === item.id));
+        });
+
         if (camp) {
             gameName = camp.game?.displayName || gameName;
             gameBoxArt = getGameImageUrl(camp.game, 60, 80);
+        } else {
+            // Fallback: check if the item name or ID suggests a game we know
+            const nameMatch = allKnownCampaigns.find(c => item.name.toLowerCase().includes(c.game?.displayName?.toLowerCase()));
+            if (nameMatch) {
+                gameName = nameMatch.game?.displayName;
+                gameBoxArt = getGameImageUrl(nameMatch.game, 60, 80);
+            }
         }
 
         const awardDate = new Date(item.lastAwardedAt);
@@ -1806,7 +1987,7 @@ async function renderInventory() {
             const dateStr = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getFullYear()).slice(-2)}`;
             const itemIcon = r.image
                 ? `<img src="${r.image}" style="width: 48px; height: 48px; border-radius: 8px; object-fit: contain; background: rgba(0,0,0,0.3); margin-bottom: 8px;">`
-                : `<div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 24px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 8px;">🎁</div>`;
+                : `<div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 8px;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>`;
 
             return `
                 <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; align-items: center; text-align: center; overflow: hidden; min-width: 0;" class="inventory-tile">
@@ -1859,3 +2040,4 @@ function renderIdlePlaceholder() {
         </div>
     `;
 }
+
