@@ -273,6 +273,8 @@ class TwitchWebSocketManager {
     this._stopPingLoop();
     this.isConnected = false;
     this.subscribed = false;
+    this.userId = null;
+    this.authToken = null;
     if (this.socket) {
       try {
         this.socket.close();

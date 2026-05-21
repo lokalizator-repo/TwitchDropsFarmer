@@ -219,7 +219,7 @@ async function _fetchCampaignsFallback(headers) {
       body: JSON.stringify({
         operationName: 'ViewerDropsDashboard',
         variables: {},
-        query: `query ViewerDropsDashboard { currentUser { dropCurrentSession { dropID game { id displayName } currentMinutesWatched requiredMinutesWatched } dropCampaigns { id status detailsURL game { id displayName viewersCount boxArtURL } name startAt endAt timeBasedDrops { id requiredMinutesWatched requiredSubs name startAt endAt benefitEdges { benefit { id name imageAssetURL } } self { dropInstanceID currentMinutesWatched isClaimed hasPreconditionsMet } } } } }`
+        query: `query ViewerDropsDashboard { currentUser { dropCurrentSession { dropID game { id displayName } currentMinutesWatched requiredMinutesWatched } dropCampaigns { id status detailsURL allow { channels { name } isEnabled } game { id displayName viewersCount boxArtURL } name startAt endAt timeBasedDrops { id requiredMinutesWatched requiredSubs name startAt endAt benefitEdges { benefit { id name imageAssetURL distributionType } } self { dropInstanceID currentMinutesWatched isClaimed hasPreconditionsMet } } } } }`
       })
     });
     clearTimeout(timer);
@@ -237,19 +237,63 @@ ipcMain.handle('fetch-campaign-details', async (event, campaignId, tokens) => {
   }, buildHeaders(tokens));
 });
 
-ipcMain.handle('find-streamer', async (event, gameName, tokens) => {
-  // FindStreamer uses a raw query (no persisted hash available for this custom query)
+ipcMain.handle('claim-drop', async (event, dropInstanceId, tokens) => {
+  return await gql.execute('ClaimDrop', {
+    input: { dropInstanceID: dropInstanceId }
+  }, buildHeaders(tokens));
+});
+
+ipcMain.handle('find-streamer', async (event, gameName, tokens, whitelistedLogins = null) => {
   try {
     const headers = buildHeaders(tokens);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 15000);
+
+    if (whitelistedLogins && Array.isArray(whitelistedLogins) && whitelistedLogins.length > 0) {
+      console.log(`[GQL] Checking live status for whitelisted channels: ${whitelistedLogins.join(', ')}`);
+      const res = await fetch('https://gql.twitch.tv/gql', {
+        method: 'POST',
+        headers,
+        signal: controller.signal,
+        body: JSON.stringify({
+          query: `query($logins: [String!]) {
+            users(logins: $logins) {
+              id
+              login
+              stream {
+                title
+                freeformTags { name }
+              }
+            }
+          }`,
+          variables: { logins: whitelistedLogins }
+        })
+      });
+      clearTimeout(timer);
+      const data = await res.json();
+      const users = data?.data?.users || [];
+      const edges = users
+        .filter(u => u && u.stream)
+        .map(u => ({
+          node: {
+            title: u.stream.title || '',
+            broadcaster: {
+              id: u.id,
+              login: u.login
+            },
+            freeformTags: u.stream.freeformTags || []
+          }
+        }));
+      return { data: { game: { streams: { edges } } } };
+    }
+
     const res = await fetch('https://gql.twitch.tv/gql', {
       method: 'POST',
       headers,
       signal: controller.signal,
       body: JSON.stringify({
-        query: `query { 
-          game(name: "${gameName}") { 
+        query: `query($gameName: String!) { 
+          game(name: $gameName) { 
             streams(first: 50) { 
               edges { 
                 node { 
@@ -260,7 +304,8 @@ ipcMain.handle('find-streamer', async (event, gameName, tokens) => {
               } 
             } 
           } 
-        }`
+        }`,
+        variables: { gameName }
       })
     });
     clearTimeout(timer);
@@ -306,7 +351,7 @@ async function _fetchInventoryFallback(headers) {
       signal: controller.signal,
       body: JSON.stringify({
         variables: {},
-        query: `query Inventory { currentUser { inventory { dropCampaignsInProgress { id status detailsURL game { id displayName viewersCount boxArtURL } name startAt endAt timeBasedDrops { id requiredMinutesWatched requiredSubs name startAt endAt benefitEdges { benefit { id name imageAssetURL } } self { dropInstanceID currentMinutesWatched isClaimed hasPreconditionsMet } } } gameEventDrops { id name lastAwardedAt } } } }`
+        query: `query Inventory { currentUser { inventory { dropCampaignsInProgress { id status detailsURL allow { channels { name } isEnabled } game { id displayName viewersCount boxArtURL } name startAt endAt timeBasedDrops { id requiredMinutesWatched requiredSubs name startAt endAt benefitEdges { benefit { id name imageAssetURL distributionType } } self { dropInstanceID currentMinutesWatched isClaimed hasPreconditionsMet } } } gameEventDrops { id name lastAwardedAt } } } }`
       })
     });
     clearTimeout(timer);
@@ -317,22 +362,6 @@ async function _fetchInventoryFallback(headers) {
     return { error: e.message };
   }
 }
-
-ipcMain.handle('get-multi-stream-status', async (event, logins, tokens) => {
-  const data = await gql.execute('MultiStreamStatus', { logins }, buildHeaders(tokens));
-  return data?.data?.users?.filter(u => u?.stream) || [];
-});
-
-ipcMain.handle('get-stream-status', async (event, login, tokens) => {
-  const data = await gql.execute('StreamStatus', { login }, buildHeaders(tokens));
-  return !!data?.data?.user?.stream;
-});
-
-ipcMain.handle('claim-drop', async (event, dropInstanceId, tokens) => {
-  return await gql.execute('ClaimDrop', {
-    input: { dropInstanceID: dropInstanceId }
-  }, buildHeaders(tokens));
-});
 
 /**
  * WebSocket communication handlers for real-time progress updates
@@ -552,7 +581,10 @@ ipcMain.on('open-login-window', (event, url) => {
     autoHideMenuBar: true, backgroundColor: '#0e0e10'
   })
   loginWin.loadURL(url || 'https://www.twitch.tv/login')
-  loginWin.on('closed', () => { loginWin = null; })
+  loginWin.on('closed', () => {
+    loginWin = null;
+    ipcMain.removeAllListeners('auth-success');
+  })
   ipcMain.once('auth-success', () => {
     if (loginWin && !loginWin.isDestroyed()) loginWin.close()
   })

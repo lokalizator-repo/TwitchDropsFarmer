@@ -110,20 +110,33 @@
           style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
           <div style="flex: 1; min-width: 250px;">
             <h1 style="margin-bottom: 8px;">Active Campaigns</h1>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span
-                style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Sort:</span>
-              <button id="btnSortViewers" class="btn-secondary active-sort"
-                style="padding: 5px 10px; font-size: 11px; border-radius: 6px; border: 1px solid var(--accent-color); background: var(--accent-light); color: var(--accent-hover);">⚡
-                Viewers</button>
-              <button id="btnSortEnd" class="btn-secondary"
-                style="padding: 5px 10px; font-size: 11px; border-radius: 6px;">⏰ Ending Soon</button>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 6px; margin-right: 12px;">
+                <span
+                  style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Sort:</span>
+                <button id="btnSortViewers" class="btn-secondary active-sort"
+                  style="padding: 5px 10px; font-size: 11px; border-radius: 6px; border: 1px solid var(--accent-color); background: var(--accent-light); color: var(--accent-hover);">⚡
+                  Viewers</button>
+                <button id="btnSortEnd" class="btn-secondary"
+                  style="padding: 5px 10px; font-size: 11px; border-radius: 6px;">⏰ Ending Soon</button>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span
+                  style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Category:</span>
+                <button id="btnCatDrops" class="btn-secondary active-sort"
+                  style="padding: 5px 10px; font-size: 11px; border-radius: 6px; border: 1px solid var(--accent-color); background: var(--accent-light); color: var(--accent-hover);">🎁
+                  Drops</button>
+                <button id="btnCatBadges" class="btn-secondary"
+                  style="padding: 5px 10px; font-size: 11px; border-radius: 6px;">🏷️ Badges & Quests</button>
+              </div>
             </div>
           </div>
           <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
             <button id="btnFarmAll" class="btn-primary"
               style="background: linear-gradient(135deg, #00e676, #00c853); font-size:12px; padding: 10px 20px; width: auto; border: none; cursor: pointer;">⚡
               Farm All Available Drops</button>
+            <button id="btnHidePaid" class="btn-secondary"
+              style="display: none; padding: 6px 14px; font-size: 11px; border-radius: 8px; border: 1px solid var(--accent-color); background: var(--accent-light); color: var(--accent-hover); cursor: pointer;">🚫 Hide Paid</button>
             <input type="text" id="campaignSearch" placeholder="Search games..."
               style="padding: 10px 16px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-primary); color: white; outline: none; width: 220px; font-size: 14px;">
           </div>

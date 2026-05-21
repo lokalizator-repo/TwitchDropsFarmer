@@ -122,6 +122,82 @@ function updateSortUI() {
 if (btnSortViewers) btnSortViewers.onclick = () => { campaignSortMode = 'viewers'; updateSortUI(); renderCampaignsListItems(); };
 if (btnSortEnd) btnSortEnd.onclick = () => { campaignSortMode = 'endDate'; updateSortUI(); renderCampaignsListItems(); };
 
+let currentCategory = 'drops';
+let hidePaidBadges = true;
+const btnCatDrops = getEl('btnCatDrops');
+const btnCatBadges = getEl('btnCatBadges');
+const btnHidePaid = getEl('btnHidePaid');
+
+function updateCategoryUI() {
+    if (!btnCatDrops || !btnCatBadges) return;
+    if (currentCategory === 'drops') {
+        btnCatDrops.style.background = 'var(--accent-light)';
+        btnCatDrops.style.borderColor = 'var(--accent-color)';
+        btnCatDrops.style.color = 'var(--accent-hover)';
+        btnCatBadges.style.background = 'transparent';
+        btnCatBadges.style.borderColor = 'var(--border-color)';
+        btnCatBadges.style.color = 'var(--text-secondary)';
+    } else {
+        btnCatBadges.style.background = 'var(--accent-light)';
+        btnCatBadges.style.borderColor = 'var(--accent-color)';
+        btnCatBadges.style.color = 'var(--accent-hover)';
+        btnCatDrops.style.background = 'transparent';
+        btnCatDrops.style.borderColor = 'var(--border-color)';
+        btnCatDrops.style.color = 'var(--text-secondary)';
+    }
+    // Show/hide the Hide Paid button and Farm All button
+    if (btnHidePaid) btnHidePaid.style.display = currentCategory === 'badges' ? 'inline-flex' : 'none';
+    const btnFarmAll = getEl('btnFarmAll');
+    if (btnFarmAll) btnFarmAll.style.display = currentCategory === 'drops' ? 'inline-flex' : 'none';
+}
+
+function updateHidePaidUI() {
+    if (!btnHidePaid) return;
+    if (hidePaidBadges) {
+        btnHidePaid.textContent = '🚫 Hide Paid';
+        btnHidePaid.style.background = 'var(--accent-light)';
+        btnHidePaid.style.borderColor = 'var(--accent-color)';
+        btnHidePaid.style.color = 'var(--accent-hover)';
+    } else {
+        btnHidePaid.textContent = '👁️ Show All';
+        btnHidePaid.style.background = 'transparent';
+        btnHidePaid.style.borderColor = 'var(--border-color)';
+        btnHidePaid.style.color = 'var(--text-secondary)';
+    }
+}
+
+function applyCurrentFilters() {
+    const searchVal = document.getElementById('campaignSearch')?.value?.toLowerCase() || '';
+    filteredCampaigns = allCampaigns.filter(c => {
+        const matchesCategory = currentCategory === 'drops' ? !c.isBadgeOrQuest : c.isBadgeOrQuest;
+        const matchesSearch = !searchVal || c.game?.displayName?.toLowerCase().includes(searchVal);
+        const matchesPaid = !(currentCategory === 'badges' && hidePaidBadges && c._badgePaid);
+        return matchesCategory && matchesSearch && matchesPaid;
+    });
+    renderCampaignsListItems();
+}
+
+if (btnCatDrops) btnCatDrops.onclick = () => {
+    currentCategory = 'drops';
+    updateCategoryUI();
+    applyCurrentFilters();
+};
+
+if (btnCatBadges) btnCatBadges.onclick = () => {
+    currentCategory = 'badges';
+    updateCategoryUI();
+    applyCurrentFilters();
+};
+
+if (btnHidePaid) {
+    updateHidePaidUI();
+    btnHidePaid.onclick = () => {
+        hidePaidBadges = !hidePaidBadges;
+        updateHidePaidUI();
+        applyCurrentFilters();
+    };
+}
+
 function addLog(msg, type = 'info') {
     console.log(`[RendererLog] ${type.toUpperCase()}: ${msg}`); // Also log to terminal!
     const consoleEl = getEl('logConsole');
@@ -350,7 +426,7 @@ async function checkUpdates() {
         if (!res.ok) throw new Error('Network error');
 
         const remote = await res.json();
-        const currentVersion = "1.0.0";
+        const currentVersion = "1.1.0";
 
         if (remote.version !== currentVersion) {
             notice.innerHTML = `<span style="color: var(--warning); cursor: pointer; text-decoration: underline;">New version ${remote.version} available! Click here.</span>`;
@@ -523,6 +599,7 @@ let farmingInterval = null;
 let progressionTracker = {}; // { campaignId: { mins, time } }
 let stallBlacklist = {}; // campaignId -> timestamp to ignore until
 let campaignBlacklist = {}; // { campaignId: expiryTime }
+let campaignIdBeingStarted = null;
 let pendingClaims = new Set();
 let isFetchingCampaigns = false;
 
@@ -655,8 +732,55 @@ function isCampaignFinished(c, inventory) {
  * Comprehensive campaign validation
  * Returns { isValid: boolean, reason: string }
  */
+function isCampaignBadgeOrQuest(c) {
+    if (!c) return false;
+
+    // Reliable signal: distributionType from the API
+    // Normal farmable types: null, 'GAME_DROP', 'DIRECT_ENTITLEMENT'
+    // Badge/emote types: 'BADGE', 'EMOTE', 'SUB_EMOTE', etc.
+    const NORMAL_DROP_TYPES = [null, undefined, 'GAME_DROP', 'DIRECT_ENTITLEMENT'];
+
+    for (const d of (c.timeBasedDrops || [])) {
+        for (const edge of (d.benefitEdges || [])) {
+            const dt = edge.benefit?.distributionType;
+            if (!NORMAL_DROP_TYPES.includes(dt)) {
+                c._badgeReason = dt;
+                c._badgePaid = (d.requiredSubs || 0) > 0;
+                return true;
+            }
+        }
+    }
+
+    // Reliable signal: requires paid subscription to claim
+    const hasSubRequirement = (c.timeBasedDrops || []).some(d => (d.requiredSubs || 0) > 0);
+    if (hasSubRequirement) {
+        c._badgeReason = 'Requires sub';
+        c._badgePaid = true;
+        return true;
+    }
+
+    // Reliable signal: 0 total watch minutes across ALL drops (instant/non-farmable)
+    const allDrops = c.timeBasedDrops || [];
+    const totalMinutes = allDrops.reduce((sum, d) => sum + (d.requiredMinutesWatched || 0), 0);
+    if (allDrops.length > 0 && totalMinutes === 0) {
+        c._badgeReason = '0 min watch';
+        c._badgePaid = false;
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Comprehensive campaign validation
+ * Returns { isValid: boolean, reason: string }
+ */
 function validateCampaign(c, inventory = null) {
     if (!c) return { isValid: false, reason: 'No campaign data' };
+
+    // Classify campaign
+    c.isBadgeOrQuest = isCampaignBadgeOrQuest(c);
+
     if (!c.timeBasedDrops || c.timeBasedDrops.length === 0) {
         return { isValid: false, reason: 'No time-based drops' };
     }
@@ -675,7 +799,10 @@ function validateCampaign(c, inventory = null) {
     const gameName = (c.game.displayName || '').toLowerCase();
     const badGames = ['just chatting', 'общение', 'irl'];
     if (badGames.some(bad => gameName.includes(bad))) {
-        return { isValid: false, reason: 'Just Chatting (badge-only)' };
+        // If it's classified as a badge/special quest, let it pass
+        if (!c.isBadgeOrQuest) {
+            return { isValid: false, reason: 'Just Chatting (badge-only)' };
+        }
     }
 
     // 5. Date validation
@@ -686,6 +813,11 @@ function validateCampaign(c, inventory = null) {
     // Add a 5-minute "buffer" for start/end times to account for clock drift
     if (now < new Date(start.getTime() - 5 * 60000)) return { isValid: false, reason: 'Not started yet' };
     if (now > new Date(end.getTime() + 5 * 60000)) return { isValid: false, reason: 'Already ended' };
+
+    // For badge and special quests, we bypass the feasibility, sub-only, and 0-minute checks
+    if (c.isBadgeOrQuest) {
+        return { isValid: true, reason: 'OK' };
+    }
 
     // 6. Smart Feasibility Check (Time remaining vs required progress)
     const minutesLeft = (end.getTime() - now.getTime()) / (1000 * 60);
@@ -731,6 +863,7 @@ function validateCampaign(c, inventory = null) {
 }
 
 function isWatchableCampaign(c) {
+    if (c && c.isBadgeOrQuest) return false;
     const res = validateCampaign(c);
     if (!res.isValid) {
         console.log(`[Validator] Skipping ${c?.game?.displayName || 'Unknown'}: ${res.reason}`);
@@ -915,6 +1048,7 @@ async function runMasterFarmLoop() {
             // Mode: Farm EVERYTHING active, watchable and unfinished
             eligible = allCampaigns.filter(c =>
                 c.status === 'ACTIVE' &&
+                !c.isBadgeOrQuest &&
                 validateCampaign(c, inventory).isValid &&
                 !isCampaignFinished(c, inventory) &&
                 !ignoredGameNames.includes(c.game?.displayName?.toLowerCase() || '') &&
@@ -939,6 +1073,7 @@ async function runMasterFarmLoop() {
                 const matchingCamps = allCampaigns.filter(c =>
                     c.game?.displayName?.toLowerCase() === name &&
                     c.status === 'ACTIVE' &&
+                    !c.isBadgeOrQuest &&
                     !ignoredGameNames.includes(c.game?.displayName?.toLowerCase() || '') &&
                     !ignoredCampaignIds.includes(c.id) &&
                     (!stallBlacklist[c.id] || now > stallBlacklist[c.id])
@@ -1084,7 +1219,7 @@ async function fetchAndUpdateCampaigns() {
 
             const start = new Date(c.startAt);
             const end = new Date(c.endAt);
-            const drops = (c.timeBasedDrops || []).filter(d => (d.requiredMinutesWatched || 0) > 0);
+            const drops = (c.timeBasedDrops || []).filter(d => c.isBadgeOrQuest || (d.requiredMinutesWatched || 0) > 0);
             if (drops.length === 0) continue;
 
             c.timeBasedDrops = drops;
@@ -1101,18 +1236,18 @@ async function fetchAndUpdateCampaigns() {
                     }
                 }
             } else {
-                let claimedDuringCampaign = false;
-                for (const d of c.timeBasedDrops) {
-                    const benefitId = d.benefitEdges?.[0]?.benefit?.id;
-                    if (benefitId && eventDropsMap.has(benefitId)) {
-                        const awardedAt = eventDropsMap.get(benefitId);
-                        if (awardedAt >= start && awardedAt <= end) { claimedDuringCampaign = true; break; }
-                    }
-                }
                 for (const d of c.timeBasedDrops) {
                     if (!d.self) d.self = {};
-                    d.self.isClaimed = !!claimedDuringCampaign;
-                    d.self.currentMinutesWatched = claimedDuringCampaign ? d.requiredMinutesWatched : 0;
+                    const benefitId = d.benefitEdges?.[0]?.benefit?.id;
+                    let isClaimed = false;
+                    if (benefitId && eventDropsMap.has(benefitId)) {
+                        const awardedAt = eventDropsMap.get(benefitId);
+                        if (awardedAt >= start && awardedAt <= end) {
+                            isClaimed = true;
+                        }
+                    }
+                    d.self.isClaimed = isClaimed;
+                    d.self.currentMinutesWatched = isClaimed ? d.requiredMinutesWatched : 0;
                 }
             }
             finalCampaigns.push(c);
@@ -1120,10 +1255,8 @@ async function fetchAndUpdateCampaigns() {
 
         allCampaigns = finalCampaigns;
         allCampaigns.sort((a, b) => (b.game?.viewersCount || 0) - (a.game?.viewersCount || 0));
-        filteredCampaigns = [...allCampaigns];
 
-        const statsCount = document.getElementById('statsCampaignsCount');
-        if (statsCount) statsCount.innerText = allCampaigns.length;
+        applyCurrentFilters();
 
         renderCampaignsList();
         renderPriorityChips();
@@ -1178,10 +1311,20 @@ async function processTokens(tokens, fromStorage = false) {
     // Test token validity before closing the login window
     if (!fromStorage) {
         addLog(`Testing captured tokens for integrity...`, 'system');
-        const testRes = await window.electronAPI.getCampaigns(tokens);
-        if (testRes && testRes.error === 'INTEGRITY_REQUIRED') {
+        try {
+            const testRes = await window.electronAPI.getCampaigns(tokens);
+            if (testRes && testRes.error) {
+                tokenProcessingStarted = false;
+                if (testRes.error === 'INTEGRITY_REQUIRED') {
+                    addLog(`Captured integrity token is invalid or missing. Waiting for a better one...`, 'warn');
+                } else {
+                    addLog(`Token validation failed: ${testRes.error}. Waiting for correct login...`, 'warn');
+                }
+                return;
+            }
+        } catch (e) {
             tokenProcessingStarted = false;
-            addLog(`Captured integrity token is invalid. Waiting for a better one...`, 'warn');
+            addLog(`Error validating tokens: ${e.message}`, 'error');
             return;
         }
     }
@@ -1251,8 +1394,13 @@ async function processTokens(tokens, fromStorage = false) {
         <button class="btn-secondary" id="btnDisconnect" style="width: 100%; font-size: 12px;">Disconnect</button>
       `;
         }
-        document.getElementById('btnDisconnect').onclick = () => {
+        document.getElementById('btnDisconnect').onclick = async () => {
             localStorage.removeItem('accountTokens');
+            try {
+                await window.electronAPI.wsDisconnect();
+            } catch (e) {
+                console.error("Failed to disconnect WebSocket on logout:", e);
+            }
             location.reload();
         };
     }
@@ -1268,9 +1416,6 @@ async function processTokens(tokens, fromStorage = false) {
         renderIdlePlaceholder();
     }
     farmingInterval = setInterval(fetchAndUpdateCampaigns, 30000); // Polling fallback (30s)
-
-    // Setup WebSocket real-time listeners
-    setupWebSocketListeners();
 }
 
 window.electronAPI.onTokenCaptured(async (data) => {
@@ -1309,11 +1454,7 @@ function renderCampaignsList() {
     // Update search input handler (only once)
     const campaignSearch = document.getElementById('campaignSearch');
     if (campaignSearch && !campaignSearch.oninput) {
-        campaignSearch.oninput = (e) => {
-            const val = e.target.value.toLowerCase();
-            filteredCampaigns = allCampaigns.filter(c => c.game?.displayName?.toLowerCase().includes(val));
-            renderCampaignsListItems();
-        };
+        campaignSearch.oninput = () => applyCurrentFilters();
     }
 
     const btnFarmAll = document.getElementById('btnFarmAll');
@@ -1346,6 +1487,9 @@ function renderCampaignsList() {
 function renderCampaignsListItems() {
     const campaignsContainer = document.getElementById('campaignsContainer');
     if (!campaignsContainer) return;
+
+    const statsCount = document.getElementById('statsCampaignsCount');
+    if (statsCount) statsCount.innerText = filteredCampaigns.length;
 
     const savedList = (localStorage.getItem('autoFarmGames') || '').split(',').map(s => s.trim().toLowerCase());
 
@@ -1443,6 +1587,10 @@ function renderCampaignsListItems() {
                 ${c.name}
               </div>
               <div style="font-size:12px; margin-top:4px;">${statusLabel}</div>
+              ${c.isBadgeOrQuest ? `<div style="font-size:10px; margin-top:3px; display:flex; align-items:center; gap:4px;">
+                <span style="padding: 1px 6px; border-radius: 4px; font-weight: 600; letter-spacing: 0.3px; ${c._badgePaid ? 'background: rgba(255,82,82,0.15); color: #ff5252; border: 1px solid rgba(255,82,82,0.3);' : 'background: rgba(0,230,118,0.12); color: #69f0ae; border: 1px solid rgba(0,230,118,0.25);'}">${c._badgePaid ? '💰 Paid' : '🆓 Free'}</span>
+                <span style="color: var(--text-secondary); opacity: 0.7; font-size: 9px;">${c._badgeReason || ''}</span>
+              </div>` : ''}
               <div style="font-size:11px; color:var(--text-secondary); margin-top:4px;">${totalDrops} Items · ${claimedDrops} Claimed</div>
               
               <div style="margin-top: 6px; height: 4px; width: 100%; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden;">
@@ -1468,6 +1616,7 @@ function haltCurrentFarmWorker() {
     activeFarmingCampaignId = null;
     activeFarmingChannelLogin = null;
     manualOverrideId = null;
+    campaignIdBeingStarted = null;
     
     window.electronAPI.updateTrayTooltip('Idle');
 
@@ -1481,6 +1630,7 @@ function haltCurrentFarmWorker() {
 function stopFarmAction(campaign) {
     addLog(`Stopping farm session...`, 'system');
     masterAutoFarmEnabled = false; // User manually clicked stop, halt auto-farm too
+    campaignIdBeingStarted = null;
     
     haltCurrentFarmWorker();
 
@@ -1495,6 +1645,7 @@ function stopFarmAction(campaign) {
 }
 
 async function startFarmAction(campaign, isAuto = false) {
+    campaignIdBeingStarted = campaign.id;
     // Update the Dashboard view immediately to ensure UI responsiveness
     startFarmingSimulation(campaign, false, false, 'farmPanel');
 
@@ -1508,10 +1659,22 @@ async function startFarmAction(campaign, isAuto = false) {
     if (farmStatus) farmStatus.innerHTML = `<span style="color: var(--text-secondary);">🔍 Searching for streamer...</span>`;
 
     try {
-        const res = await window.electronAPI.findStreamer(campaign.game?.displayName || '', accountTokens);
+        let whitelistedLogins = null;
+        if (campaign.allow?.isEnabled && campaign.allow?.channels && campaign.allow.channels.length > 0) {
+            whitelistedLogins = campaign.allow.channels.map(ch => ch.name);
+            console.log(`Campaign has channel whitelist: ${whitelistedLogins.join(', ')}`);
+        }
+
+        const res = await window.electronAPI.findStreamer(campaign.game?.displayName || '', accountTokens, whitelistedLogins);
+        if (campaignIdBeingStarted !== campaign.id) {
+            console.log("Streamer search finished but campaign start was aborted.");
+            return;
+        }
         const streams = res?.data?.game?.streams?.edges || [];
 
         const validStreams = streams.filter(s => {
+            if (whitelistedLogins) return true; // If we explicitly searched for whitelist channels, they are already valid
+
             const tags = (s.node.freeformTags || []).map(t => t.name.toLowerCase());
             const title = (s.node.title || '').toLowerCase();
 
@@ -1562,29 +1725,6 @@ async function startFarmAction(campaign, isAuto = false) {
     }
 }
 
-function extractStreamerFromText(text) {
-    if (!text) return null;
-
-    // Ignore URLs completely
-    const cleanText = text.replace(/https?:\/\/[^\s]+/g, '');
-
-    // Look for /channelname patterns, ensuring they are preceded by whitespace to avoid false positives
-    const slashMatch = cleanText.match(/(?:^|\s)\/([a-zA-Z0-9_]{3,25})/);
-    if (slashMatch) {
-        const name = slashMatch[1].toLowerCase();
-        if (name !== 'www' && name !== 'twitch') return name;
-    }
-
-    // Look for "watching Name's"
-    const watchingMatch = cleanText.match(/watching\s+([a-zA-Z0-9_]{3,25})'s/i);
-    if (watchingMatch) {
-        const name = watchingMatch[1].toLowerCase();
-        if (name !== 'www') return name;
-    }
-
-    return null;
-}
-
 window.startFarmingSimulationById = (id, autoStart = false) => {
     const campaign = allCampaigns.find(c => c.id === id);
     if (campaign) {
@@ -1599,15 +1739,6 @@ window.startFarmingSimulationById = (id, autoStart = false) => {
             startFarmingSimulation(campaign, false, false, 'previewPanel');
         }
     }
-}
-
-function cycleCampaign(dir, autoStart = false) {
-    if (allCampaigns.length === 0) return;
-    const idx = allCampaigns.findIndex(c => c.id === currentFarmCampaignId);
-    let nextIdx = idx + dir;
-    if (nextIdx < 0) nextIdx = allCampaigns.length - 1;
-    if (nextIdx >= allCampaigns.length) nextIdx = 0;
-    startFarmingSimulation(allCampaigns[nextIdx], autoStart);
 }
 
 function startFarmingSimulation(campaign, autoStart = false, updateOnly = false, targetPanelId = 'farmPanel') {
@@ -1817,64 +1948,62 @@ function setupWebSocketListeners() {
     });
 }
 
-/**
- * Get the most accurate drop progress for a given drop.
- * Priority: WebSocket data > Inventory data > Campaign data
- * 
- * @param {object} drop - A timeBasedDrop object from allCampaigns
- * @param {object} inventoryDrop - Matching drop from inventory (if available)
- * @returns {{ currentMins: number, isClaimed: boolean }}
- */
-function getAccurateDropProgress(drop, inventoryDrop) {
-    let currentMins = 0;
-    let isClaimed = false;
-
-    // Layer 1: Campaign data (least fresh)
-    if (drop.self) {
-        currentMins = drop.self.currentMinutesWatched || 0;
-        isClaimed = drop.self.isClaimed || false;
-    }
-
-    // Layer 2: Inventory data (fresher)
-    if (inventoryDrop?.self) {
-        currentMins = Math.max(currentMins, inventoryDrop.self.currentMinutesWatched || 0);
-        if (inventoryDrop.self.isClaimed) isClaimed = true;
-    }
-
-    // Layer 3: WebSocket real-time data (freshest)
-    const wsData = wsDropProgress[drop.id];
-    if (wsData && (Date.now() - wsData.timestamp) < 5 * 60 * 1000) {
-        // Only use WS data if it's less than 5 minutes old
-        currentMins = Math.max(currentMins, wsData.current || 0);
-    }
-
-    return { currentMins, isClaimed };
-}
 
 async function processAutoClaims() {
     if (!autoClaimEnabled || !accountTokens) return;
 
-    let candidates = 0;
+    let claimSuccessCount = 0;
+    let windowClaimNeeded = false;
+
     for (const campaign of allCampaigns) {
         for (const drop of (campaign.timeBasedDrops || [])) {
             const self = drop.self || {};
 
             if (!self.isClaimed && self.currentMinutesWatched >= drop.requiredMinutesWatched) {
-                const claimId = self.dropInstanceID || `missing-${campaign.id}-${drop.id}`;
+                const claimId = self.dropInstanceID;
+                if (!claimId) {
+                    // Fall back to window-claim if dropInstanceID is missing
+                    windowClaimNeeded = true;
+                    continue;
+                }
 
                 // If we already tried this recently, skip
                 if (pendingClaims.has(claimId)) continue;
-
-                candidates++;
                 pendingClaims.add(claimId);
                 // Mark as pending for 10 minutes
                 setTimeout(() => pendingClaims.delete(claimId), 10 * 60 * 1000);
+
+                const dropName = drop.name || `Reward in campaign ${campaign.name || campaign.id}`;
+                addLog(`[Auto-Claim] Attempting to claim "${dropName}" via GraphQL API...`, 'system');
+
+                try {
+                    const res = await window.electronAPI.claimDrop(claimId, accountTokens);
+                    const claimDropResult = res?.data?.claimDrop;
+                    if (claimDropResult && !claimDropResult.error && claimDropResult.dropSelf?.isClaimed) {
+                        addLog(`🎉 [Auto-Claim] Successfully claimed "${dropName}"!`, 'success');
+                        self.isClaimed = true;
+                        self.currentMinutesWatched = drop.requiredMinutesWatched;
+                        claimSuccessCount++;
+                    } else {
+                        const errMsg = claimDropResult?.error?.message || res?.error || 'Unknown GQL error';
+                        addLog(`⚠️ [Auto-Claim] GraphQL claim failed for "${dropName}": ${errMsg}. Falling back to browser claim...`, 'warn');
+                        windowClaimNeeded = true;
+                    }
+                } catch (err) {
+                    addLog(`⚠️ [Auto-Claim] GraphQL error for "${dropName}": ${err.message}. Falling back to browser claim...`, 'warn');
+                    windowClaimNeeded = true;
+                }
             }
         }
     }
 
-    if (candidates > 0) {
-        addLog(`[Auto-Claim] Detected ${candidates} ready reward(s). Triggering one hidden claim window...`, 'system');
+    if (claimSuccessCount > 0) {
+        // Refresh UI & campaign states
+        fetchAndUpdateCampaigns();
+    }
+
+    if (windowClaimNeeded) {
+        addLog(`[Auto-Claim] Triggering hidden claim window to claim remaining rewards...`, 'system');
         window.electronAPI.claimViaWindow();
     }
 }
@@ -2040,4 +2169,7 @@ function renderIdlePlaceholder() {
         </div>
     `;
 }
+
+// Setup WebSocket real-time listeners exactly once at startup
+setupWebSocketListeners();
 
