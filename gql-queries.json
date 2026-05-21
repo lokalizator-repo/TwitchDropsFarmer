@@ -8,12 +8,12 @@
     "ViewerDropsDashboard": {
       "operationName": "ViewerDropsDashboard",
       "variables": {},
-      "query": "query ViewerDropsDashboard { currentUser { dropCurrentSession { dropID game { id displayName } currentMinutesWatched requiredMinutesWatched } dropCampaigns { id status detailsURL game { id displayName viewersCount boxArtURL } name startAt endAt timeBasedDrops { id requiredMinutesWatched requiredSubs name startAt endAt benefitEdges { benefit { id name imageAssetURL } } self { dropInstanceID currentMinutesWatched isClaimed hasPreconditionsMet } } } } }"
+      "query": "query ViewerDropsDashboard { currentUser { dropCurrentSession { dropID game { id displayName } currentMinutesWatched requiredMinutesWatched } dropCampaigns { id status detailsURL allow { channels { name } isEnabled } game { id displayName viewersCount boxArtURL } name startAt endAt timeBasedDrops { id requiredMinutesWatched requiredSubs name startAt endAt benefitEdges { benefit { id name imageAssetURL distributionType } } self { dropInstanceID currentMinutesWatched isClaimed hasPreconditionsMet } } } } }"
     },
     "Inventory": {
       "operationName": "Inventory",
       "variables": {},
-      "query": "query Inventory { currentUser { inventory { dropCampaignsInProgress { id status detailsURL game { id displayName viewersCount boxArtURL } name startAt endAt timeBasedDrops { id requiredMinutesWatched requiredSubs name startAt endAt benefitEdges { benefit { id name imageAssetURL } } self { dropInstanceID currentMinutesWatched isClaimed hasPreconditionsMet } } } gameEventDrops { id name lastAwardedAt } } } }"
+      "query": "query Inventory { currentUser { inventory { dropCampaignsInProgress { id status detailsURL allow { channels { name } isEnabled } game { id displayName viewersCount boxArtURL } name startAt endAt timeBasedDrops { id requiredMinutesWatched requiredSubs name startAt endAt benefitEdges { benefit { id name imageAssetURL distributionType } } self { dropInstanceID currentMinutesWatched isClaimed hasPreconditionsMet } } } gameEventDrops { id name lastAwardedAt } } } }"
     },
     "DropCurrentSessionContext": {
       "operationName": "DropCurrentSessionContext",
@@ -42,24 +42,7 @@
         }
       }
     },
-    "DirectoryPage_Game": {
-      "operationName": "DirectoryPage_Game",
-      "variables": {
-        "name": "",
-        "options": {
-          "freeformTags": ["DropsEnabled"],
-          "sort": "VIEWER_COUNT"
-        },
-        "sortTypeIsRecency": false,
-        "limit": 20
-      },
-      "extensions": {
-        "persistedQuery": {
-          "version": 1,
-          "sha256Hash": "df4bb6cc45055c92c540076dbe8e6bba8b79aead099bf053a6781b2b1d tried"
-        }
-      }
-    },
+
     "GetUserInfo": {
       "operationName": "GetUserInfo",
       "query": "query GetUserInfo { currentUser { id login displayName profileImageURL(width: 70) } }"

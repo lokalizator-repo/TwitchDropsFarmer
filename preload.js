@@ -9,12 +9,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // GQL Queries
   getCampaigns: (tokens) => ipcRenderer.invoke('fetch-campaigns', tokens),
   fetchCampaignDetails: (campaignId, tokens) => ipcRenderer.invoke('fetch-campaign-details', campaignId, tokens),
-  findStreamer: (gameName, tokens) => ipcRenderer.invoke('find-streamer', gameName, tokens),
+  findStreamer: (gameName, tokens, whitelistedLogins = null) => ipcRenderer.invoke('find-streamer', gameName, tokens, whitelistedLogins),
   getDropSession: (channelId, tokens, channelLogin) => ipcRenderer.invoke('get-drop-session', channelId, tokens, channelLogin),
   getInventory: (tokens) => ipcRenderer.invoke('get-inventory', tokens),
   getUserInfo: (tokens) => ipcRenderer.invoke('get-user-info', tokens),
-  isStreamerOnline: (login, tokens) => ipcRenderer.invoke('get-stream-status', login, tokens),
-  getMultiStreamStatus: (logins, tokens) => ipcRenderer.invoke('get-multi-stream-status', logins, tokens),
   claimDrop: (dropInstanceId, tokens) => ipcRenderer.invoke('claim-drop', dropInstanceId, tokens),
 
   // Farm control
@@ -23,7 +21,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   claimViaWindow: () => ipcRenderer.send('claim-via-window'),
   updateTrayTooltip: (text) => ipcRenderer.send('update-tray-tooltip', text),
   minimizeToTray: () => ipcRenderer.send('minimize-to-tray'),
-  openLoginWindow: () => ipcRenderer.send('open-login-window'),
+  openLoginWindow: (url) => ipcRenderer.send('open-login-window', url),
   authSuccess: () => ipcRenderer.send('auth-success'),
 
   // WebSocket
