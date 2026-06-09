@@ -262,6 +262,8 @@ let accountTokens = JSON.parse(localStorage.getItem('accountTokens') || 'null');
 let allCampaigns = [];
 let filteredCampaigns = [];
 let autoClaimEnabled = localStorage.getItem('autoClaimEnabled') !== 'false'; // Default to true
+let discordRPCEnabled = localStorage.getItem('discordRPCEnabled') === 'true'; // Default to false
+let rpcFarmingStartTimestamp = null;
 let currentGlobalDropSession = null;
 let currentFarmingChannelId = null;
 let currentFarmCampaignId = null; // Currently VIEWED campaign on Dashboard
@@ -302,13 +304,12 @@ if (accountTokens && accountTokens.auth) {
     }, 500);
 }
 
-const btnToggleClaim = document.getElementById('btnToggleClaim');
-if (btnToggleClaim) {
-    btnToggleClaim.addEventListener('click', () => {
-        autoClaimEnabled = !autoClaimEnabled;
+const toggleClaim = document.getElementById('toggleClaim');
+if (toggleClaim) {
+    toggleClaim.checked = autoClaimEnabled;
+    toggleClaim.addEventListener('change', () => {
+        autoClaimEnabled = toggleClaim.checked;
         localStorage.setItem('autoClaimEnabled', autoClaimEnabled);
-        updateAutoClaimUI();
-
         if (autoClaimEnabled) {
             addLog('Auto-Claim enabled. Checking rewards...', 'system');
             processAutoClaims();
@@ -316,50 +317,103 @@ if (btnToggleClaim) {
     });
 }
 
-function updateAutoClaimUI() {
-    const btn = document.getElementById('btnToggleClaim');
-    if (!btn) return;
-    if (autoClaimEnabled) {
-        btn.innerText = 'Toggle (Enabled)';
-        btn.className = 'btn-primary';
-        btn.style.background = 'linear-gradient(135deg, var(--accent-color), var(--accent-hover))';
-        btn.style.borderColor = 'transparent';
-        btn.style.color = 'white';
+const toggleDiscordRPC = document.getElementById('toggleDiscordRPC');
+const discordRpcClientConfig = document.getElementById('discordRpcClientConfig');
+if (toggleDiscordRPC) {
+    toggleDiscordRPC.checked = discordRPCEnabled;
+    if (discordRpcClientConfig) {
+        discordRpcClientConfig.style.display = discordRPCEnabled ? 'block' : 'none';
+    }
+    toggleDiscordRPC.addEventListener('change', () => {
+        discordRPCEnabled = toggleDiscordRPC.checked;
+        localStorage.setItem('discordRPCEnabled', discordRPCEnabled);
+        if (discordRpcClientConfig) {
+            discordRpcClientConfig.style.display = discordRPCEnabled ? 'block' : 'none';
+        }
+        window.electronAPI.rpcToggle(discordRPCEnabled);
+        updateRPCStatus();
+    });
+}
+
+function updateDiscordRPCUI() {
+    const input = document.getElementById('toggleDiscordRPC');
+    if (input) input.checked = discordRPCEnabled;
+    const clientConfig = document.getElementById('discordRpcClientConfig');
+    if (clientConfig) clientConfig.style.display = discordRPCEnabled ? 'block' : 'none';
+}
+
+function updateRPCStatus() {
+    if (!discordRPCEnabled) {
+        window.electronAPI.rpcToggle(false);
+        return;
+    }
+
+    if (activeFarmingCampaignId && activeFarmingChannelLogin) {
+        const curr = allCampaigns.find(c => c.id === activeFarmingCampaignId);
+        const gameName = curr?.game?.displayName || 'Game';
+        
+        // Find the active drop in the campaign
+        let dropName = 'Drops';
+        let progressPercent = 0;
+        if (curr) {
+            const activeDrop = curr.timeBasedDrops?.find(d => !d.self?.isClaimed);
+            if (activeDrop) {
+                dropName = activeDrop.name || 'Drop';
+                const selfStats = activeDrop.self || {};
+                const currentMins = selfStats.currentMinutesWatched || 0;
+                const requiredMins = activeDrop.requiredMinutesWatched || 1;
+                progressPercent = Math.min(100, Math.floor((currentMins / requiredMins) * 100));
+            }
+        }
+
+        if (!rpcFarmingStartTimestamp) {
+            rpcFarmingStartTimestamp = Date.now();
+        }
+
+        window.electronAPI.rpcUpdate({
+            details: `Farming: ${gameName}`,
+            state: `Watching ${activeFarmingChannelLogin} (${progressPercent}%)`,
+            timestamps: {
+                start: rpcFarmingStartTimestamp
+            },
+            assets: {
+                large_image: 'twitch_drops_logo',
+                large_text: 'Twitch Drops Farmer',
+                small_image: 'farming',
+                small_text: `Farming ${dropName}`
+            }
+        });
     } else {
-        btn.innerText = 'Toggle (Disabled)';
-        btn.className = 'btn-outline';
-        btn.style.background = 'transparent';
-        btn.style.color = 'var(--text-secondary)';
-        btn.style.borderColor = 'var(--border-color)';
+        rpcFarmingStartTimestamp = null;
+        window.electronAPI.rpcUpdate({
+            details: 'Standing by',
+            state: 'Idle',
+            assets: {
+                large_image: 'twitch_drops_logo',
+                large_text: 'Twitch Drops Farmer'
+            }
+        });
     }
 }
 
+function updateAutoClaimUI() {
+    const input = document.getElementById('toggleClaim');
+    if (input) input.checked = autoClaimEnabled;
+}
+
 // Stall Settings UI
-const btnToggleStallTimer = document.getElementById('btnToggleStallTimer');
-if (btnToggleStallTimer) {
-    btnToggleStallTimer.addEventListener('click', () => {
-        showStallTimer = !showStallTimer;
+const toggleStallTimer = document.getElementById('toggleStallTimer');
+if (toggleStallTimer) {
+    toggleStallTimer.checked = showStallTimer;
+    toggleStallTimer.addEventListener('change', () => {
+        showStallTimer = toggleStallTimer.checked;
         localStorage.setItem('showStallTimer', showStallTimer);
-        updateStallTimerUI();
     });
 }
 
 function updateStallTimerUI() {
-    const btn = document.getElementById('btnToggleStallTimer');
-    if (!btn) return;
-    if (showStallTimer) {
-        btn.innerText = 'Show UI Timer (Enabled)';
-        btn.className = 'btn-primary';
-        btn.style.background = 'linear-gradient(135deg, var(--accent-color), var(--accent-hover))';
-        btn.style.borderColor = 'transparent';
-        btn.style.color = 'white';
-    } else {
-        btn.innerText = 'Show UI Timer (Disabled)';
-        btn.className = 'btn-outline';
-        btn.style.background = 'transparent';
-        btn.style.color = 'var(--text-secondary)';
-        btn.style.borderColor = 'var(--border-color)';
-    }
+    const input = document.getElementById('toggleStallTimer');
+    if (input) input.checked = showStallTimer;
 }
 
 const stallThresholdInput = document.getElementById('stallThresholdInput');
@@ -381,9 +435,13 @@ if (stallThresholdInput && btnSaveStallThreshold) {
     };
 }
 
+// Custom Discord Client ID
 // Set initial UI state
 updateAutoClaimUI();
 updateStallTimerUI();
+updateDiscordRPCUI();
+window.electronAPI.rpcToggle(discordRPCEnabled);
+updateRPCStatus();
 
 const autoFarmSearch = document.getElementById('autoFarmSearch');
 const selectedGamesChips = document.getElementById('selectedGamesChips');
@@ -604,6 +662,7 @@ let pendingClaims = new Set();
 let isFetchingCampaigns = false;
 
 function updateMasterAutoFarmUI() {
+    updateRPCStatus();
     const status = document.getElementById('masterToggleStatus');
     const btnPriority = document.getElementById('btnTogglePriority');
     const btnGlobal = document.getElementById('btnToggleGlobal');
@@ -1154,6 +1213,11 @@ async function fetchAndUpdateCampaigns() {
         const response = await window.electronAPI.getCampaigns(accountTokens);
         if (!response) return false;
 
+        if (response.error === 'AUTH_EXPIRED') {
+            handleAuthExpired();
+            return false;
+        }
+
         if (response.error === 'INTEGRITY_REQUIRED') {
             const container = document.getElementById('campaignsContainer');
             if (container) {
@@ -1161,7 +1225,18 @@ async function fetchAndUpdateCampaigns() {
               <div style="background: rgba(255, 79, 79, 0.1); border: 1px solid #ff4f4f; padding: 20px; border-radius: 12px; text-align: center; margin: 20px;">
                   <h3 style="color: #ff4f4f; margin-bottom: 10px; font-size: 18px;">Security Token Needed</h3>
                   <p style="font-size: 14px; margin-bottom: 16px; color: var(--text-secondary);">Twitch is blocking access. Click the button below, and just wait for 5 seconds on the page that opens.</p>
-                  <button class="btn-primary" onclick="window.electronAPI.openLoginWindow('https://www.twitch.tv/drops/inventory')" style="padding: 10px 20px; background: #ff4f4f; border:none;">Fix Security Token</button>
+                  <button class="btn-primary" onclick="window.electronAPI.openLoginWindow('https://www.twitch.tv/drops/inventory')" style="padding: 10px 20px; background: #ff4f4f; border:none; cursor:pointer;">Fix Security Token</button>
+              </div>
+            `;
+            }
+            const farmPanel = document.getElementById('farmPanel');
+            if (farmPanel) {
+                farmPanel.innerHTML = `
+              <div class="empty-state fade-in" style="text-align: center; background: rgba(255, 79, 79, 0.05); border: 1px solid #ff4f4f; padding: 30px; border-radius: 16px; max-width: 500px; margin: 20px auto;">
+                  <div class="icon" style="font-size: 48px; margin-bottom: 15px; filter: drop-shadow(0 0 10px rgba(255, 79, 79, 0.3));">🔒</div>
+                  <h3 style="color: #ff4f4f; margin-bottom: 10px; font-size: 18px; font-weight: 700;">Security Token Needed</h3>
+                  <p style="font-size: 13px; margin-bottom: 20px; color: var(--text-secondary); line-height: 1.5;">Twitch is blocking automated access. Please click the button below to open a browser window and wait for 5 seconds for the security check to complete.</p>
+                  <button class="btn-primary" onclick="window.electronAPI.openLoginWindow('https://www.twitch.tv/drops/inventory')" style="width: auto; padding: 10px 24px; background: #ff4f4f; border:none; font-weight: 600; cursor:pointer;">Fix Security Token</button>
               </div>
             `;
             }
@@ -1233,6 +1308,7 @@ async function fetchAndUpdateCampaigns() {
                         if (!d.self) d.self = {};
                         d.self.currentMinutesWatched = ipDrop.self?.currentMinutesWatched || 0;
                         if (ipDrop.self?.isClaimed) d.self.isClaimed = true;
+                        if (ipDrop.self?.dropInstanceID) d.self.dropInstanceID = ipDrop.self.dropInstanceID;
                     }
                 }
             } else {
@@ -1258,7 +1334,7 @@ async function fetchAndUpdateCampaigns() {
 
         applyCurrentFilters();
 
-        renderCampaignsList();
+        setupCampaignsListEvents();
         renderPriorityChips();
         renderPriorityGrid(autoFarmSearch ? autoFarmSearch.value : '');
 
@@ -1298,6 +1374,66 @@ async function fetchAndUpdateCampaigns() {
     }
 }
 
+function handleAuthExpired() {
+    addLog(`Twitch session has expired or is invalid. Please log in again.`, 'error');
+    
+    // Halt active farming
+    haltCurrentFarmWorker();
+    
+    // Disconnect websocket
+    try {
+        window.electronAPI.wsDisconnect();
+    } catch (e) {
+        console.error("Failed to disconnect WebSocket:", e);
+    }
+    
+    // Clear interval
+    if (farmingInterval) {
+        clearInterval(farmingInterval);
+        farmingInterval = null;
+    }
+    
+    // Reset login states
+    tokenProcessingStarted = false;
+    
+    // Update sidebar connection panel
+    if (authSection) {
+        authSection.classList.remove('connected');
+        authSection.innerHTML = `
+            <div style="background: rgba(255, 79, 79, 0.1); border: 1px solid #ff4f4f; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 12px;">
+                <div style="display:flex; align-items:center; justify-content:center; gap:6px;">
+                    <span class="status-indicator red"></span>
+                    <span style="font-size:12px; font-weight:600; color:#ff4f4f;">Session Expired</span>
+                </div>
+            </div>
+            <button id="loginBtn" class="btn-primary" style="width: 100%;">Re-login to Twitch</button>
+        `;
+        document.getElementById('loginBtn').onclick = () => {
+            document.getElementById('loginBtn').innerText = "Waiting for login...";
+            window.electronAPI.openLoginWindow();
+        };
+    }
+    
+    // Update Control Hub status card
+    const statsAccountName = document.getElementById('statsAccountName');
+    if (statsAccountName) {
+        statsAccountName.innerHTML = 'Session Expired';
+        statsAccountName.style.color = '#ff4f4f';
+    }
+    
+    // Update main campaigns view
+    const campaignsContainer = document.getElementById('campaignsContainer');
+    if (campaignsContainer) {
+        campaignsContainer.innerHTML = `
+            <div style="grid-column: 1/-1; background: rgba(255, 79, 79, 0.1); border: 1px solid #ff4f4f; padding: 24px; border-radius: 12px; text-align: center; margin: 20px 0;">
+                <h3 style="color: #ff4f4f; margin-bottom: 10px; font-size: 18px;">Authentication Expired</h3>
+                <p style="font-size: 14px; margin-bottom: 18px; color: var(--text-secondary); max-width: 500px; margin-left: auto; margin-right: auto;">Your Twitch session has expired or the token is no longer valid. Please log in again to continue auto-farming drops.</p>
+                <button class="btn-primary" onclick="window.electronAPI.openLoginWindow()" style="padding: 10px 24px; background: #ff4f4f; border:none; cursor:pointer; font-weight: 600;">Log In Again</button>
+            </div>
+        `;
+    }
+}
+
 async function processTokens(tokens, fromStorage = false) {
     if (!tokens || !tokens.auth || !tokens.auth.includes('OAuth')) return;
     if (tokenProcessingStarted) return;
@@ -1317,6 +1453,8 @@ async function processTokens(tokens, fromStorage = false) {
                 tokenProcessingStarted = false;
                 if (testRes.error === 'INTEGRITY_REQUIRED') {
                     addLog(`Captured integrity token is invalid or missing. Waiting for a better one...`, 'warn');
+                } else if (testRes.error === 'AUTH_EXPIRED') {
+                    addLog(`Captured token is expired or unauthorized. Waiting for correct login...`, 'warn');
                 } else {
                     addLog(`Token validation failed: ${testRes.error}. Waiting for correct login...`, 'warn');
                 }
@@ -1420,6 +1558,8 @@ async function processTokens(tokens, fromStorage = false) {
 
 window.electronAPI.onTokenCaptured(async (data) => {
     const hadIntegrity = accountTokens && !!accountTokens.integrity;
+    const oldAuth = accountTokens ? accountTokens.auth : null;
+    const oldIntegrity = accountTokens ? accountTokens.integrity : null;
 
     if (!accountTokens) accountTokens = { auth: '', integrity: '', clientId: '', deviceId: '' };
 
@@ -1431,13 +1571,25 @@ window.electronAPI.onTokenCaptured(async (data) => {
     // Save most recent tokens
     localStorage.setItem('accountTokens', JSON.stringify(accountTokens));
 
+    const authChanged = oldAuth && data.auth && oldAuth !== data.auth;
+
     if (accountTokens.auth && accountTokens.auth.includes('OAuth')) {
-        if (!tokenProcessingStarted) {
+        if (!tokenProcessingStarted || authChanged) {
+            if (authChanged) {
+                tokenProcessingStarted = false;
+                if (farmingInterval) {
+                    clearInterval(farmingInterval);
+                    farmingInterval = null;
+                }
+            }
             processTokens(accountTokens);
-        } else if (data.integrity && !hadIntegrity) {
-            // If we just got our first integrity token, force a refresh
+        } else if (data.integrity && data.integrity !== oldIntegrity) {
+            // If we just got a new integrity token, force a refresh and close window if successful
             console.log("Integrity token captured, refreshing campaigns...");
-            fetchAndUpdateCampaigns();
+            const success = await fetchAndUpdateCampaigns();
+            if (success) {
+                window.electronAPI.authSuccess();
+            }
         }
     }
 });
@@ -1447,7 +1599,7 @@ setInterval(() => {
     if (masterAutoFarmEnabled || activeFarmingCampaignId) runMasterFarmLoop();
 }, 10000);
 
-function renderCampaignsList() {
+function setupCampaignsListEvents() {
     const campaignsContainer = document.getElementById('campaignsContainer');
     if (!campaignsContainer) return;
 
@@ -1480,8 +1632,6 @@ function renderCampaignsList() {
             }
         };
     }
-
-    renderCampaignsListItems();
 }
 
 function renderCampaignsListItems() {
@@ -1494,6 +1644,9 @@ function renderCampaignsListItems() {
     const savedList = (localStorage.getItem('autoFarmGames') || '').split(',').map(s => s.trim().toLowerCase());
 
     try {
+        // Check if initial render
+        const isInitial = campaignsContainer.children.length === 0 || campaignsContainer.querySelector('.campaign-card') === null;
+
         // Apply manual sorting choice
         filteredCampaigns.sort((a, b) => {
             if (campaignSortMode === 'viewers') {
@@ -1507,15 +1660,18 @@ function renderCampaignsListItems() {
             }
         });
 
-        // Clear existing campaigns grid
-        while (campaignsContainer.firstChild) {
-            campaignsContainer.removeChild(campaignsContainer.firstChild);
-        }
-
         if (filteredCampaigns.length === 0) {
             campaignsContainer.innerHTML = '<p style="color: var(--text-secondary); grid-column: 1/-1;">No campaigns found.</p>';
             return;
         }
+
+        // Pin current height to prevent visual collapsing during update
+        const currentHeight = campaignsContainer.offsetHeight;
+        if (currentHeight > 0) {
+            campaignsContainer.style.minHeight = `${currentHeight}px`;
+        }
+
+        const fragment = document.createDocumentFragment();
 
         let renderedCount = 0;
         filteredCampaigns.forEach(c => {
@@ -1534,7 +1690,7 @@ function renderCampaignsListItems() {
                 const isIgnored = isGameBanned || isCampIgnored;
 
                 const card = document.createElement('div');
-                card.className = 'campaign-card fade-in';
+                card.className = isInitial ? 'campaign-card fade-in' : 'campaign-card';
                 card.onclick = () => startFarmingSimulationById(c.id, false);
 
                 if (isFinished) {
@@ -1599,10 +1755,19 @@ function renderCampaignsListItems() {
             </div>
           </div>
         `;
-                campaignsContainer.appendChild(card);
+                fragment.appendChild(card);
             } catch (err) {
                 console.error("Error drawing campaign card:", err);
             }
+        });
+
+        // Clear and append fragment in one batch
+        campaignsContainer.innerHTML = '';
+        campaignsContainer.appendChild(fragment);
+
+        // Reset minHeight in the next frame
+        requestAnimationFrame(() => {
+            campaignsContainer.style.minHeight = '';
         });
     } catch (globalErr) {
         addLog(`UI Rendering failed: ${globalErr.message}`, 'error');
@@ -1925,6 +2090,7 @@ function setupWebSocketListeners() {
             if (curr && !document.hidden) {
                 startFarmingSimulation(curr, false, true);
             }
+            updateRPCStatus();
         }
     });
 
@@ -1961,36 +2127,56 @@ async function processAutoClaims() {
 
             if (!self.isClaimed && self.currentMinutesWatched >= drop.requiredMinutesWatched) {
                 const claimId = self.dropInstanceID;
+                const dropId = drop.id;
+
+                // If we already tried this recently, skip
+                if (pendingClaims.has(dropId)) continue;
+                pendingClaims.add(dropId);
+                // Mark as pending for 10 minutes
+                setTimeout(() => pendingClaims.delete(dropId), 10 * 60 * 1000);
+
                 if (!claimId) {
                     // Fall back to window-claim if dropInstanceID is missing
                     windowClaimNeeded = true;
                     continue;
                 }
 
-                // If we already tried this recently, skip
-                if (pendingClaims.has(claimId)) continue;
-                pendingClaims.add(claimId);
-                // Mark as pending for 10 minutes
-                setTimeout(() => pendingClaims.delete(claimId), 10 * 60 * 1000);
-
                 const dropName = drop.name || `Reward in campaign ${campaign.name || campaign.id}`;
                 addLog(`[Auto-Claim] Attempting to claim "${dropName}" via GraphQL API...`, 'system');
 
-                try {
-                    const res = await window.electronAPI.claimDrop(claimId, accountTokens);
-                    const claimDropResult = res?.data?.claimDrop;
-                    if (claimDropResult && !claimDropResult.error && claimDropResult.dropSelf?.isClaimed) {
-                        addLog(`🎉 [Auto-Claim] Successfully claimed "${dropName}"!`, 'success');
-                        self.isClaimed = true;
-                        self.currentMinutesWatched = drop.requiredMinutesWatched;
-                        claimSuccessCount++;
-                    } else {
-                        const errMsg = claimDropResult?.error?.message || res?.error || 'Unknown GQL error';
-                        addLog(`⚠️ [Auto-Claim] GraphQL claim failed for "${dropName}": ${errMsg}. Falling back to browser claim...`, 'warn');
-                        windowClaimNeeded = true;
+                let claimSuccess = false;
+                let lastError = 'Unknown error';
+
+                for (let attempt = 1; attempt <= 3; attempt++) {
+                    try {
+                        const res = await window.electronAPI.claimDrop(claimId, accountTokens);
+                        if (res && res.error === 'AUTH_EXPIRED') {
+                            handleAuthExpired();
+                            return;
+                        }
+                        const claimDropResult = res?.data?.claimDrop;
+                        if (claimDropResult && !claimDropResult.error && claimDropResult.dropSelf?.isClaimed) {
+                            addLog(`🎉 [Auto-Claim] Successfully claimed "${dropName}"!`, 'success');
+                            self.isClaimed = true;
+                            self.currentMinutesWatched = drop.requiredMinutesWatched;
+                            claimSuccessCount++;
+                            claimSuccess = true;
+                            break;
+                        } else {
+                            lastError = claimDropResult?.error?.message || res?.error || 'Unknown GQL error';
+                        }
+                    } catch (err) {
+                        lastError = err.message;
                     }
-                } catch (err) {
-                    addLog(`⚠️ [Auto-Claim] GraphQL error for "${dropName}": ${err.message}. Falling back to browser claim...`, 'warn');
+
+                    if (attempt < 3) {
+                        addLog(`⚠️ [Auto-Claim] GraphQL claim attempt ${attempt} failed: ${lastError}. Retrying in 5 seconds...`, 'warn');
+                        await new Promise(r => setTimeout(r, 5000));
+                    }
+                }
+
+                if (!claimSuccess) {
+                    addLog(`⚠️ [Auto-Claim] All GraphQL claim attempts failed for "${dropName}": ${lastError}. Falling back to browser claim...`, 'warn');
                     windowClaimNeeded = true;
                 }
             }
@@ -2039,6 +2225,10 @@ async function renderInventory() {
 
     // Refresh inventory data
     const res = await window.electronAPI.getInventory(accountTokens);
+    if (res && res.error === 'AUTH_EXPIRED') {
+        handleAuthExpired();
+        return;
+    }
     const inProgress = res?.data?.currentUser?.inventory?.dropCampaignsInProgress || [];
     const history = res?.data?.currentUser?.inventory?.gameEventDrops || [];
 
@@ -2106,7 +2296,44 @@ async function renderInventory() {
         return groups[b].maxDate - groups[a].maxDate;
     });
 
-    container.innerHTML = sortedGroupNames.map(gn => {
+    // 3. Calculate metrics for stats header
+    let totalMinutes = 0;
+    history.forEach(item => {
+        let minutes = 60; // default fallback
+        const matchedCamp = allKnownCampaigns.find(c => 
+            c.timeBasedDrops?.some(d => d.benefitEdges?.some(be => be.benefit?.id === item.id))
+        );
+        if (matchedCamp) {
+            const matchedDrop = matchedCamp.timeBasedDrops?.find(d => 
+                d.benefitEdges?.some(be => be.benefit?.id === item.id)
+            );
+            if (matchedDrop) {
+                minutes = matchedDrop.requiredMinutesWatched || 60;
+            }
+        }
+        totalMinutes += minutes;
+    });
+    const hoursFarmed = (totalMinutes / 60).toFixed(1);
+    const uniqueGames = Object.keys(groups).filter(g => g !== 'Other Rewards').length;
+
+    const statsHeaderHtml = `
+      <div class="stats-row" style="margin-bottom: 25px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; width: 100%;">
+        <div class="stat-card fade-in" style="background: rgba(255, 255, 255, 0.015); border: 1px solid rgba(255,255,255,0.04); border-radius: 14px; padding: 18px 22px;">
+          <h3 style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary); margin: 0 0 8px 0; font-weight: 700; letter-spacing: 0.8px;">Total Drops Claimed</h3>
+          <div style="font-size: 30px; font-weight: 800; color: white; line-height: 1.1;">${history.length}</div>
+        </div>
+        <div class="stat-card fade-in" style="background: rgba(255, 255, 255, 0.015); border: 1px solid rgba(255,255,255,0.04); border-radius: 14px; padding: 18px 22px;">
+          <h3 style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary); margin: 0 0 8px 0; font-weight: 700; letter-spacing: 0.8px;">Games Farmed</h3>
+          <div style="font-size: 30px; font-weight: 800; color: var(--accent-color); line-height: 1.1;">${uniqueGames}</div>
+        </div>
+        <div class="stat-card fade-in" style="background: rgba(255, 255, 255, 0.015); border: 1px solid rgba(255,255,255,0.04); border-radius: 14px; padding: 18px 22px;">
+          <h3 style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary); margin: 0 0 8px 0; font-weight: 700; letter-spacing: 0.8px;">Est. Time Farmed</h3>
+          <div style="font-size: 30px; font-weight: 800; color: var(--success); line-height: 1.1;">${hoursFarmed} <span style="font-size: 14px; font-weight: 500; color: var(--text-secondary);">Hours</span></div>
+        </div>
+      </div>
+    `;
+
+    const panelsHtml = sortedGroupNames.map(gn => {
         const group = groups[gn];
         // Sort rewards within group (Newest First)
         const rewardsSorted = group.rewards.sort((a, b) => new Date(b.lastAwardedAt) - new Date(a.lastAwardedAt));
@@ -2148,6 +2375,8 @@ async function renderInventory() {
             </div>
         `;
     }).join('');
+
+    container.innerHTML = statsHeaderHtml + panelsHtml;
 }
 
 function renderIdlePlaceholder() {

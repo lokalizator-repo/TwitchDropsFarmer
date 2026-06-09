@@ -34,6 +34,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onWsDisconnected: (callback) => ipcRenderer.on('ws-disconnected', (_event, data) => callback(data)),
   onLogMsg: (callback) => ipcRenderer.on('log-msg', (_event, data) => callback(data)),
   
+  // Discord RPC
+  rpcToggle: (enabled) => ipcRenderer.send('rpc-toggle', enabled),
+  rpcUpdate: (activity) => ipcRenderer.send('rpc-update', activity),
+  rpcSetClientId: (clientId) => ipcRenderer.send('rpc-set-client-id', clientId),
+  
   // App utilities
   openExternal: (url) => ipcRenderer.send('open-external', url)
 })

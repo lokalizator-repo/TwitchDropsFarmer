@@ -83,8 +83,37 @@ class GraphQLManager {
         });
 
         clearTimeout(timer);
+
+        if (res.status === 401) {
+          console.error(`[GQL] ${operationName}: HTTP 401 Unauthorized`);
+          return { error: 'AUTH_EXPIRED' };
+        }
+
         const text = await res.text();
-        const data = JSON.parse(text);
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (parseErr) {
+          if (res.status === 400 || res.status === 403) {
+            console.error(`[GQL] ${operationName}: HTTP ${res.status}`);
+            return { error: 'AUTH_EXPIRED' };
+          }
+          throw parseErr;
+        }
+
+        if (data.error === 'Unauthorized' || data.status === 401) {
+          console.error(`[GQL] ${operationName}: Unauthorized response`);
+          return { error: 'AUTH_EXPIRED', details: data };
+        }
+
+        // Check for authentication / authorization errors
+        if (data.errors?.some(e => {
+          const msg = (e.message || '').toLowerCase();
+          return msg.includes('unauthorized') || msg.includes('authorization') || msg.includes('oauth') || msg.includes('token') || msg.includes('session');
+        })) {
+          console.error(`[GQL] ${operationName}: Authentication expired or invalid`);
+          return { error: 'AUTH_EXPIRED', details: data.errors };
+        }
 
         // Check for integrity errors
         if (data.errors?.some(e => e.message?.includes('integrity'))) {

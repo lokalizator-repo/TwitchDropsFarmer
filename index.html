@@ -24,7 +24,7 @@
         <div style="display: flex; flex-direction: column; line-height: 1.1;">
           <span style="font-size: 16px; font-weight: 800; letter-spacing: -0.5px; color: white;">Drops Farmer</span>
           <span
-            style="font-size: 9px; color: var(--accent-hover); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px;">v1.1.0</span>
+            style="font-size: 9px; color: var(--accent-hover); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px;">v1.2</span>
         </div>
       </div>
       <nav class="sidebar-nav">
@@ -219,48 +219,87 @@
           </div>
         </div>
 
-        <!-- AUTO CLAIM -->
-        <div class="farm-panel settings-panel" style="margin-bottom: 16px;">
-          <h3 style="margin-bottom: 10px;">Auto-Claim Drops</h3>
-          <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 13px;">Automatically claim drops when
-            they reach 100%.</p>
-          <button id="btnToggleClaim" class="btn-primary" style="width: 200px;">Toggle (Enabled)</button>
-        </div>
+          <!-- GENERAL PREFERENCES -->
+        <div class="farm-panel settings-panel" style="margin-bottom: 16px; align-items: stretch;">
+          <h3 style="margin-bottom: 20px; font-size: 16px; font-weight: 700; width: 100%; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">General Preferences</h3>
+          
+          <div class="settings-group">
+            <!-- Auto Claim -->
+            <div class="settings-row-item">
+              <div class="settings-meta">
+                <div class="settings-title-text">Auto-Claim Drops</div>
+                <div class="settings-description-text">Automatically claim drops when they reach 100% without prompting.</div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="toggleClaim">
+                <span class="slider"></span>
+              </label>
+            </div>
 
-        <!-- STALL DETECTION -->
-        <div class="farm-panel settings-panel" style="margin-bottom: 16px;">
-          <h3 style="margin-bottom: 10px;">Stall Detection</h3>
-          <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 13px;">Automatically skip campaigns that haven't progressed in the specified time. Recommended: 180s.</p>
-          <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 15px;">
-            <label style="color: var(--text-secondary); font-size: 13px;">Threshold (seconds):</label>
-            <input type="number" id="stallThresholdInput" min="60" max="600" value="180" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-primary); color: white; width: 80px; outline: none; font-size: 13px;">
-            <button id="btnSaveStallThreshold" class="btn-secondary" style="height: 35px; width: auto; font-size: 12px; padding: 0 16px;">Save</button>
-            <span id="stallThresholdNotice" style="font-size: 11px; color: var(--success); margin-left: 8px;"></span>
+            <!-- Discord RPC -->
+            <div class="settings-row-item">
+              <div class="settings-meta">
+                <div class="settings-title-text">Discord Rich Presence</div>
+                <div class="settings-description-text">Show active farming game and progress details on your Discord status.</div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="toggleDiscordRPC">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <!-- Stall UI Timer -->
+            <div class="settings-row-item">
+              <div class="settings-meta">
+                <div class="settings-title-text">Stall Detection Timer UI</div>
+                <div class="settings-description-text">Display a countdown timer on the active farm dashboard showing when the stream will be skipped due to no progress.</div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="toggleStallTimer">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <!-- Stall Threshold duration -->
+            <div class="settings-row-item">
+              <div class="settings-meta">
+                <div class="settings-title-text">Stall Detection Threshold</div>
+                <div class="settings-description-text">Duration (in seconds) of inactive progress before the stream is skipped. Recommended: 180s.</div>
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center; justify-content: flex-end;">
+                <input type="number" id="stallThresholdInput" min="60" max="600" value="180" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-primary); color: white; width: 80px; outline: none; font-size: 13px;">
+                <button id="btnSaveStallThreshold" class="btn-secondary" style="height: 35px; width: auto; font-size: 12px; padding: 0 16px;">Save</button>
+                <span id="stallThresholdNotice" style="font-size: 11px; color: var(--success); margin-left: 4px;"></span>
+              </div>
+            </div>
           </div>
-          <button id="btnToggleStallTimer" class="btn-primary" style="width: 200px;">Show UI Timer (Enabled)</button>
         </div>
 
-        <!-- APP UPDATES -->
-        <div class="farm-panel settings-panel" style="margin-bottom: 16px; border: 1px dashed var(--accent-color);">
-          <h3 style="margin-bottom: 10px;">App Updates</h3>
-          <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 13px;">Check if a new version is
-            available on GitHub.</p>
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <button id="btnCheckUpdate" class="btn-secondary" style="width: 200px;">Check for Updates</button>
-            <span id="updateNotice" style="font-size: 13px; font-weight: 500;"></span>
-          </div>
-        </div>
+        <!-- APP MAINTENANCE & UPDATES -->
+        <div class="farm-panel settings-panel" style="margin-bottom: 16px; align-items: stretch;">
+          <h3 style="margin-bottom: 20px; font-size: 16px; font-weight: 700; width: 100%; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Maintenance & Updates</h3>
+          
+          <div class="settings-group">
+            <!-- App Updates -->
+            <div class="settings-row-item">
+              <div class="settings-meta">
+                <div class="settings-title-text">Check for Updates</div>
+                <div class="settings-description-text">See if a new version is available on GitHub releases.</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <button id="btnCheckUpdate" class="btn-secondary" style="width: auto; padding: 0 18px; height: 38px;">Check Now</button>
+                <span id="updateNotice" style="font-size: 13px; font-weight: 600;"></span>
+              </div>
+            </div>
 
-
-
-        <!-- MAINTENANCE -->
-        <div class="farm-panel settings-panel">
-          <h3 style="margin-bottom: 10px;">Maintenance & Tools</h3>
-          <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 13px;">General maintenance and cleanup
-            tools.</p>
-          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-            <button id="btnClearLogs" class="btn-secondary" style="height: 38px; padding: 0 18px; font-size: 13px;">Clear
-              App Logs</button>
+            <!-- Clear Logs -->
+            <div class="settings-row-item">
+              <div class="settings-meta">
+                <div class="settings-title-text">System Logs Cleanup</div>
+                <div class="settings-description-text">Clear the currently saved active farming log list in the application.</div>
+              </div>
+              <button id="btnClearLogs" class="btn-secondary" style="height: 38px; padding: 0 18px; font-size: 13px;">Clear Logs</button>
+            </div>
           </div>
         </div>
       </div>

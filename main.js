@@ -7,6 +7,7 @@ ipcMain.on('open-external', (event, url) => {
 });
 const TwitchWebSocketManager = require('./websocket-manager')
 const GraphQLManager = require('./gql-manager')
+const DiscordRPCManager = require('./discord-rpc-manager')
 
 process.on('uncaughtException', (err) => {
   console.error('Core: Uncaught Exception:', err);
@@ -29,6 +30,7 @@ app.commandLine.appendSwitch('log-level', '3'); // Show only fatal errors to kee
 // Managers
 const gql = new GraphQLManager();
 const wsManager = new TwitchWebSocketManager();
+const rpc = new DiscordRPCManager('1513780136728596640');
 
 // Campaign Cache
 let inventoryCache = { data: null, timestamp: 0, ttl: 20000 };
@@ -223,7 +225,22 @@ async function _fetchCampaignsFallback(headers) {
       })
     });
     clearTimeout(timer);
-    return await res.json();
+
+    if (res.status === 401) {
+      console.error(`[GQL] _fetchCampaignsFallback: HTTP 401 Unauthorized`);
+      return { error: 'AUTH_EXPIRED' };
+    }
+
+    const data = await res.json();
+    if (data.errors?.some(e => {
+      const msg = (e.message || '').toLowerCase();
+      return msg.includes('unauthorized') || msg.includes('authorization') || msg.includes('oauth') || msg.includes('token') || msg.includes('session');
+    })) {
+      console.error(`[GQL] _fetchCampaignsFallback: Authentication expired or invalid`);
+      return { error: 'AUTH_EXPIRED', details: data.errors };
+    }
+
+    return data;
   } catch (e) {
     return { error: e.message };
   }
@@ -355,7 +372,21 @@ async function _fetchInventoryFallback(headers) {
       })
     });
     clearTimeout(timer);
+
+    if (res.status === 401) {
+      console.error(`[GQL] _fetchInventoryFallback: HTTP 401 Unauthorized`);
+      return { error: 'AUTH_EXPIRED' };
+    }
+
     const data = await res.json();
+    if (data.errors?.some(e => {
+      const msg = (e.message || '').toLowerCase();
+      return msg.includes('unauthorized') || msg.includes('authorization') || msg.includes('oauth') || msg.includes('token') || msg.includes('session');
+    })) {
+      console.error(`[GQL] _fetchInventoryFallback: Authentication expired or invalid`);
+      return { error: 'AUTH_EXPIRED', details: data.errors };
+    }
+
     inventoryCache = { data, timestamp: Date.now(), ttl: 20000 };
     return data;
   } catch (e) {
@@ -407,6 +438,33 @@ ipcMain.handle('ws-connect', async (event, userId, authToken) => {
 
 ipcMain.handle('ws-status', async () => wsManager.getStatus());
 ipcMain.handle('ws-disconnect', async () => { wsManager.disconnect(); return { success: true }; });
+
+// Discord RPC IPC handlers
+ipcMain.on('rpc-toggle', (event, enabled) => {
+  console.log('[Main IPC] rpc-toggle received:', enabled);
+  if (enabled) {
+    rpc.start();
+  } else {
+    rpc.stop();
+  }
+});
+
+ipcMain.on('rpc-update', (event, activity) => {
+  console.log('[Main IPC] rpc-update received:', activity);
+  rpc.setActivity(activity);
+});
+
+ipcMain.on('rpc-set-client-id', (event, clientId) => {
+  console.log('[Main IPC] rpc-set-client-id received:', clientId);
+  if (rpc.clientId !== clientId) {
+    rpc.clientId = clientId;
+    if (rpc.enabled) {
+      console.log('[Main IPC] Client ID updated while RPC enabled. Restarting...');
+      rpc.stop();
+      rpc.start();
+    }
+  }
+});
 
 // ============================================================
 // Farm Window
@@ -580,7 +638,7 @@ ipcMain.on('open-login-window', (event, url) => {
     parent: mainWindow, modal: true,
     autoHideMenuBar: true, backgroundColor: '#0e0e10'
   })
-  loginWin.loadURL(url || 'https://www.twitch.tv/login')
+  loginWin.loadURL(url || 'https://www.twitch.tv/drops/inventory')
   loginWin.on('closed', () => {
     loginWin = null;
     ipcMain.removeAllListeners('auth-success');

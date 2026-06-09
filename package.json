@@ -1,6 +1,6 @@
 {
   "name": "twitch-drop-farmer",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Auto Farm Twitch Drops Dashboard",
   "main": "main.js",
   "scripts": {
@@ -16,10 +16,22 @@
       "output": "dist"
     },
     "win": {
-      "target": "nsis",
-      "icon": "assets/icon.png"
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.png",
+      "signingHashAlgorithms": null,
+      "sign": null
     },
-    "electronLanguages": ["en", "ru"],
+    "electronLanguages": [
+      "en",
+      "ru"
+    ],
     "files": [
       "main.js",
       "renderer.js",
@@ -46,6 +58,6 @@
   },
   "devDependencies": {
     "electron": "^32.0.0",
-    "electron-builder": "^25.1.8"
+    "electron-builder": "^24.13.3"
   }
 }
