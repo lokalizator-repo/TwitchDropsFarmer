@@ -72,7 +72,7 @@ The output executable will be generated inside the `dist/` directory.
 
 ---
 
-## ⚖️ License & Warning
+## ⚖️ License & Warning 
 
 This project is created strictly as a hobbyist utility for educational purposes. Automating Twitch drops violates Twitch's Terms of Service. Use at your own risk.
 
