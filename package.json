@@ -1,6 +1,6 @@
 {
   "name": "twitch-drop-farmer",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Auto Farm Twitch Drops Dashboard",
   "main": "main.js",
   "scripts": {
@@ -40,6 +40,7 @@
       "style.css",
       "gql-manager.js",
       "websocket-manager.js",
+      "discord-rpc-manager.js",
       "gql-queries.json",
       "assets/**/*",
       "node_modules/ws/**/*"

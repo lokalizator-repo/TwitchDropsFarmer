@@ -438,6 +438,7 @@ ipcMain.handle('ws-connect', async (event, userId, authToken) => {
 
 ipcMain.handle('ws-status', async () => wsManager.getStatus());
 ipcMain.handle('ws-disconnect', async () => { wsManager.disconnect(); return { success: true }; });
+ipcMain.handle('get-app-version', () => app.getVersion());
 
 // Discord RPC IPC handlers
 ipcMain.on('rpc-toggle', (event, enabled) => {
@@ -585,38 +586,59 @@ ipcMain.on('claim-via-window', () => {
       const results = await claimWin.webContents.executeJavaScript(`
                 (() => {
                     const findAndClick = () => {
-                        let clickedCount = 0;
+                        let clickedDetails = [];
                         const seen = new Set();
 
-                        // Twitch uses data-test-selector="DropsCampaignInProgressReward-claim-button"
                         document.querySelectorAll('button').forEach(btn => {
                             if (seen.has(btn)) return;
 
                             const html = btn.outerHTML.toLowerCase();
                             const text = (btn.innerText || "").toLowerCase().trim();
                             
-                            const isClaimText = text === 'claim' || text === 'claim now' || text === 'получить' || text === 'получить сейчас';
-                            const isClaimAttr = html.includes('claim-button') || html.includes('claim_drop');
+                            const isClaimText = [
+                                'claim', 'claim now', 
+                                'получить', 'получить сейчас', 
+                                'abholen', 'jetzt abholen',
+                                'reclamar', 'reclamar ahora',
+                                'resgatar', 'resgatar agora',
+                                'récupérer', 'obtenir',
+                                'odbierz', 'odbierz teraz',
+                                'riscatta', 'al', '받기', '受け取る', '领取'
+                            ].includes(text);
                             
-                            if ((isClaimText || isClaimAttr) && btn.offsetParent !== null) {
+                            const isClaimAttr = html.includes('claim-button') || 
+                                                html.includes('claim_drop') || 
+                                                html.includes('claim-reward') ||
+                                                html.includes('claimbutton');
+                            
+                            const style = window.getComputedStyle(btn);
+                            const isVisible = style.display !== 'none' && style.visibility !== 'hidden';
+                            
+                            if ((isClaimText || isClaimAttr) && !btn.disabled && isVisible) {
                                 btn.click();
-                                clickedCount++;
+                                clickedDetails.push({ text: btn.innerText.trim(), htmlSnippet: html.substring(0, 100) });
                                 seen.add(btn);
                             }
                         });
-                        return clickedCount;
+                        return clickedDetails;
                     };
                     return findAndClick();
                 })();
             `);
 
-      console.log(`[ClaimBot] Script executed. Buttons clicked: ${results}`);
-      if (mainWindow) mainWindow.webContents.send('log-msg', { msg: `[Window-Claim] Search complete. Buttons clicked: ${results}`, type: results > 0 ? 'farm' : 'info' });
+      console.log(`[ClaimBot] Script executed. Clicked buttons:`, JSON.stringify(results));
+      if (mainWindow) {
+        const btnTexts = results.map(r => r.text || 'Claim').join(', ');
+        mainWindow.webContents.send('log-msg', { 
+          msg: `[Window-Claim] Search complete. Clicked buttons: ${results.length} (${btnTexts || 'none'})`, 
+          type: results.length > 0 ? 'farm' : 'info' 
+        });
+      }
     } catch (e) {
       console.error("[ClaimBot] Script failed:", e);
       if (mainWindow) mainWindow.webContents.send('log-msg', { msg: `[Window-Claim] ${e.message}`, type: 'warn' });
     } finally {
-      // Close after work
+      // Close after work (giving 15 seconds for Twitch requests to complete)
       setTimeout(() => {
         if (claimWin && !claimWin.isDestroyed()) {
           claimWin.destroy();
@@ -625,9 +647,38 @@ ipcMain.on('claim-via-window', () => {
         isProcessingClaim = false;
         // Notify renderer to refresh inventory after window work
         if (mainWindow) mainWindow.webContents.send('log-msg', { msg: `[Window-Claim] Process finished. Refreshing inventory...`, type: 'system', refresh: true });
-      }, 3000);
+      }, 15000);
     }
   });
+});
+
+let refreshWin = null;
+let isRefreshingToken = false;
+
+ipcMain.on('refresh-integrity-token', () => {
+  if (refreshWin || isRefreshingToken) return;
+  isRefreshingToken = true;
+
+  console.log("[IntegrityBot] Opening silent window to refresh integrity token...");
+  if (mainWindow) mainWindow.webContents.send('log-msg', { msg: `[IntegrityBot] Refreshing security token in background...`, type: 'info' });
+
+  refreshWin = new BrowserWindow({
+    width: 600, height: 800,
+    show: false, // Keep it hidden
+    webPreferences: { backgroundThrottling: false }
+  });
+
+  refreshWin.webContents.setAudioMuted(true);
+  refreshWin.loadURL('https://www.twitch.tv/drops/inventory');
+
+  setTimeout(() => {
+    if (refreshWin && !refreshWin.isDestroyed()) {
+      refreshWin.destroy();
+      refreshWin = null;
+    }
+    isRefreshingToken = false;
+    console.log("[IntegrityBot] Silent window closed.");
+  }, 10000); // Wait 10 seconds for GQL traffic to trigger token capture
 });
 
 let loginWin;

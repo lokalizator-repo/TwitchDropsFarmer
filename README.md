@@ -1,4 +1,4 @@
-# ⚡ Twitch Drops Farmer PRO (v1.2)
+# ⚡ Twitch Drops Farmer PRO (v1.2.1)
 
 An elegant, premium Electron-based dashboard application designed to automatically farm and claim Twitch Drops in the background with zero-configuration and real-time status tracking.
 
@@ -22,28 +22,36 @@ An elegant, premium Electron-based dashboard application designed to automatical
 
 ---
 
-## ✨ Features
+## ✨ Features & Advantages
 
-- ⚡ **Auto-Farm Engine**: Watch live streams automatically. Set and prioritize your favorite games, or let Global Mode farm all available drops.
-- 🎁 **Smart Auto-Claim**: Claims drops instantly when they hit 100% watcher progress, with smart retries to avoid unnecessary popup browser prompts.
-- 🔌 **WebSocket Real-Time Sync**: Real-time progress percentage bar tracking for all campaigns and rewards via Twitch's PubSub WebSocket.
-- 🎮 **Discord Rich Presence**: Share what game you are currently farming, your watcher progress, and current streamer directly on your Discord status.
-- 📊 **Premium Inventory Stats**: View total drops claimed, games farmed, and total estimated time watched in a premium card header.
-- 🚫 **Banned Games Skip List**: Skip specific campaigns or entire game categories automatically to save bandwidth and watch time.
-- ⚙️ **Modern Sliding UI Switches**: Beautifully custom CSS switches for preference controls, threshold duration settings, and log view cleanup.
+- 🛡️ **Self-Healing Token Refresh**: Automatically resolves and updates Twitch `Client-Integrity` tokens in the background (~10 seconds). No more manual restarts or red-screen lockouts due to expired security tokens.
+- ⚡ **Auto-Farm Engine & Preemption**: Set and order your favorite games. If a preferred game goes live while you are farming a lower-priority stream, the engine immediately switches back to the higher-priority game.
+- 🎁 **Smart Auto-Claim**: Claims drops automatically under a resource-optimized hidden window, bypassing Chromium rendering optimizations that break other drop farmers.
+- 🌐 **Multi-Language Claims Support**: Seamlessly claims rewards across multiple browser locales (English, Russian, German, French, Spanish, Portuguese, Polish, Italian, Turkish, Korean, Japanese, Chinese).
+- 🔌 **WebSocket Real-Time Sync**: Subscribes directly to Twitch PubSub WebSockets for instant, real-time drop progress updates without spamming the GQL API.
+- 🚫 **Banned Games & Campaigns Skip List**: Skip specific campaigns or entire game categories automatically to save bandwidth and focus on relevant loot.
+- 🎮 **Discord Rich Presence**: Displays your active farming campaign, target streamer, and progress directly in your Discord profile.
 
 ---
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### 📦 Option 1: Standalone Portable Exe (Recommended)
+
+1. Go to the [Releases](https://github.com/lokalizator-repo/TwitchDropsFarmer/releases) page.
+2. Download the latest `TwitchDropsFarmerPRO-x.x.x-Setup.exe` or portable archive.
+3. Run the executable and start farming instantly with zero configuration!
+
+### 🛠️ Option 2: Running from Source (Development)
+
+#### Prerequisites
 
 - Node.js (v18 or higher)
 - npm (v9 or higher)
 
-### Setup & Launch
+#### Setup & Launch
 
-1. Clone this repository to your local machine:
+1. Clone this repository:
    ```bash
    git clone https://github.com/lokalizator-repo/TwitchDropsFarmer.git
    cd TwitchDropsFarmer
@@ -54,7 +62,7 @@ An elegant, premium Electron-based dashboard application designed to automatical
    npm install
    ```
 
-3. Run the application locally in development mode:
+3. Run the application:
    ```bash
    npm start
    ```

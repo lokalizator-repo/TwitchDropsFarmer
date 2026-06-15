@@ -467,6 +467,19 @@ if (btnClearLogs) {
         addLog('Logs cleared.', 'system');
     };
 }
+
+function semverCompare(a, b) {
+    const pa = a.split('.').map(Number);
+    const pb = b.split('.').map(Number);
+    for (let i = 0; i < 3; i++) {
+        const na = pa[i] || 0;
+        const nb = pb[i] || 0;
+        if (na > nb) return 1;
+        if (nb > na) return -1;
+    }
+    return 0;
+}
+
 // Remote update check
 async function checkUpdates() {
     const btn = document.getElementById('btnCheckUpdate');
@@ -484,13 +497,13 @@ async function checkUpdates() {
         if (!res.ok) throw new Error('Network error');
 
         const remote = await res.json();
-        const currentVersion = "1.1.0";
+        const currentVersion = await window.electronAPI.getAppVersion();
 
-        if (remote.version !== currentVersion) {
+        if (semverCompare(remote.version, currentVersion) > 0) {
             notice.innerHTML = `<span style="color: var(--warning); cursor: pointer; text-decoration: underline;">New version ${remote.version} available! Click here.</span>`;
             notice.onclick = () => window.electronAPI.openExternal("https://github.com/lokalizator-repo/TwitchDropsFarmer/releases");
         } else {
-            notice.innerHTML = `<span style="color: var(--success);">You have the latest version.</span>`;
+            notice.innerHTML = `<span style="color: var(--success);">You have the latest version (v${currentVersion}).</span>`;
         }
     } catch (e) {
         console.error("Update check failed:", e);
@@ -998,7 +1011,7 @@ async function runMasterFarmLoop() {
         const inventoryRes = await window.electronAPI.getInventory(accountTokens);
         const inventory = inventoryRes?.data?.currentUser?.inventory;
         const now = Date.now();
-        const savedList = (localStorage.getItem('autoFarmGames') || '').split(',').map(s => s.trim().toLowerCase());
+        const savedList = (localStorage.getItem('autoFarmGames') || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
         // 1. Monitor progression of CURRENTLY farming campaign
         const curr = allCampaigns.find(c => c.id === activeFarmingCampaignId);
@@ -1082,8 +1095,38 @@ async function runMasterFarmLoop() {
                 const elapsed = now - (stats?.time || 0);
 
                 if (elapsed < threshold) {
-                    // Not stalled and not finished -> KEEP FARMING
-                    return;
+                    // Check if there is an eligible campaign with a HIGHER priority than the active one
+                    const activeGameName = activeCamp.game?.displayName?.toLowerCase();
+                    const activeRank = savedList.indexOf(activeGameName);
+                    let hasBetterCandidate = false;
+
+                    const tempEligible = allCampaigns.filter(c =>
+                        c.status === 'ACTIVE' &&
+                        !c.isBadgeOrQuest &&
+                        validateCampaign(c, inventory).isValid &&
+                        !isCampaignFinished(c, inventory) &&
+                        !ignoredGameNames.includes(c.game?.displayName?.toLowerCase() || '') &&
+                        !ignoredCampaignIds.includes(c.id) &&
+                        (!stallBlacklist[c.id] || now > stallBlacklist[c.id])
+                    );
+
+                    for (const cand of tempEligible) {
+                        const candName = cand.game?.displayName?.toLowerCase();
+                        const candRank = savedList.indexOf(candName);
+                        if (candRank !== -1) {
+                            if (activeRank === -1 || candRank < activeRank) {
+                                hasBetterCandidate = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!hasBetterCandidate) {
+                        // Not stalled, not finished, and no higher priority candidate -> KEEP FARMING
+                        return;
+                    } else {
+                        addLog(`[AutoFarm] Found higher-priority campaign available. Preempting current farm...`, 'system');
+                    }
                 }
             }
 
@@ -1115,12 +1158,27 @@ async function runMasterFarmLoop() {
                 (!stallBlacklist[c.id] || now > stallBlacklist[c.id])
             );
 
-            // RE-SORT by current UI mode or default to Viewers
-            if (campaignSortMode === 'endDate') {
-                eligible.sort((a, b) => new Date(a.endAt) - new Date(b.endAt));
-            } else {
-                eligible.sort((a, b) => (b.game?.viewersCount || 0) - (a.game?.viewersCount || 0));
-            }
+            // Sort: Priority games first (ordered by their rank in savedList), then others by campaignSortMode
+            eligible.sort((a, b) => {
+                const nameA = a.game?.displayName?.toLowerCase();
+                const nameB = b.game?.displayName?.toLowerCase();
+                const indexA = savedList.indexOf(nameA);
+                const indexB = savedList.indexOf(nameB);
+
+                // Both are priority games -> sort by priority list index
+                if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+                // Only A is a priority game -> A comes first
+                if (indexA !== -1) return -1;
+                // Only B is a priority game -> B comes first
+                if (indexB !== -1) return 1;
+
+                // Neither is priority -> fallback to standard sorting
+                if (campaignSortMode === 'endDate') {
+                    return new Date(a.endAt) - new Date(b.endAt);
+                } else {
+                    return (b.game?.viewersCount || 0) - (a.game?.viewersCount || 0);
+                }
+            });
 
             if (eligible.length > 0) {
                 const topStr = eligible.slice(0, 3).map(e => `${e.game?.displayName} (${e.game?.viewersCount || 0} viewers)`).join(', ');
@@ -1217,32 +1275,32 @@ async function fetchAndUpdateCampaigns() {
             handleAuthExpired();
             return false;
         }
-
         if (response.error === 'INTEGRITY_REQUIRED') {
+            addLog('🔒 [Security] Twitch security check triggered. Automatically resolving in background...', 'warn');
+            window.electronAPI.refreshIntegrityToken();
+
             const container = document.getElementById('campaignsContainer');
-            if (container) {
+            if (container && !container.innerHTML.includes('Automatically resolving')) {
                 container.innerHTML = `
-              <div style="background: rgba(255, 79, 79, 0.1); border: 1px solid #ff4f4f; padding: 20px; border-radius: 12px; text-align: center; margin: 20px;">
-                  <h3 style="color: #ff4f4f; margin-bottom: 10px; font-size: 18px;">Security Token Needed</h3>
-                  <p style="font-size: 14px; margin-bottom: 16px; color: var(--text-secondary);">Twitch is blocking access. Click the button below, and just wait for 5 seconds on the page that opens.</p>
-                  <button class="btn-primary" onclick="window.electronAPI.openLoginWindow('https://www.twitch.tv/drops/inventory')" style="padding: 10px 20px; background: #ff4f4f; border:none; cursor:pointer;">Fix Security Token</button>
+              <div style="background: rgba(191, 148, 255, 0.08); border: 1px solid var(--accent-color); padding: 20px; border-radius: 12px; text-align: center; margin: 20px;">
+                  <h3 style="color: var(--accent-hover); margin-bottom: 10px; font-size: 18px;">Security Token Refreshing</h3>
+                  <p style="font-size: 14px; margin-bottom: 16px; color: var(--text-secondary);">Twitch is performing a security check. We are automatically resolving this in the background (8-10 seconds). Please wait...</p>
+                  <div class="loading-dots" style="font-size: 24px; color: var(--accent-color);">...</div>
               </div>
             `;
             }
             const farmPanel = document.getElementById('farmPanel');
-            if (farmPanel) {
+            if (farmPanel && !farmPanel.innerHTML.includes('Automatically resolving')) {
                 farmPanel.innerHTML = `
-              <div class="empty-state fade-in" style="text-align: center; background: rgba(255, 79, 79, 0.05); border: 1px solid #ff4f4f; padding: 30px; border-radius: 16px; max-width: 500px; margin: 20px auto;">
-                  <div class="icon" style="font-size: 48px; margin-bottom: 15px; filter: drop-shadow(0 0 10px rgba(255, 79, 79, 0.3));">🔒</div>
-                  <h3 style="color: #ff4f4f; margin-bottom: 10px; font-size: 18px; font-weight: 700;">Security Token Needed</h3>
-                  <p style="font-size: 13px; margin-bottom: 20px; color: var(--text-secondary); line-height: 1.5;">Twitch is blocking automated access. Please click the button below to open a browser window and wait for 5 seconds for the security check to complete.</p>
-                  <button class="btn-primary" onclick="window.electronAPI.openLoginWindow('https://www.twitch.tv/drops/inventory')" style="width: auto; padding: 10px 24px; background: #ff4f4f; border:none; font-weight: 600; cursor:pointer;">Fix Security Token</button>
+              <div class="empty-state fade-in" style="text-align: center; background: rgba(191, 148, 255, 0.04); border: 1px solid var(--accent-color); padding: 30px; border-radius: 16px; max-width: 500px; margin: 20px auto;">
+                  <div class="icon" style="font-size: 48px; margin-bottom: 15px; filter: drop-shadow(0 0 10px rgba(191, 148, 255, 0.3));">🔒</div>
+                  <h3 style="color: var(--accent-hover); margin-bottom: 10px; font-size: 18px; font-weight: 700;">Security Check in Progress</h3>
+                  <p style="font-size: 13px; margin-bottom: 20px; color: var(--text-secondary); line-height: 1.5;">Twitch security check is being resolved automatically in the background. Active farming will resume automatically once complete.</p>
               </div>
             `;
             }
             return false;
         }
-
         let userData;
         if (Array.isArray(response)) {
             userData = response[0]?.data?.currentUser;
@@ -1856,7 +1914,7 @@ async function startFarmAction(campaign, isAuto = false) {
             if (btnRunFarm) btnRunFarm.style.display = 'block';
             if (btnStopFarm) btnStopFarm.style.display = 'none';
             if (isAuto) {
-                stallBlacklist[campaign.id] = Date.now() + 15 * 60 * 1000; // Ignore for 15 mins
+                stallBlacklist[campaign.id] = Date.now() + 60 * 60 * 1000; // Ignore for 1 hour
                 setTimeout(() => runMasterFarmLoop(), 1000);
             }
             return;

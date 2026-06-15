@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   startFarm: (username) => ipcRenderer.send('start-farm', username),
   stopFarm: () => ipcRenderer.send('stop-farm'),
   claimViaWindow: () => ipcRenderer.send('claim-via-window'),
+  refreshIntegrityToken: () => ipcRenderer.send('refresh-integrity-token'),
   updateTrayTooltip: (text) => ipcRenderer.send('update-tray-tooltip', text),
   minimizeToTray: () => ipcRenderer.send('minimize-to-tray'),
   openLoginWindow: (url) => ipcRenderer.send('open-login-window', url),
@@ -40,5 +41,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   rpcSetClientId: (clientId) => ipcRenderer.send('rpc-set-client-id', clientId),
   
   // App utilities
-  openExternal: (url) => ipcRenderer.send('open-external', url)
+  openExternal: (url) => ipcRenderer.send('open-external', url),
+  getAppVersion: () => ipcRenderer.invoke('get-app-version')
 })
