@@ -1,6 +1,6 @@
 {
   "name": "twitch-drop-farmer",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Auto Farm Twitch Drops Dashboard",
   "main": "main.js",
   "scripts": {

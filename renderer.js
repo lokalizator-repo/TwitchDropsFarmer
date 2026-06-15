@@ -1333,9 +1333,10 @@ async function fetchAndUpdateCampaigns() {
         const invRes = await window.electronAPI.getInventory(accountTokens);
         const inProgressMap = new Map();
         const eventDropsMap = new Map();
+        let inventory = null;
 
         if (invRes && invRes.data) {
-            const inventory = invRes.data.currentUser?.inventory;
+            inventory = invRes.data.currentUser?.inventory;
             const inProgress = inventory?.dropCampaignsInProgress || [];
             for (const ip of inProgress) inProgressMap.set(ip.id, ip);
             const eventDrops = inventory?.gameEventDrops || [];
@@ -1420,7 +1421,7 @@ async function fetchAndUpdateCampaigns() {
             }
         }
 
-        if (autoClaimEnabled) processAutoClaims();
+        if (autoClaimEnabled) processAutoClaims(inventory);
         return true;
     } catch (err) {
         console.error("Critical error in fetchAndUpdateCampaigns:", err);
@@ -2173,13 +2174,50 @@ function setupWebSocketListeners() {
 }
 
 
-async function processAutoClaims() {
+async function processAutoClaims(inventory = null) {
     if (!autoClaimEnabled || !accountTokens) return;
 
     let claimSuccessCount = 0;
     let windowClaimNeeded = false;
 
-    for (const campaign of allCampaigns) {
+    // Use passed inventory or fetch fresh inventory if not provided
+    let activeInventory = inventory;
+    if (!activeInventory) {
+        try {
+            const invRes = await window.electronAPI.getInventory(accountTokens);
+            activeInventory = invRes?.data?.currentUser?.inventory;
+        } catch (e) {
+            console.error("Failed to fetch inventory for auto-claims:", e);
+        }
+    }
+
+    // Collect all campaigns to check for claims
+    const campaignsToCheck = new Map();
+
+    // 1. Add all campaigns from allCampaigns
+    for (const c of allCampaigns) {
+        campaignsToCheck.set(c.id, c);
+    }
+
+    // 2. Add all campaigns from inventory.dropCampaignsInProgress
+    if (activeInventory && activeInventory.dropCampaignsInProgress) {
+        for (const c of activeInventory.dropCampaignsInProgress) {
+            if (!campaignsToCheck.has(c.id)) {
+                campaignsToCheck.set(c.id, c);
+            } else {
+                // Merge drop info (ensure we have latest self state)
+                const existing = campaignsToCheck.get(c.id);
+                for (const d of (c.timeBasedDrops || [])) {
+                    const existingDrop = existing.timeBasedDrops?.find(ed => ed.id === d.id);
+                    if (existingDrop && d.self) {
+                        existingDrop.self = { ...existingDrop.self, ...d.self };
+                    }
+                }
+            }
+        }
+    }
+
+    for (const campaign of campaignsToCheck.values()) {
         for (const drop of (campaign.timeBasedDrops || [])) {
             const self = drop.self || {};
 

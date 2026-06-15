@@ -595,16 +595,19 @@ ipcMain.on('claim-via-window', () => {
                             const html = btn.outerHTML.toLowerCase();
                             const text = (btn.innerText || "").toLowerCase().trim();
                             
-                            const isClaimText = [
-                                'claim', 'claim now', 
-                                'получить', 'получить сейчас', 
-                                'abholen', 'jetzt abholen',
-                                'reclamar', 'reclamar ahora',
-                                'resgatar', 'resgatar agora',
-                                'récupérer', 'obtenir',
-                                'odbierz', 'odbierz teraz',
-                                'riscatta', 'al', '받기', '受け取る', '领取'
-                            ].includes(text);
+                             const isClaimText = [
+                                 'claim', 'claim now', 'claim reward', 'claim drop',
+                                 'получить', 'получить сейчас', 'получить награду', 'забрать', 'забрать сейчас',
+                                 'abholen', 'jetzt abholen',
+                                 'reclamar', 'reclamar ahora',
+                                 'resgatar', 'resgatar agora',
+                                 'récupérer', 'obtenir',
+                                 'odbierz', 'odbierz teraz',
+                                 'riscatta', 'al', '받기', '受け取る', '领取'
+                             ].some(word => {
+                                 if (word === 'al') return text === 'al';
+                                 return text.includes(word);
+                             });
                             
                             const isClaimAttr = html.includes('claim-button') || 
                                                 html.includes('claim_drop') || 

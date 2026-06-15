@@ -1,4 +1,4 @@
-# ⚡ Twitch Drops Farmer PRO (v1.2.1)
+# ⚡ Twitch Drops Farmer PRO (v1.2.2)
 
 An elegant, premium Electron-based dashboard application designed to automatically farm and claim Twitch Drops in the background with zero-configuration and real-time status tracking.
 
