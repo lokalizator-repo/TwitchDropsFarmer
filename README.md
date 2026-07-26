@@ -1,99 +1,99 @@
 # ⚡ Twitch Drops Farmer PRO `v1.3.0`
 
-> **Автоматический фоновый фармер и клеймер Twitch Drops. Работает в фоновом режиме, не требует открытого браузера и потребляет минимум ресурсов.**
+> **An automated, lightweight desktop application designed to farm and claim Twitch Drops 24/7 in the background with zero lag, low CPU/RAM usage, and zero-configuration setup.**
 
-[![Версия](https://img.shields.io/badge/версия-1.3.0-purple.svg?style=for-the-badge)](package.json)
-[![Релиз](https://img.shields.io/badge/Скачать-.EXE-brightgreen.svg?style=for-the-badge&logo=windows)](https://github.com/lokalizator-repo/TwitchDropsFarmer/releases/download/v1.3.0/TwitchDropsFarmer_v1.3.0.exe)
+[![Version](https://img.shields.io/badge/version-1.3.0-purple.svg?style=for-the-badge)](package.json)
+[![Download EXE](https://img.shields.io/badge/Download-.EXE-brightgreen.svg?style=for-the-badge&logo=windows)](https://github.com/lokalizator-repo/TwitchDropsFarmer/releases/download/v1.3.0/TwitchDropsFarmer_v1.3.0.exe)
 [![Electron](https://img.shields.io/badge/Electron-v32.0.0-47848F.svg?style=for-the-badge&logo=electron)](https://www.electronjs.org/)
-[![Лицензия](https://img.shields.io/badge/лицензия-ISC-blue.svg?style=for-the-badge)](LICENSE)
+[![License](https://img.shields.io/badge/license-ISC-blue.svg?style=for-the-badge)](LICENSE)
 
 ---
 
-## 📸 Скриншоты интерфейса
+## 📸 Interface Screenshots
 
 <div align="center">
-  <h3>⚡ Главный хаб (Control Hub)</h3>
-  <p>Реальный статус фарма, текущий стрим, таймер прогресса, переключатель приоритетов и консоль событий.</p>
+  <h3>⚡ Control Hub</h3>
+  <p>Real-time status overview, priority switches, active farming stream details, timer progress, and live event console.</p>
   <img src="https://raw.githubusercontent.com/lokalizator-repo/TwitchDropsFarmer/main/imghub.png" width="850" alt="Control Hub" style="border-radius: 12px; margin-bottom: 24px;" />
 
-  <h3>🎯 Активные кампании (Campaigns)</h3>
-  <p>Просмотр всех доступных Twitch Drops кампаний, списка игр и наград в реальном времени.</p>
-  <img src="https://raw.githubusercontent.com/lokalizator-repo/TwitchDropsFarmer/main/imgcampaigns.png" width="850" alt="Campaigns" style="border-radius: 12px; margin-bottom: 24px;" />
+  <h3>🎯 Active Campaigns Browser</h3>
+  <p>Explore all available live Twitch Drop campaigns, category priorities, and target campaign reward details.</p>
+  <img src="https://raw.githubusercontent.com/lokalizator-repo/TwitchDropsFarmer/main/imgcampaigns.png" width="850" alt="Campaigns Browser" style="border-radius: 12px; margin-bottom: 24px;" />
 
-  <h3>🎁 Инвентарь и забранные награды (Inventory)</h3>
-  <p>Отслеживание полученных предметов, текущего прогресса и истории авто-клеймов.</p>
-  <img src="https://raw.githubusercontent.com/lokalizator-repo/TwitchDropsFarmer/main/imginventory.png" width="850" alt="Inventory" style="border-radius: 12px; margin-bottom: 24px;" />
+  <h3>🎁 Inventory & Claim History</h3>
+  <p>Track claimed items, drop progress percentages, and active campaign reward timelines.</p>
+  <img src="https://raw.githubusercontent.com/lokalizator-repo/TwitchDropsFarmer/main/imginventory.png" width="850" alt="Inventory Stats" style="border-radius: 12px; margin-bottom: 24px;" />
 
-  <h3>⚙️ Настройки и Автозапуск (Settings)</h3>
-  <p>Гибкая настройка автозапуска с Windows, старта фарма при запуске ПК, черных списков и уведомлений.</p>
-  <img src="https://raw.githubusercontent.com/lokalizator-repo/TwitchDropsFarmer/main/imgsettings.png" width="850" alt="Settings" style="border-radius: 12px; margin-bottom: 24px;" />
+  <h3>⚙️ Preferences & System Settings</h3>
+  <p>Configure PC auto-start, auto-farm mode on boot, game blacklists, notification sounds, and tray behavior.</p>
+  <img src="https://raw.githubusercontent.com/lokalizator-repo/TwitchDropsFarmer/main/imgsettings.png" width="850" alt="Preferences & System" style="border-radius: 12px;" />
 </div>
 
 ---
 
-## 🔥 Реальные возможности и функции
+## 🔥 Key Features & Capabilities
 
-- 🚀 **Авто-фарм Дропсов 24/7 без лагов**: Программа отслеживает нужные стримы и фармит Дропсы в фоновом режиме. Не нужно держать открытым браузер или грузить систему видеопотоками.
-- 💻 **Автозапуск с Windows и старт фарма**: Можно настроить запуск программы в свернутом виде (в трей) при включении ПК и авто-старт фарма без единого клика.
-- ⚡ **Умная система приоритетов игр**: Задайте порядок любимых игр. Как только стрим по приоритетной игре выходит в эфир — программа сразу переключается на неё.
-- ⏭️ **Кнопка быстрой смены/пропуска стримера**: Если стример уйдет в офлайн или зависнет — нажмите одну кнопку в шапке программы, чтобы мгновенно переключиться на другого стримера.
-- 🛡️ **Обход защиты Twitch (Обновление токенов Integrity)**: Автоматический фоновый рефреш токенов `Client-Integrity` (~10 секунд). Никаких вылетов, рассоединений и красных экранов ошибки.
-- 🎁 **Авто-клейм наград**: Награды забираются автоматически сразу по достижении 100% через фоновый процесс.
-- 🎮 **Интеграция с Discord (Discord Rich Presence)**: В вашем профиле Discord отображается текущая фармящаяся игра, канал стримера и процент прогресса.
-- 🚫 **Черные списки игр и кампаний**: Исключайте ненужные игры или кампании, чтобы не тратить время на фарм ненужных предметов.
-
----
-
-## 🚀 Быстрый запуск
-
-### 📦 Самый простой способ (Готовый `.exe`)
-
-1. Перейдите в раздел **[Releases](https://github.com/lokalizator-repo/TwitchDropsFarmer/releases/tag/v1.3.0)**.
-2. Скачайте файл **`TwitchDropsFarmer_v1.3.0.exe`**.
-3. Запустите `.exe` — программа готова к работе без установки!
+- 🚀 **24/7 Background Auto-Farming**: Automatically finds live drop channels and farms rewards silently in the background without loading heavy browser video feeds or lagging your PC.
+- 💻 **Windows Auto-Start & Auto-Farm**: Launch minimized to system tray on Windows boot and immediately start farming without touching a single button.
+- ⚡ **Smart Priority Preemption**: Set game priority lists. As soon as a higher-priority game goes live, the farmer automatically switches target streams.
+- ⏭️ **Instant Streamer Skip**: Skip offline, stuck, or unwanted streamers with a single click in the header without dropping the target category.
+- 🛡️ **Self-Healing Integrity Token Engine**: Automatically fetches and refreshes Twitch `Client-Integrity` security tokens (~10s cycle), eliminating disconnects or red error screens.
+- 🎁 **Automated Background Drop Claiming**: Auto-claims inventory rewards instantly upon reaching 100% completion via optimized background workers.
+- 🎮 **Discord Rich Presence Integration**: Displays your active farmed game, channel name, and drop progress directly on your Discord profile.
+- 🚫 **Selective Blacklists & Category Filters**: Block unwanted games or specific campaigns from being farmed.
 
 ---
 
-### 🛠️ Запуск из исходного кода (Для разработчиков)
+## 🚀 Quick Start
 
-#### Требования:
-- **Node.js** (версия 18 или выше)
-- **npm**
+### 📦 Standalone Portable Executable (Recommended)
 
-#### Инструкция:
+1. Go to the **[Releases Page](https://github.com/lokalizator-repo/TwitchDropsFarmer/releases/tag/v1.3.0)**.
+2. Download **`TwitchDropsFarmer_v1.3.0.exe`**.
+3. Run the executable — zero installation or setup required!
 
-1. Клонируйте репозиторий:
+---
+
+### 🛠️ Building & Running from Source
+
+#### Prerequisites
+- **Node.js** (v18.0.0 or higher)
+- **npm** (v9.0.0 or higher)
+
+#### Steps:
+
+1. Clone the repository:
    ```bash
    git clone https://github.com/lokalizator-repo/TwitchDropsFarmer.git
    cd TwitchDropsFarmer
    ```
 
-2. Установите зависимости:
+2. Install dependencies:
    ```bash
    npm install
    ```
 
-3. Запустите программу:
+3. Run the application:
    ```bash
    npm start
    ```
 
 ---
 
-## 🛠️ Сборка собственного `.exe`
+## 🛠️ Build Executable
 
-Чтобы скомпилировать портативный `.exe` файл самостоятельно:
+To compile a clean standalone Windows executable (`.exe`):
 
 ```bash
 npm run dist
 ```
 
-Готовый файл появится в папке `dist/TwitchDropsFarmer_v1.3.0.exe`.
+The output file will be generated in `dist/TwitchDropsFarmer_v1.3.0.exe`.
 
 ---
 
-## ⚖️ Дисклеймер и Лицензия
+## ⚖️ Disclaimer & License
 
-Программа создана исключительно в ознакомительных и личных целях.
+This project is created for educational and personal utility purposes. Automating Twitch drop claims may fall under Twitch Terms of Service regarding scripts. Use responsibly.
 
-Распространяется под лицензией **ISC**.
+Distributed under the **ISC License**.
