@@ -23,14 +23,21 @@ class TwitchWebSocketManager {
    * Connect to Twitch PubSub with the given user credentials
    */
   connect(userId, authToken) {
-    if (this.isConnected) {
-      console.log('[WS] Already connected, disconnecting first...');
-      this.disconnect();
+    const cleanAuth = authToken ? authToken.replace('OAuth ', '') : '';
+
+    if (this.isConnected && this.userId === userId && this.authToken === cleanAuth) {
+      console.log(`[WS] Already connected for userId ${userId}. Skipping redundant connect.`);
+      return;
     }
 
+    if (this.socket || this.isConnected) {
+      this.isIntentionalDisconnect = true;
+      this.disconnect();
+    }
+    this.isIntentionalDisconnect = false;
+
     this.userId = userId;
-    // Strip "OAuth " prefix if present
-    this.authToken = authToken.replace('OAuth ', '');
+    this.authToken = cleanAuth;
     this.subscribed = false;
 
     try {
@@ -61,7 +68,10 @@ class TwitchWebSocketManager {
         console.log(`[WS] Disconnected (code: ${code})`);
         this.isConnected = false;
         this._stopPingLoop();
-        this._attemptReconnect();
+        if (!this.isIntentionalDisconnect) {
+          this._attemptReconnect();
+        }
+        this.isIntentionalDisconnect = false;
       });
     } catch (error) {
       console.error('[WS] Connection failed:', error.message);
@@ -271,12 +281,14 @@ class TwitchWebSocketManager {
    */
   disconnect() {
     this._stopPingLoop();
+    this.isIntentionalDisconnect = true;
     this.isConnected = false;
     this.subscribed = false;
     this.userId = null;
     this.authToken = null;
     if (this.socket) {
       try {
+        this.socket.removeAllListeners();
         this.socket.close();
       } catch (e) {}
       this.socket = null;

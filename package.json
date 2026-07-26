@@ -1,6 +1,6 @@
 {
   "name": "twitch-drop-farmer",
-  "version": "1.2.2",
+  "version": "1.3.0",
   "description": "Auto Farm Twitch Drops Dashboard",
   "main": "main.js",
   "scripts": {
@@ -11,7 +11,7 @@
   "build": {
     "appId": "com.twitch.drops.farmer.pro",
     "productName": "Twitch Drops Farmer PRO",
-    "artifactName": "TwitchDropsFarmerPRO-${version}-Setup.${ext}",
+    "artifactName": "TwitchDropsFarmer_v${version}.${ext}",
     "directories": {
       "output": "dist"
     },

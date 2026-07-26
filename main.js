@@ -97,13 +97,76 @@ ipcMain.on('minimize-to-tray', () => {
   }
 });
 
+const configPath = path.join(app.getPath('userData'), 'app-config.json');
+
+function loadConfig() {
+  try {
+    if (fs.existsSync(configPath)) {
+      return JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    }
+  } catch (e) {}
+  return {};
+}
+
+function saveConfig(cfg) {
+  try {
+    const existing = loadConfig();
+    fs.writeFileSync(configPath, JSON.stringify({ ...existing, ...cfg }), 'utf8');
+  } catch (e) {}
+}
+
+ipcMain.handle('get-auto-launch', () => {
+  try {
+    const settings = app.getLoginItemSettings();
+    const config = loadConfig();
+    return {
+      autoLaunchEnabled: typeof config.autoLaunchEnabled === 'boolean' ? config.autoLaunchEnabled : settings.openAtLogin,
+      autoLaunchHidden: typeof config.autoLaunchHidden === 'boolean' ? config.autoLaunchHidden : settings.openAsHidden,
+      autoStartFarm: typeof config.autoStartFarm === 'boolean' ? config.autoStartFarm : false,
+      autoStartFarmMode: config.autoStartFarmMode || 'priority'
+    };
+  } catch (e) {
+    return { autoLaunchEnabled: false, autoLaunchHidden: false, autoStartFarm: false, autoStartFarmMode: 'priority' };
+  }
+});
+
+ipcMain.handle('set-auto-launch', (event, cfg) => {
+  try {
+    saveConfig({
+      autoLaunchEnabled: !!cfg.autoLaunchEnabled,
+      autoLaunchHidden: !!cfg.autoLaunchHidden,
+      autoStartFarm: !!cfg.autoStartFarm,
+      autoStartFarmMode: cfg.autoStartFarmMode || 'priority'
+    });
+
+    const opts = {
+      openAtLogin: !!cfg.autoLaunchEnabled,
+      openAsHidden: !!cfg.autoLaunchHidden
+    };
+    if (!app.isPackaged) {
+      opts.path = process.execPath;
+      opts.args = [path.resolve(process.argv[1])];
+      if (cfg.autoLaunchHidden) opts.args.push('--hidden');
+    } else {
+      opts.args = cfg.autoLaunchHidden ? ['--hidden'] : [];
+    }
+    app.setLoginItemSettings(opts);
+    return { success: true };
+  } catch (e) {
+    console.error('Error setting auto launch settings:', e);
+    return { success: false, error: e.message };
+  }
+});
+
 // ============================================================
 // Window
 // ============================================================
 const createWindow = () => {
   mainWindow = new BrowserWindow({
-    width: 1100,
-    height: 720,
+    width: 1200,
+    height: 800,
+    minWidth: 1080,
+    minHeight: 700,
     icon: path.join(__dirname, 'assets/icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -121,16 +184,21 @@ const createWindow = () => {
     show: false
   })
 
+  const config = loadConfig();
+  const isHiddenLaunch = process.argv.includes('--hidden') || app.getLoginItemSettings().wasOpenedAsHidden || config.autoLaunchHidden === true;
+
   mainWindow.once('ready-to-show', () => {
-    mainWindow.show()
-    mainWindow.focus()
+    if (!isHiddenLaunch) {
+      mainWindow.show();
+      mainWindow.focus();
+    }
   })
 
   // Fallback if ready-to-show is delayed
   setTimeout(() => {
-    if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.isVisible()) {
-      mainWindow.show()
-      mainWindow.focus()
+    if (!isHiddenLaunch && mainWindow && !mainWindow.isDestroyed() && !mainWindow.isVisible()) {
+      mainWindow.show();
+      mainWindow.focus();
     }
   }, 2000)
 
@@ -148,23 +216,46 @@ const createWindow = () => {
 
   mainWindow.loadFile('index.html')
 
-  // Intercept Twitch GQL traffic for token capture
-  session.defaultSession.webRequest.onBeforeSendHeaders(
-    { urls: ['*://gql.twitch.tv/gql'] },
-    (details, callback) => {
-      let auth = details.requestHeaders['Authorization'] || details.requestHeaders['authorization'];
-      let integrity = details.requestHeaders['Client-Integrity'] || details.requestHeaders['client-integrity'];
-      let clientId = details.requestHeaders['Client-Id'] || details.requestHeaders['client-id'];
-      let deviceId = details.requestHeaders['X-Device-Id'] || details.requestHeaders['Device-Id'] || details.requestHeaders['device-id'];
+let lastCapturedAuth = '';
+let lastCapturedIntegrity = '';
 
-      if ((auth && auth.includes('OAuth')) || integrity) {
-        if (mainWindow) {
-          mainWindow.webContents.send('auth-token-captured', { auth, integrity, clientId, deviceId })
+// Intercept Twitch GQL traffic for token capture
+session.defaultSession.webRequest.onBeforeSendHeaders(
+  { urls: ['*://gql.twitch.tv/gql'] },
+  (details, callback) => {
+    let auth = details.requestHeaders['Authorization'] || details.requestHeaders['authorization'];
+    let integrity = details.requestHeaders['Client-Integrity'] || details.requestHeaders['client-integrity'];
+    let clientId = details.requestHeaders['Client-Id'] || details.requestHeaders['client-id'];
+    let deviceId = details.requestHeaders['X-Device-Id'] || details.requestHeaders['Device-Id'] || details.requestHeaders['device-id'];
+
+    if ((auth && auth.includes('OAuth')) || integrity) {
+      if (isRefreshingToken && integrity) {
+        tokenCapturedDuringRefresh = true;
+        console.log('[IntegrityBot] Captured new integrity token successfully!');
+        if (refreshWin && !refreshWin.isDestroyed()) {
+          setTimeout(() => {
+            if (refreshWin && !refreshWin.isDestroyed()) {
+              refreshWin.destroy();
+              refreshWin = null;
+            }
+            isRefreshingToken = false;
+            if (integrityRefreshTimer) clearTimeout(integrityRefreshTimer);
+          }, 500);
         }
       }
-      callback({ requestHeaders: details.requestHeaders })
+      
+      // Deduplicate: only notify mainWindow if tokens actually changed
+      if ((auth && auth !== lastCapturedAuth) || (integrity && integrity !== lastCapturedIntegrity)) {
+        if (auth) lastCapturedAuth = auth;
+        if (integrity) lastCapturedIntegrity = integrity;
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send('auth-token-captured', { auth, integrity, clientId, deviceId });
+        }
+      }
     }
-  )
+    callback({ requestHeaders: details.requestHeaders });
+  }
+);
 }
 
 app.whenReady().then(() => {
@@ -181,8 +272,34 @@ app.on('window-all-closed', () => {
 })
 
 /**
- * IPC Handlers for Twitch GraphQL operations
+ * IPC Handlers for Device Authorization Flow & Twitch GraphQL operations
  */
+
+ipcMain.handle('request-device-code', async () => {
+  try {
+    const res = await fetch('https://id.twitch.tv/oauth2/device', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'client_id=kimne78kx3ncx6brgo4mv6wki5h1ko&scopes='
+    });
+    return await res.json();
+  } catch (e) {
+    return { error: e.message };
+  }
+});
+
+ipcMain.handle('poll-device-token', async (event, deviceCode) => {
+  try {
+    const res = await fetch('https://id.twitch.tv/oauth2/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `client_id=kimne78kx3ncx6brgo4mv6wki5h1ko&device_code=${encodeURIComponent(deviceCode)}&grant_type=urn:ietf:params:oauth:grant-type:device_code`
+    });
+    return await res.json();
+  } catch (e) {
+    return { error: e.message };
+  }
+});
 
 ipcMain.handle('get-user-info', async (event, tokens) => {
   return await gql.execute('GetUserInfo', {}, buildHeaders(tokens));
@@ -332,6 +449,38 @@ ipcMain.handle('find-streamer', async (event, gameName, tokens, whitelistedLogin
   }
 });
 
+ipcMain.handle('check-channel-drops', async (event, channelId, tokens) => {
+  try {
+    const headers = buildHeaders(tokens);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10000);
+
+    const res = await fetch('https://gql.twitch.tv/gql', {
+      method: 'POST',
+      headers,
+      signal: controller.signal,
+      body: JSON.stringify({
+        operationName: 'DropChannelCampaignsProgress',
+        variables: { channelID: channelId.toString() },
+        query: `query DropChannelCampaignsProgress($channelID: ID!) {
+          channelDropCampaignsProgress(channelID: $channelID) {
+            id
+            name
+            game {
+              id
+              name
+            }
+          }
+        }`
+      })
+    });
+    clearTimeout(timer);
+    return await res.json();
+  } catch (e) {
+    return { error: e.message };
+  }
+});
+
 ipcMain.handle('get-drop-session', async (event, channelId, tokens, channelLogin = "") => {
   return await gql.execute('DropCurrentSessionContext', {
     channelLogin,
@@ -451,7 +600,6 @@ ipcMain.on('rpc-toggle', (event, enabled) => {
 });
 
 ipcMain.on('rpc-update', (event, activity) => {
-  console.log('[Main IPC] rpc-update received:', activity);
   rpc.setActivity(activity);
 });
 
@@ -657,13 +805,18 @@ ipcMain.on('claim-via-window', () => {
 
 let refreshWin = null;
 let isRefreshingToken = false;
+let integrityRefreshTimer = null;
+let tokenCapturedDuringRefresh = false;
 
 ipcMain.on('refresh-integrity-token', () => {
   if (refreshWin || isRefreshingToken) return;
   isRefreshingToken = true;
+  tokenCapturedDuringRefresh = false;
 
   console.log("[IntegrityBot] Opening silent window to refresh integrity token...");
-  if (mainWindow) mainWindow.webContents.send('log-msg', { msg: `[IntegrityBot] Refreshing security token in background...`, type: 'info' });
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('log-msg', { msg: `[IntegrityBot] Refreshing security token in background...`, type: 'info' });
+  }
 
   refreshWin = new BrowserWindow({
     width: 600, height: 800,
@@ -674,30 +827,19 @@ ipcMain.on('refresh-integrity-token', () => {
   refreshWin.webContents.setAudioMuted(true);
   refreshWin.loadURL('https://www.twitch.tv/drops/inventory');
 
-  setTimeout(() => {
+  if (integrityRefreshTimer) clearTimeout(integrityRefreshTimer);
+
+  integrityRefreshTimer = setTimeout(() => {
     if (refreshWin && !refreshWin.isDestroyed()) {
       refreshWin.destroy();
       refreshWin = null;
     }
+    const captured = tokenCapturedDuringRefresh;
     isRefreshingToken = false;
-    console.log("[IntegrityBot] Silent window closed.");
-  }, 10000); // Wait 10 seconds for GQL traffic to trigger token capture
-});
+    console.log(`[IntegrityBot] Silent window closed. Token captured: ${captured}`);
 
-let loginWin;
-ipcMain.on('open-login-window', (event, url) => {
-  if (loginWin) return;
-  loginWin = new BrowserWindow({
-    width: 600, height: 800,
-    parent: mainWindow, modal: true,
-    autoHideMenuBar: true, backgroundColor: '#0e0e10'
-  })
-  loginWin.loadURL(url || 'https://www.twitch.tv/drops/inventory')
-  loginWin.on('closed', () => {
-    loginWin = null;
-    ipcMain.removeAllListeners('auth-success');
-  })
-  ipcMain.once('auth-success', () => {
-    if (loginWin && !loginWin.isDestroyed()) loginWin.close()
-  })
-})
+    if (!captured && mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('integrity-refresh-failed', { reason: 'TIMEOUT' });
+    }
+  }, 12000); // Wait up to 12 seconds for GQL traffic to trigger token capture
+});

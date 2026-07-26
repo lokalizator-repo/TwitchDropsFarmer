@@ -1,3 +1,27 @@
+const ICONS = {
+    zap: (size = 14) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" class="svg-icon icon-zap"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="#fbbf24" stroke="#f59e0b" stroke-width="1.2" stroke-linejoin="round"/></svg>`,
+    star: (size = 14) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" class="svg-icon icon-star"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="#fbbf24" stroke="#d97706" stroke-width="1.2" stroke-linejoin="round"/></svg>`,
+    eye: (size = 14) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" class="svg-icon icon-eye"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" fill="rgba(56, 189, 248, 0.2)" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="#38bdf8"/></svg>`,
+    gear: (size = 14) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" class="svg-icon icon-gear"><circle cx="12" cy="12" r="3" fill="rgba(192, 132, 252, 0.3)" stroke="#c084fc" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" fill="none" stroke="#c084fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    gamepad: (size = 24) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" class="svg-icon icon-gamepad"><rect x="2" y="6" width="20" height="12" rx="6" fill="rgba(168, 85, 247, 0.25)" stroke="#a855f7" stroke-width="2"/><line x1="6" y1="12" x2="10" y2="12" stroke="#e0e7ff" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="10" x2="8" y2="14" stroke="#e0e7ff" stroke-width="2" stroke-linecap="round"/><circle cx="15" cy="13" r="1.2" fill="#f43f5e"/><circle cx="17.5" cy="10.5" r="1.2" fill="#38bdf8"/></svg>`,
+    clock: (size = 14) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" class="svg-icon icon-clock"><circle cx="12" cy="12" r="10" fill="rgba(249, 115, 22, 0.18)" stroke="#fb923c" stroke-width="2"/><polyline points="12 6 12 12 16 14" stroke="#fb923c" stroke-width="2" stroke-linecap="round"/></svg>`,
+    gift: (size = 14) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" class="svg-icon icon-gift"><rect x="3" y="11" width="18" height="11" rx="2" fill="rgba(244, 63, 94, 0.22)" stroke="#f43f5e" stroke-width="2"/><rect x="2" y="7" width="20" height="4" rx="1" fill="#f43f5e"/><path d="M12 7v15" stroke="#fbbf24" stroke-width="2"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" fill="none" stroke="#fbbf24" stroke-width="2"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" fill="none" stroke="#fbbf24" stroke-width="2"/></svg>`,
+    tag: (size = 14) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" class="svg-icon icon-tag"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" fill="rgba(16, 185, 129, 0.2)" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7" cy="7" r="1.5" fill="#34d399"/></svg>`,
+    ban: (size = 14) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" class="svg-icon icon-ban"><circle cx="12" cy="12" r="10" fill="rgba(239, 68, 68, 0.15)" stroke="#ef4444" stroke-width="2"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07" stroke="#ef4444" stroke-width="2.5"/></svg>`,
+    lock: (size = 24) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" class="svg-icon icon-lock"><rect x="3" y="11" width="18" height="11" rx="2" fill="rgba(245, 158, 11, 0.2)" stroke="#f59e0b" stroke-width="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/></svg>`,
+    copy: (size = 14) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" class="svg-icon icon-copy"><rect x="9" y="9" width="13" height="13" rx="2" fill="rgba(56, 189, 248, 0.2)" stroke="#38bdf8" stroke-width="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="#38bdf8" stroke-width="2" fill="none"/></svg>`,
+    tv: (size = 36) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" class="svg-icon icon-tv"><rect x="2" y="7" width="20" height="15" rx="2" fill="rgba(145, 70, 255, 0.25)" stroke="#a855f7" stroke-width="2"/><polyline points="17 2 12 7 7 2" stroke="#c084fc" stroke-width="2" stroke-linecap="round"/></svg>`,
+    link: (size = 14) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" class="svg-icon icon-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round"/><polyline points="15 3 21 3 21 9" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round"/><line x1="10" y1="14" x2="21" y2="3" stroke="#60a5fa" stroke-width="2" stroke-linecap="round"/></svg>`,
+    search: (size = 14) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" class="svg-icon icon-search"><circle cx="11" cy="11" r="8" fill="rgba(129, 140, 248, 0.2)" stroke="#818cf8" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="#818cf8" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+    check: (size = 14) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" class="svg-icon icon-check"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round"/><polyline points="22 4 12 14.01 9 11.01" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    warn: (size = 16) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" class="svg-icon icon-warn"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" fill="rgba(245, 158, 11, 0.2)" stroke="#f59e0b" stroke-width="2"/><line x1="12" y1="9" x2="12" y2="13" stroke="#fef08a" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="#fef08a" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+    error: (size = 16) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" class="svg-icon icon-error"><circle cx="12" cy="12" r="10" fill="rgba(244, 63, 94, 0.2)" stroke="#f43f5e" stroke-width="2"/><line x1="15" y1="9" x2="9" y2="15" stroke="#f43f5e" stroke-width="2" stroke-linecap="round"/><line x1="9" y1="9" x2="15" y2="15" stroke="#f43f5e" stroke-width="2" stroke-linecap="round"/></svg>`,
+    info: (size = 16) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" class="svg-icon icon-info"><circle cx="12" cy="12" r="10" fill="rgba(56, 189, 248, 0.2)" stroke="#38bdf8" stroke-width="2"/><line x1="12" y1="16" x2="12" y2="12" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="8" x2="12.01" y2="8" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+    spinner: (size = 14) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" class="svg-icon spin"><circle cx="12" cy="12" r="10" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="3"/><path d="M12 2a10 10 0 0 1 10 10" fill="none" stroke="#a855f7" stroke-width="3" stroke-linecap="round"/></svg>`,
+    stop: (size = 14) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" class="svg-icon icon-stop"><rect x="6" y="6" width="12" height="12" rx="2" fill="#ef4444" stroke="#f87171" stroke-width="1"/></svg>`,
+    skip: (size = 14) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" class="svg-icon icon-skip"><polygon points="5 4 15 12 5 20 5 4" fill="rgba(168, 85, 247, 0.3)" stroke="#c084fc" stroke-width="2" stroke-linejoin="round"/><line x1="19" y1="5" x2="19" y2="19" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/></svg>`
+};
+
 const getEl = (id) => document.getElementById(id);
 
 const loginBtn = getEl('loginBtn');
@@ -17,16 +41,110 @@ const viewCampaigns = getEl('viewCampaigns');
 const viewInventory = getEl('viewInventory');
 const viewSettings = getEl('viewSettings');
 const viewLogs = getEl('logsView');
+
 // Persistent application state
 let ignoredGameNames = JSON.parse(localStorage.getItem('ignoredGameNames') || '[]');
 let ignoredCampaignIds = JSON.parse(localStorage.getItem('ignoredCampaignIds') || '[]');
+
+function encodeGameParam(str) {
+    if (!str) return '';
+    return encodeURIComponent(str).replace(/'/g, "%27").replace(/"/g, "%22");
+}
+
+function decodeGameParam(str) {
+    if (!str) return '';
+    try {
+        return decodeURIComponent(str);
+    } catch (e) {
+        return str;
+    }
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+// Toast Notification System
+const recentToasts = new Map();
+
+function showToast(msg, type = 'info', duration = 3500) {
+    const container = getEl('toastContainer');
+    if (!container) return;
+    
+    const now = Date.now();
+    const key = `${type}:${msg}`;
+    if (recentToasts.has(key) && (now - recentToasts.get(key) < 2000)) {
+        return; // Suppress duplicate notification within 2 seconds
+    }
+    recentToasts.set(key, now);
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    let icon = ICONS.info(16);
+    if (type === 'success') icon = ICONS.check(16);
+    if (type === 'warn') icon = ICONS.warn(16);
+    if (type === 'error') icon = ICONS.error(16);
+    
+    toast.innerHTML = `
+        <div class="toast-content">
+            <span style="display: inline-flex; align-items: center;">${icon}</span>
+            <span>${msg}</span>
+        </div>
+        <button class="toast-close" title="Close">✕</button>
+        <div class="toast-progress" style="animation-duration: ${duration}ms;"></div>
+    `;
+    
+    container.appendChild(toast);
+
+    // Trigger smooth entrance transition on next animation frame
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            toast.classList.add('toast-show');
+        });
+    });
+
+    let autoTimer = null;
+    let isClosing = false;
+
+    const dismiss = () => {
+        if (isClosing) return;
+        isClosing = true;
+        if (autoTimer) clearTimeout(autoTimer);
+        toast.classList.remove('toast-show');
+        toast.classList.add('toast-hide');
+        setTimeout(() => {
+            if (toast.parentNode) toast.remove();
+        }, 400);
+    };
+
+    const closeBtn = toast.querySelector('.toast-close');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dismiss();
+        });
+    }
+
+    toast.addEventListener('click', dismiss);
+
+    autoTimer = setTimeout(dismiss, duration);
+}
 
 function toggleIgnoreCampaign(id) {
     if (!id) return;
     if (ignoredCampaignIds.includes(id)) {
         ignoredCampaignIds = ignoredCampaignIds.filter(i => i !== id);
+        showToast('Campaign unignored', 'info');
     } else {
         ignoredCampaignIds.push(id);
+        showToast('Campaign ignored', 'warn');
     }
     localStorage.setItem('ignoredCampaignIds', JSON.stringify(ignoredCampaignIds));
     renderCampaignsListItems();
@@ -34,20 +152,22 @@ function toggleIgnoreCampaign(id) {
 
 window.toggleIgnoreCampaign = toggleIgnoreCampaign;
 
-function toggleIgnoreGame(gameName) {
+function toggleIgnoreGame(gameNameOrEncoded) {
+    const gameName = decodeGameParam(gameNameOrEncoded);
     if (!gameName) return;
     const nameLower = gameName.toLowerCase();
     
     if (ignoredGameNames.includes(nameLower)) {
         ignoredGameNames = ignoredGameNames.filter(i => i !== nameLower);
+        showToast(`Unbanned ${gameName}`, 'info');
     } else {
         ignoredGameNames.push(nameLower);
+        showToast(`Banned ${gameName}`, 'warn');
     }
     localStorage.setItem('ignoredGameNames', JSON.stringify(ignoredGameNames));
-    renderCampaignsListItems(); // Refresh the list
-    renderBannedGames(); // Update settings UI
+    renderCampaignsListItems();
+    renderBannedGames();
     
-    // If we're farming this game, we should probably stop and move to next
     const currentActiveCamp = allCampaigns?.find(c => c.id === activeFarmingCampaignId);
     if (currentActiveCamp && currentActiveCamp.game?.displayName?.toLowerCase() === nameLower) {
         addLog(`[Ignore] Current farming game banned. Choosing next candidate...`, 'warn');
@@ -65,6 +185,7 @@ function clearIgnoredGames() {
     renderCampaignsListItems();
     renderBannedGames();
     addLog(`[Ignore] Cleared all banned games.`, 'system');
+    showToast('Cleared all banned games', 'info');
 }
 
 function renderBannedGames() {
@@ -79,12 +200,12 @@ function renderBannedGames() {
     container.innerHTML = ignoredGameNames.map(name => {
         const camp = allCampaigns.find(c => c.game?.displayName?.toLowerCase() === name.toLowerCase());
         const miniImg = getGameImageUrl(camp?.game, 36, 48);
-        const imgTag = miniImg ? `<img src="${miniImg}" style="width:18px; height:24px; border-radius:3px; object-fit:cover;" onerror="this.onerror=null; this.src='https://static-cdn.jtvnw.net/ttv-boxart/488190-36x48.jpg'">` : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12h.01"/><path d="M17 12h.01"/><path d="M7 12h.01"/></svg>';
+        const imgTag = miniImg ? `<img src="${miniImg}" style="width:18px; height:24px; border-radius:3px; object-fit:cover;" onerror="this.onerror=null; this.src='https://static-cdn.jtvnw.net/ttv-boxart/488190-36x48.jpg'">` : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/></svg>';
         
-        return `<div class="game-chip" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--text-primary); padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s;" onclick="toggleIgnoreGame('${name}')">
+        return `<div class="game-chip" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); color: var(--text-primary); padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s;" onclick="toggleIgnoreGame('${encodeGameParam(name)}')">
             ${imgTag}
-            <span>${name}</span>
-            <span style="display: flex; align-items: center; justify-content: center; color: var(--danger); margin-left: 2px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+            <span>${escapeHtml(name)}</span>
+            <span style="display: flex; align-items: center; justify-content: center; color: var(--danger); margin-left: 2px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
         </div>`;
     }).join('');
 }
@@ -99,20 +220,16 @@ const btnSortEnd = getEl('btnSortEnd');
 function updateSortUI() {
     if (!btnSortViewers || !btnSortEnd) return;
     if (campaignSortMode === 'viewers') {
-        // Active Viewers
         btnSortViewers.style.background = 'var(--accent-light)';
         btnSortViewers.style.borderColor = 'var(--accent-color)';
         btnSortViewers.style.color = 'var(--accent-hover)';
-        // Inactive End
         btnSortEnd.style.background = 'transparent';
         btnSortEnd.style.borderColor = 'var(--border-color)';
         btnSortEnd.style.color = 'var(--text-secondary)';
     } else {
-        // Active End
         btnSortEnd.style.background = 'var(--accent-light)';
         btnSortEnd.style.borderColor = 'var(--accent-color)';
         btnSortEnd.style.color = 'var(--accent-hover)';
-        // Inactive Viewers
         btnSortViewers.style.background = 'transparent';
         btnSortViewers.style.borderColor = 'var(--border-color)';
         btnSortViewers.style.color = 'var(--text-secondary)';
@@ -124,6 +241,7 @@ if (btnSortEnd) btnSortEnd.onclick = () => { campaignSortMode = 'endDate'; updat
 
 let currentCategory = 'drops';
 let hidePaidBadges = true;
+
 const btnCatDrops = getEl('btnCatDrops');
 const btnCatBadges = getEl('btnCatBadges');
 const btnHidePaid = getEl('btnHidePaid');
@@ -145,7 +263,6 @@ function updateCategoryUI() {
         btnCatDrops.style.borderColor = 'var(--border-color)';
         btnCatDrops.style.color = 'var(--text-secondary)';
     }
-    // Show/hide the Hide Paid button and Farm All button
     if (btnHidePaid) btnHidePaid.style.display = currentCategory === 'badges' ? 'inline-flex' : 'none';
     const btnFarmAll = getEl('btnFarmAll');
     if (btnFarmAll) btnFarmAll.style.display = currentCategory === 'drops' ? 'inline-flex' : 'none';
@@ -154,12 +271,12 @@ function updateCategoryUI() {
 function updateHidePaidUI() {
     if (!btnHidePaid) return;
     if (hidePaidBadges) {
-        btnHidePaid.textContent = '🚫 Hide Paid';
+        btnHidePaid.innerHTML = `${ICONS.ban(12)} Hide Paid`;
         btnHidePaid.style.background = 'var(--accent-light)';
         btnHidePaid.style.borderColor = 'var(--accent-color)';
         btnHidePaid.style.color = 'var(--accent-hover)';
     } else {
-        btnHidePaid.textContent = '👁️ Show All';
+        btnHidePaid.innerHTML = `${ICONS.eye(12)} Show All`;
         btnHidePaid.style.background = 'transparent';
         btnHidePaid.style.borderColor = 'var(--border-color)';
         btnHidePaid.style.color = 'var(--text-secondary)';
@@ -168,13 +285,241 @@ function updateHidePaidUI() {
 
 function applyCurrentFilters() {
     const searchVal = document.getElementById('campaignSearch')?.value?.toLowerCase() || '';
+    
+    const clearBtn = getEl('btnClearCampaignSearch');
+    if (clearBtn) clearBtn.style.display = searchVal ? 'flex' : 'none';
+
     filteredCampaigns = allCampaigns.filter(c => {
         const matchesCategory = currentCategory === 'drops' ? !c.isBadgeOrQuest : c.isBadgeOrQuest;
         const matchesSearch = !searchVal || c.game?.displayName?.toLowerCase().includes(searchVal);
         const matchesPaid = !(currentCategory === 'badges' && hidePaidBadges && c._badgePaid);
-        return matchesCategory && matchesSearch && matchesPaid;
+        const matchesViewers = minViewersThreshold <= 0 || (c.game?.viewersCount || 0) >= minViewersThreshold;
+        return matchesCategory && matchesSearch && matchesPaid && matchesViewers;
     });
     renderCampaignsListItems();
+}
+
+const btnClearCampaignSearch = getEl('btnClearCampaignSearch');
+if (btnClearCampaignSearch) {
+    btnClearCampaignSearch.onclick = () => {
+        const input = getEl('campaignSearch');
+        if (input) {
+            input.value = '';
+            applyCurrentFilters();
+        }
+    };
+}
+
+let minViewersEnabled = localStorage.getItem('minViewersEnabled') === 'true';
+let minViewersLimit = parseInt(localStorage.getItem('minViewersLimit') || '1000', 10);
+let minViewersThreshold = minViewersEnabled ? minViewersLimit : 0;
+
+function updateMinViewersThresholdState() {
+    minViewersThreshold = minViewersEnabled ? minViewersLimit : 0;
+}
+
+function toggleMinViewersFilter(forceState = null) {
+    if (forceState !== null) {
+        minViewersEnabled = forceState;
+    } else {
+        minViewersEnabled = !minViewersEnabled;
+    }
+    localStorage.setItem('minViewersEnabled', minViewersEnabled);
+    updateMinViewersThresholdState();
+    updateMinViewersUI();
+    addLog(`[AutoFarm] Minimum viewer filter ${minViewersEnabled ? 'ENABLED (' + minViewersLimit + '+ viewers)' : 'DISABLED'}.`, 'system');
+    showToast(`Min viewers filter ${minViewersEnabled ? 'enabled' : 'disabled'}`, 'info');
+
+    applyCurrentFilters();
+    if (masterAutoFarmEnabled) {
+        runMasterFarmLoop();
+    }
+}
+
+function setMinViewersLimit(val) {
+    const parsed = Math.max(0, parseInt(val, 10) || 1000);
+    minViewersLimit = parsed;
+    localStorage.setItem('minViewersLimit', minViewersLimit);
+    updateMinViewersThresholdState();
+    updateMinViewersUI();
+    addLog(`[AutoFarm] Minimum viewer limit set to ${minViewersLimit} viewers.`, 'system');
+    showToast(`Min viewers threshold: ${minViewersLimit}`, 'info');
+
+    applyCurrentFilters();
+    if (masterAutoFarmEnabled) {
+        runMasterFarmLoop();
+    }
+}
+
+function updateMinViewersUI() {
+    const pillLabel = document.getElementById('minViewersPillLabel');
+    const pillBtn = document.getElementById('btnMinViewersPill');
+    const sidebarLabel = document.getElementById('minViewersSidebarLabel');
+    const sidebarPill = document.getElementById('btnMinViewersSidebarPill');
+
+    const sidebarMinViewersContainer = document.getElementById('sidebarMinViewersContainer');
+    const campaignsMinViewersContainer = document.getElementById('campaignsMinViewersContainer');
+
+    if (sidebarMinViewersContainer) {
+        sidebarMinViewersContainer.style.display = farmAllMode ? 'flex' : 'none';
+    }
+    if (campaignsMinViewersContainer) {
+        campaignsMinViewersContainer.style.display = farmAllMode ? 'flex' : 'none';
+    }
+
+    const updatePill = (btn, label) => {
+        if (!btn || !label) return;
+        if (minViewersEnabled) {
+            label.innerText = `${minViewersLimit}+`;
+            btn.style.background = 'var(--accent-light)';
+            btn.style.borderColor = 'var(--accent-color)';
+            btn.style.color = 'white';
+        } else {
+            label.innerText = 'Off';
+            btn.style.background = 'transparent';
+            btn.style.borderColor = 'var(--border-color)';
+            btn.style.color = 'var(--text-secondary)';
+        }
+    };
+
+    updatePill(pillBtn, pillLabel);
+    updatePill(sidebarPill, sidebarLabel);
+
+    const settingsToggle = document.getElementById('toggleMinViewersSettings');
+    if (settingsToggle) {
+        settingsToggle.checked = minViewersEnabled;
+    }
+    const settingsInput = document.getElementById('minViewersSettingsInput');
+    if (settingsInput && parseInt(settingsInput.value, 10) !== minViewersLimit) {
+        settingsInput.value = minViewersLimit;
+    }
+    const modalInput = document.getElementById('minViewersModalInput');
+    if (modalInput && parseInt(modalInput.value, 10) !== minViewersLimit) {
+        modalInput.value = minViewersLimit;
+    }
+}
+
+const btnMinViewersSidebarPill = document.getElementById('btnMinViewersSidebarPill');
+if (btnMinViewersSidebarPill) {
+    btnMinViewersSidebarPill.onclick = () => {
+        toggleMinViewersFilter();
+    };
+}
+
+function syncMinViewersModalPresets() {
+    const input = document.getElementById('minViewersModalInput');
+    if (!input) return;
+    const currentVal = parseInt(input.value, 10) || 0;
+    document.querySelectorAll('.btn-preset-modal-viewers').forEach(btn => {
+        const val = parseInt(btn.getAttribute('data-val'), 10);
+        if (val === currentVal) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+}
+
+function openMinViewersModal() {
+    const modal = document.getElementById('minViewersModal');
+    const modalInput = document.getElementById('minViewersModalInput');
+    if (modalInput) {
+        modalInput.value = minViewersLimit;
+        syncMinViewersModalPresets();
+    }
+    if (modal) modal.style.display = 'flex';
+}
+
+const btnMinViewersSidebarSettings = document.getElementById('btnMinViewersSidebarSettings');
+if (btnMinViewersSidebarSettings) {
+    btnMinViewersSidebarSettings.onclick = () => {
+        openMinViewersModal();
+    };
+}
+
+const btnMinViewersPill = document.getElementById('btnMinViewersPill');
+if (btnMinViewersPill) {
+    btnMinViewersPill.onclick = () => {
+        toggleMinViewersFilter();
+    };
+}
+
+const btnMinViewersSettings = document.getElementById('btnMinViewersSettings');
+if (btnMinViewersSettings) {
+    btnMinViewersSettings.onclick = () => {
+        openMinViewersModal();
+    };
+}
+
+const btnMinViewersStepDown = document.getElementById('btnMinViewersStepDown');
+const btnMinViewersStepUp = document.getElementById('btnMinViewersStepUp');
+const minViewersModalInput = document.getElementById('minViewersModalInput');
+
+if (btnMinViewersStepDown && minViewersModalInput) {
+    btnMinViewersStepDown.onclick = () => {
+        let current = parseInt(minViewersModalInput.value, 10) || 0;
+        current = Math.max(0, current - 500);
+        minViewersModalInput.value = current;
+        syncMinViewersModalPresets();
+    };
+}
+
+if (btnMinViewersStepUp && minViewersModalInput) {
+    btnMinViewersStepUp.onclick = () => {
+        let current = parseInt(minViewersModalInput.value, 10) || 0;
+        current += 500;
+        minViewersModalInput.value = current;
+        syncMinViewersModalPresets();
+    };
+}
+
+if (minViewersModalInput) {
+    minViewersModalInput.addEventListener('input', syncMinViewersModalPresets);
+}
+
+const btnSaveMinViewersModal = document.getElementById('btnSaveMinViewersModal');
+const btnCloseMinViewersModal = document.getElementById('btnCloseMinViewersModal');
+if (btnSaveMinViewersModal) {
+    btnSaveMinViewersModal.onclick = () => {
+        const val = parseInt(document.getElementById('minViewersModalInput')?.value, 10) || 0;
+        if (val <= 0) {
+            toggleMinViewersFilter(false);
+        } else {
+            setMinViewersLimit(val);
+            toggleMinViewersFilter(true);
+        }
+        const modal = document.getElementById('minViewersModal');
+        if (modal) modal.style.display = 'none';
+    };
+}
+if (btnCloseMinViewersModal) {
+    btnCloseMinViewersModal.onclick = () => {
+        const modal = document.getElementById('minViewersModal');
+        if (modal) modal.style.display = 'none';
+    };
+}
+document.querySelectorAll('.btn-preset-modal-viewers').forEach(btn => {
+    btn.onclick = () => {
+        const val = btn.getAttribute('data-val');
+        const input = document.getElementById('minViewersModalInput');
+        if (input) {
+            input.value = val;
+            syncMinViewersModalPresets();
+        }
+    };
+});
+document.querySelectorAll('.btn-preset-viewers').forEach(btn => {
+    btn.onclick = () => {
+        const val = btn.getAttribute('data-val');
+        setMinViewersLimit(val);
+        toggleMinViewersFilter(true);
+    };
+});
+const toggleMinViewersSettings = document.getElementById('toggleMinViewersSettings');
+if (toggleMinViewersSettings) {
+    toggleMinViewersSettings.onchange = () => {
+        toggleMinViewersFilter(toggleMinViewersSettings.checked);
+    };
 }
 
 if (btnCatDrops) btnCatDrops.onclick = () => {
@@ -198,31 +543,83 @@ if (btnHidePaid) {
     };
 }
 
+let activeLogFilter = 'all';
+
 function addLog(msg, type = 'info') {
-    console.log(`[RendererLog] ${type.toUpperCase()}: ${msg}`); // Also log to terminal!
+    console.log(`[RendererLog] ${type.toUpperCase()}: ${msg}`);
     const consoleEl = getEl('logConsole');
     const time = new Date().toLocaleTimeString();
     let color = '#d1d1d1';
     let prefix = '[INFO]';
 
-    if (type === 'system') { color = '#bf94ff'; prefix = '[SYSTEM]'; }
-    if (type === 'farm') { color = '#00e676'; prefix = '[FARM]'; }
-    if (type === 'warn') { color = '#ffb300'; prefix = '[WARN]'; }
-    if (type === 'error') { color = '#ff4f4f'; prefix = '[ERROR]'; }
-
-    console.log(`${prefix} ${msg}`); // Always log to real console
+    if (type === 'system') { color = '#a25eff'; prefix = '[SYSTEM]'; }
+    if (type === 'farm') { color = '#10b981'; prefix = '[FARM]'; }
+    if (type === 'warn') { color = '#f59e0b'; prefix = '[WARN]'; }
+    if (type === 'error') { color = '#ef4444'; prefix = '[ERROR]'; }
+    if (type === 'success') { color = '#34d399'; prefix = '[SUCCESS]'; }
 
     if (!consoleEl) return;
     const entry = document.createElement('div');
+    entry.className = `log-entry log-entry-${type}`;
+    entry.setAttribute('data-type', type);
     entry.style.color = color;
     entry.style.marginBottom = '4px';
-    entry.innerHTML = `<span style="color: #666; font-size: 11px;">${time}</span> <span style="font-weight: 700;">${prefix}</span> ${msg}`;
+    entry.innerHTML = `<span style="color: #64748b; font-size: 11px;">${time}</span> <span style="font-weight: 700;">${prefix}</span> ${msg}`;
+
+    if (activeLogFilter !== 'all' && activeLogFilter !== type) {
+        entry.style.display = 'none';
+    }
 
     consoleEl.appendChild(entry);
     consoleEl.scrollTop = consoleEl.scrollHeight;
 }
 
 addLog('Application renderer starting...', 'system');
+
+// Log Console Controls
+document.querySelectorAll('.log-filter-btn').forEach(btn => {
+    btn.onclick = () => {
+        document.querySelectorAll('.log-filter-btn').forEach(b => {
+            b.style.background = 'var(--bg-tertiary)';
+            b.style.borderColor = 'var(--border-color)';
+            b.style.color = 'var(--text-secondary)';
+        });
+        btn.style.background = 'var(--accent-light)';
+        btn.style.borderColor = 'var(--accent-color)';
+        btn.style.color = 'white';
+        activeLogFilter = btn.getAttribute('data-filter') || 'all';
+
+        const entries = document.querySelectorAll('#logConsole .log-entry');
+        entries.forEach(entry => {
+            if (activeLogFilter === 'all' || entry.getAttribute('data-type') === activeLogFilter) {
+                entry.style.display = 'block';
+            } else {
+                entry.style.display = 'none';
+            }
+        });
+    };
+});
+
+const btnCopyLogs = getEl('btnCopyLogs');
+if (btnCopyLogs) {
+    btnCopyLogs.onclick = () => {
+        const consoleEl = getEl('logConsole');
+        if (consoleEl) {
+            const text = consoleEl.innerText;
+            navigator.clipboard.writeText(text);
+            showToast('Logs copied to clipboard', 'success');
+        }
+    };
+}
+
+const btnClearLogsConsole = getEl('btnClearLogsConsole');
+if (btnClearLogsConsole) {
+    btnClearLogsConsole.onclick = () => {
+        const consoleEl = getEl('logConsole');
+        if (consoleEl) consoleEl.innerHTML = '';
+        addLog('Console logs cleared.', 'system');
+    };
+}
 
 function switchView(viewName) {
     try {
@@ -261,23 +658,24 @@ if (btnNavLogs) btnNavLogs.onclick = () => switchView('logs');
 let accountTokens = JSON.parse(localStorage.getItem('accountTokens') || 'null');
 let allCampaigns = [];
 let filteredCampaigns = [];
-let autoClaimEnabled = localStorage.getItem('autoClaimEnabled') !== 'false'; // Default to true
-let discordRPCEnabled = localStorage.getItem('discordRPCEnabled') === 'true'; // Default to false
+let autoClaimEnabled = localStorage.getItem('autoClaimEnabled') !== 'false';
+let discordRPCEnabled = localStorage.getItem('discordRPCEnabled') === 'true';
 let rpcFarmingStartTimestamp = null;
 let currentGlobalDropSession = null;
 let currentFarmingChannelId = null;
-let currentFarmCampaignId = null; // Currently VIEWED campaign on Dashboard
-let activeFarmingCampaignId = null; // Currently FARMED campaign
-let previewCampaignId = null; // Currently PREVIEWED campaign on Campaigns tab
-let activeFarmingChannelLogin = null; // Name of current streamer for UI
+let currentFarmCampaignId = null;
+let activeFarmingCampaignId = null;
+let browsedCampaignId = null;
+let previewCampaignId = null;
+let activeFarmingChannelLogin = null;
 let masterAutoFarmEnabled = false;
 let tokenProcessingStarted = false;
 let manualOverrideId = null;
-let currentUserId = null; // Stored for WebSocket authentication
-let wsDropProgress = {}; // Real-time drop progress metrics { dropId: { current, required } }
-let uiTimerInterval = null; // High-frequency UI update loop pointer
+let currentUserId = null;
+let wsDropProgress = {};
+let uiTimerInterval = null;
+let integritySafetyTimer = null;
 
-// Global helper for consistent image URLs
 function fixTwitchUrl(url, w, h) {
     if (!url) return '';
     let res = url.replace('{width}', w).replace('{height}', h);
@@ -292,13 +690,151 @@ function getGameImageUrl(game, w, h) {
     return '';
 }
 
-let farmAllMode = localStorage.getItem('farmAllMode') === 'true'; // If true, farms all active campaigns based on priority
-
+let farmAllMode = localStorage.getItem('farmAllMode') === 'true';
 let stallThresholdSec = parseInt(localStorage.getItem('stallThresholdSec')) || 180;
 let showStallTimer = localStorage.getItem('showStallTimer') !== 'false';
 
-// Auto-run if tokens exist
+// Startup & Automation Preferences State
+let autoLaunchEnabled = false;
+let autoLaunchHidden = false;
+let autoStartFarm = false;
+let autoStartFarmMode = 'priority';
+let hasAutoStartedFarm = false;
+
+function updateStartupSettingsUI() {
+    const toggleAutoLaunch = document.getElementById('toggleAutoLaunch');
+    const toggleAutoLaunchHidden = document.getElementById('toggleAutoLaunchHidden');
+    const toggleAutoStartFarm = document.getElementById('toggleAutoStartFarm');
+    const autoStartFarmModeSelect = document.getElementById('autoStartFarmModeSelect');
+    const subGroup = document.getElementById('startupSubSettings');
+
+    if (toggleAutoLaunch) toggleAutoLaunch.checked = autoLaunchEnabled;
+
+    if (toggleAutoLaunchHidden) {
+        toggleAutoLaunchHidden.checked = autoLaunchEnabled && autoLaunchHidden;
+        toggleAutoLaunchHidden.disabled = !autoLaunchEnabled;
+    }
+    if (toggleAutoStartFarm) {
+        toggleAutoStartFarm.checked = autoLaunchEnabled && autoStartFarm;
+        toggleAutoStartFarm.disabled = !autoLaunchEnabled;
+    }
+    if (autoStartFarmModeSelect) {
+        autoStartFarmModeSelect.value = autoStartFarmMode;
+        autoStartFarmModeSelect.disabled = !autoLaunchEnabled;
+    }
+
+    if (subGroup) {
+        if (autoLaunchEnabled) {
+            subGroup.classList.remove('disabled-group');
+        } else {
+            subGroup.classList.add('disabled-group');
+        }
+    }
+}
+
+function syncAutoLaunchConfig() {
+    const hiddenState = autoLaunchEnabled && autoLaunchHidden;
+    const farmState = autoLaunchEnabled && autoStartFarm;
+
+    if (window.electronAPI && window.electronAPI.setAutoLaunch) {
+        window.electronAPI.setAutoLaunch({
+            autoLaunchEnabled,
+            autoLaunchHidden: hiddenState,
+            autoStartFarm: farmState,
+            autoStartFarmMode
+        });
+    }
+}
+
+// Initial load: Fetch saved startup config directly from disk via Main Process IPC
+if (window.electronAPI && window.electronAPI.getAutoLaunch) {
+    window.electronAPI.getAutoLaunch().then(cfg => {
+        if (cfg) {
+            autoLaunchEnabled = !!cfg.autoLaunchEnabled;
+            autoLaunchHidden = autoLaunchEnabled && !!cfg.autoLaunchHidden;
+            autoStartFarm = autoLaunchEnabled && !!cfg.autoStartFarm;
+            autoStartFarmMode = cfg.autoStartFarmMode || 'priority';
+            updateStartupSettingsUI();
+        }
+    }).catch(e => console.error("Error loading auto launch config from main:", e));
+}
+
+updateStartupSettingsUI();
+
+const toggleAutoLaunchEl = document.getElementById('toggleAutoLaunch');
+if (toggleAutoLaunchEl) {
+    toggleAutoLaunchEl.addEventListener('change', () => {
+        autoLaunchEnabled = toggleAutoLaunchEl.checked;
+        if (!autoLaunchEnabled) {
+            autoLaunchHidden = false;
+            autoStartFarm = false;
+        }
+        updateStartupSettingsUI();
+        syncAutoLaunchConfig();
+        showToast(`System Startup ${autoLaunchEnabled ? 'enabled' : 'disabled'}`, 'info');
+        addLog(`System Auto-Launch set to ${autoLaunchEnabled ? 'ENABLED' : 'DISABLED'}`, 'system');
+    });
+}
+
+const toggleAutoLaunchHiddenEl = document.getElementById('toggleAutoLaunchHidden');
+if (toggleAutoLaunchHiddenEl) {
+    toggleAutoLaunchHiddenEl.addEventListener('change', () => {
+        if (!autoLaunchEnabled) return;
+        autoLaunchHidden = toggleAutoLaunchHiddenEl.checked;
+        syncAutoLaunchConfig();
+        showToast(`Start Minimized ${autoLaunchHidden ? 'enabled' : 'disabled'}`, 'info');
+        addLog(`Start Minimized to Tray set to ${autoLaunchHidden ? 'ENABLED' : 'DISABLED'}`, 'system');
+    });
+}
+
+const toggleAutoStartFarmEl = document.getElementById('toggleAutoStartFarm');
+if (toggleAutoStartFarmEl) {
+    toggleAutoStartFarmEl.addEventListener('change', () => {
+        if (!autoLaunchEnabled) return;
+        autoStartFarm = toggleAutoStartFarmEl.checked;
+        syncAutoLaunchConfig();
+        showToast(`Auto-Start Farming ${autoStartFarm ? 'enabled' : 'disabled'}`, 'info');
+        addLog(`Auto-Start Farming on launch set to ${autoStartFarm ? 'ENABLED' : 'DISABLED'}`, 'system');
+    });
+}
+
+const autoStartFarmModeSelectEl = document.getElementById('autoStartFarmModeSelect');
+if (autoStartFarmModeSelectEl) {
+    autoStartFarmModeSelectEl.addEventListener('change', () => {
+        if (!autoLaunchEnabled) return;
+        autoStartFarmMode = autoStartFarmModeSelectEl.value;
+        farmAllMode = (autoStartFarmMode === 'global');
+        localStorage.setItem('farmAllMode', farmAllMode ? 'true' : 'false');
+        updateMasterAutoFarmUI();
+        syncAutoLaunchConfig();
+        showToast(`Auto-Start mode set to ${autoStartFarmMode.toUpperCase()}`, 'info');
+        addLog(`Auto-Start Farming mode set to ${autoStartFarmMode.toUpperCase()}`, 'system');
+    });
+}
+
+function triggerAutoStartFarm() {
+    if (hasAutoStartedFarm) return;
+    if (!autoLaunchEnabled || !autoStartFarm) return;
+    if (!accountTokens || !accountTokens.auth) {
+        addLog(`[Startup] Auto-start farming skipped: Not logged in.`, 'system');
+        return;
+    }
+
+    hasAutoStartedFarm = true;
+    farmAllMode = (autoStartFarmMode === 'global');
+    localStorage.setItem('farmAllMode', farmAllMode ? 'true' : 'false');
+    masterAutoFarmEnabled = true;
+    activeFarmingCampaignId = null;
+    manualOverrideId = null;
+
+    addLog(`🚀 [Startup] Auto-start farming triggered automatically in ${autoStartFarmMode.toUpperCase()} mode.`, 'system');
+    showToast(`Auto-Start Farming (${autoStartFarmMode.toUpperCase()})`, 'success');
+    updateMasterAutoFarmUI();
+    runMasterFarmLoop();
+}
+
 if (accountTokens && accountTokens.auth) {
+    showLoadingPlaceholder();
     setTimeout(() => {
         processTokens(accountTokens, true);
     }, 500);
@@ -310,6 +846,7 @@ if (toggleClaim) {
     toggleClaim.addEventListener('change', () => {
         autoClaimEnabled = toggleClaim.checked;
         localStorage.setItem('autoClaimEnabled', autoClaimEnabled);
+        showToast(`Auto-Claim ${autoClaimEnabled ? 'enabled' : 'disabled'}`, 'info');
         if (autoClaimEnabled) {
             addLog('Auto-Claim enabled. Checking rewards...', 'system');
             processAutoClaims();
@@ -317,32 +854,73 @@ if (toggleClaim) {
     });
 }
 
+updateMinViewersUI();
+
 const toggleDiscordRPC = document.getElementById('toggleDiscordRPC');
-const discordRpcClientConfig = document.getElementById('discordRpcClientConfig');
 if (toggleDiscordRPC) {
     toggleDiscordRPC.checked = discordRPCEnabled;
-    if (discordRpcClientConfig) {
-        discordRpcClientConfig.style.display = discordRPCEnabled ? 'block' : 'none';
-    }
     toggleDiscordRPC.addEventListener('change', () => {
         discordRPCEnabled = toggleDiscordRPC.checked;
         localStorage.setItem('discordRPCEnabled', discordRPCEnabled);
-        if (discordRpcClientConfig) {
-            discordRpcClientConfig.style.display = discordRPCEnabled ? 'block' : 'none';
-        }
+        showToast(`Discord RPC ${discordRPCEnabled ? 'enabled' : 'disabled'}`, 'info');
         window.electronAPI.rpcToggle(discordRPCEnabled);
         updateRPCStatus();
     });
 }
 
-function updateDiscordRPCUI() {
-    const input = document.getElementById('toggleDiscordRPC');
-    if (input) input.checked = discordRPCEnabled;
-    const clientConfig = document.getElementById('discordRpcClientConfig');
-    if (clientConfig) clientConfig.style.display = discordRPCEnabled ? 'block' : 'none';
+// Persistent Top Header Live Farm Widget Updates
+function updateHeaderFarmWidget() {
+    const dot = getEl('headerFarmStatusDot');
+    const text = getEl('headerFarmText');
+    const subtext = getEl('headerFarmSubtext');
+    const btnSkip = getEl('btnHeaderSkip');
+    const currentFarmTitle = getEl('currentFarmTitle');
+    const statsWorkerStatus = getEl('statsWorkerStatus');
+
+    if (activeFarmingCampaignId && activeFarmingChannelLogin) {
+        const curr = allCampaigns.find(c => c.id === activeFarmingCampaignId);
+        const gameName = curr?.game?.displayName || 'Twitch Game';
+
+        if (dot) {
+            dot.className = 'status-indicator green';
+            dot.style.boxShadow = '0 0 8px var(--success)';
+        }
+        if (text) text.innerText = gameName;
+        if (subtext) subtext.innerHTML = `· <span class="streamer-link" title="Open twitch.tv/${activeFarmingChannelLogin} in browser" onclick="event.stopPropagation(); window.electronAPI.openExternal('https://www.twitch.tv/${activeFarmingChannelLogin}')">@${activeFarmingChannelLogin}</span>`;
+        if (btnSkip) {
+            btnSkip.style.display = 'inline-flex';
+            btnSkip.title = 'Skip Streamer';
+            btnSkip.onclick = () => {
+                skipStreamerAction();
+            };
+        }
+        if (currentFarmTitle) {
+            currentFarmTitle.innerText = gameName;
+            currentFarmTitle.style.color = 'var(--text-primary)';
+        }
+        if (statsWorkerStatus) {
+            statsWorkerStatus.innerHTML = `<span style="color: var(--success); font-size: 14px; font-weight:700;">Live <span class="streamer-link" title="Open twitch.tv/${activeFarmingChannelLogin} in browser" onclick="event.stopPropagation(); window.electronAPI.openExternal('https://www.twitch.tv/${activeFarmingChannelLogin}')">@${activeFarmingChannelLogin}</span></span>`;
+        }
+    } else {
+        if (dot) {
+            dot.className = 'status-indicator red';
+            dot.style.boxShadow = 'none';
+        }
+        if (text) text.innerText = 'Idle';
+        if (subtext) subtext.innerText = '— No active farm';
+        if (btnSkip) btnSkip.style.display = 'none';
+        if (currentFarmTitle) {
+            currentFarmTitle.innerText = 'Idle';
+            currentFarmTitle.style.color = 'var(--text-muted)';
+        }
+        if (statsWorkerStatus) {
+            statsWorkerStatus.innerHTML = `<span style="color: var(--text-muted); font-size: 14px;">Standing By</span>`;
+        }
+    }
 }
 
 function updateRPCStatus() {
+    updateHeaderFarmWidget();
     if (!discordRPCEnabled) {
         window.electronAPI.rpcToggle(false);
         return;
@@ -352,7 +930,6 @@ function updateRPCStatus() {
         const curr = allCampaigns.find(c => c.id === activeFarmingCampaignId);
         const gameName = curr?.game?.displayName || 'Game';
         
-        // Find the active drop in the campaign
         let dropName = 'Drops';
         let progressPercent = 0;
         if (curr) {
@@ -373,9 +950,7 @@ function updateRPCStatus() {
         window.electronAPI.rpcUpdate({
             details: `Farming: ${gameName}`,
             state: `Watching ${activeFarmingChannelLogin} (${progressPercent}%)`,
-            timestamps: {
-                start: rpcFarmingStartTimestamp
-            },
+            timestamps: { start: rpcFarmingStartTimestamp },
             assets: {
                 large_image: 'twitch_drops_logo',
                 large_text: 'Twitch Drops Farmer',
@@ -388,37 +963,27 @@ function updateRPCStatus() {
         window.electronAPI.rpcUpdate({
             details: 'Standing by',
             state: 'Idle',
-            assets: {
-                large_image: 'twitch_drops_logo',
-                large_text: 'Twitch Drops Farmer'
-            }
+            assets: { large_image: 'twitch_drops_logo', large_text: 'Twitch Drops Farmer' }
         });
     }
 }
 
-function updateAutoClaimUI() {
-    const input = document.getElementById('toggleClaim');
-    if (input) input.checked = autoClaimEnabled;
-}
-
-// Stall Settings UI
 const toggleStallTimer = document.getElementById('toggleStallTimer');
 if (toggleStallTimer) {
     toggleStallTimer.checked = showStallTimer;
     toggleStallTimer.addEventListener('change', () => {
         showStallTimer = toggleStallTimer.checked;
         localStorage.setItem('showStallTimer', showStallTimer);
+        showToast(`Stall Timer ${showStallTimer ? 'visible' : 'hidden'}`, 'info');
+        if (!showStallTimer) {
+            const statusArea = document.getElementById('stallStatus');
+            if (statusArea) statusArea.innerHTML = '';
+        }
     });
-}
-
-function updateStallTimerUI() {
-    const input = document.getElementById('toggleStallTimer');
-    if (input) input.checked = showStallTimer;
 }
 
 const stallThresholdInput = document.getElementById('stallThresholdInput');
 const btnSaveStallThreshold = document.getElementById('btnSaveStallThreshold');
-const stallThresholdNotice = document.getElementById('stallThresholdNotice');
 if (stallThresholdInput && btnSaveStallThreshold) {
     stallThresholdInput.value = stallThresholdSec;
     btnSaveStallThreshold.onclick = () => {
@@ -427,21 +992,10 @@ if (stallThresholdInput && btnSaveStallThreshold) {
         stallThresholdSec = val;
         stallThresholdInput.value = val;
         localStorage.setItem('stallThresholdSec', val);
-        if (stallThresholdNotice) {
-            stallThresholdNotice.innerText = 'Saved!';
-            setTimeout(() => stallThresholdNotice.innerText = '', 2000);
-        }
+        showToast(`Stall threshold saved (${val}s)`, 'success');
         addLog(`Stall threshold updated to ${val} seconds`, 'system');
     };
 }
-
-// Custom Discord Client ID
-// Set initial UI state
-updateAutoClaimUI();
-updateStallTimerUI();
-updateDiscordRPCUI();
-window.electronAPI.rpcToggle(discordRPCEnabled);
-updateRPCStatus();
 
 const autoFarmSearch = document.getElementById('autoFarmSearch');
 const selectedGamesChips = document.getElementById('selectedGamesChips');
@@ -465,6 +1019,7 @@ if (btnClearLogs) {
         const consoleEl = getEl('logConsole');
         if (consoleEl) consoleEl.innerHTML = '';
         addLog('Logs cleared.', 'system');
+        showToast('Logs cleared', 'info');
     };
 }
 
@@ -480,7 +1035,6 @@ function semverCompare(a, b) {
     return 0;
 }
 
-// Remote update check
 async function checkUpdates() {
     const btn = document.getElementById('btnCheckUpdate');
     const notice = document.getElementById('updateNotice');
@@ -491,7 +1045,6 @@ async function checkUpdates() {
     notice.innerText = '';
 
     try {
-        // Fetch remote package descriptor to compare versions
         const repoUrl = "https://raw.githubusercontent.com/lokalizator-repo/TwitchDropsFarmer/main/package.json";
         const res = await fetch(repoUrl);
         if (!res.ok) throw new Error('Network error');
@@ -500,10 +1053,12 @@ async function checkUpdates() {
         const currentVersion = await window.electronAPI.getAppVersion();
 
         if (semverCompare(remote.version, currentVersion) > 0) {
-            notice.innerHTML = `<span style="color: var(--warning); cursor: pointer; text-decoration: underline;">New version ${remote.version} available! Click here.</span>`;
+            notice.innerHTML = `<span style="color: var(--warning); cursor: pointer; text-decoration: underline;">New version ${remote.version} available!</span>`;
             notice.onclick = () => window.electronAPI.openExternal("https://github.com/lokalizator-repo/TwitchDropsFarmer/releases");
+            showToast(`New version ${remote.version} available!`, 'warn');
         } else {
             notice.innerHTML = `<span style="color: var(--success);">You have the latest version (v${currentVersion}).</span>`;
+            showToast('You are on the latest version', 'success');
         }
     } catch (e) {
         console.error("Update check failed:", e);
@@ -524,10 +1079,20 @@ function addCustomGame() {
         renderPriorityChips();
         autoFarmSearch.value = '';
         renderPriorityGrid();
+        showToast(`Added ${val} to priority list`, 'success');
+    }
+}
+
+function updatePriorityStatsCount() {
+    const statsPriorityCount = getEl('statsPriorityCount');
+    if (statsPriorityCount) {
+        const count = selectedPriorityGames.length;
+        statsPriorityCount.innerText = `${count} ${count === 1 ? 'Game' : 'Games'}`;
     }
 }
 
 function renderPriorityChips() {
+    updatePriorityStatsCount();
     if (!selectedGamesChips) return;
     if (selectedPriorityGames.length === 0) {
         selectedGamesChips.innerHTML = '<span style="color: var(--text-secondary); font-size: 13px; font-style: italic; align-self: center;">No games selected yet. Pick from the grid or add manually.</span>';
@@ -536,16 +1101,16 @@ function renderPriorityChips() {
     selectedGamesChips.innerHTML = selectedPriorityGames.map((game, index) => {
         const camp = allCampaigns.find(c => c.game?.displayName?.toLowerCase() === game.toLowerCase());
         const miniImg = getGameImageUrl(camp?.game, 36, 48);
-        const imgTag = miniImg ? `<img src="${miniImg}" style="width:18px; height:24px; border-radius:3px; object-fit:cover;" onerror="this.onerror=null; this.src='https://static-cdn.jtvnw.net/ttv-boxart/488190-36x48.jpg'">` : '<div style="display:flex; align-items:center; opacity:0.7;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12h.01"/><path d="M17 12h.01"/><path d="M7 12h.01"/></svg></div>';
+        const imgTag = miniImg ? `<img src="${miniImg}" style="width:18px; height:24px; border-radius:3px; object-fit:cover;" onerror="this.onerror=null; this.src='https://static-cdn.jtvnw.net/ttv-boxart/488190-36x48.jpg'">` : '<div style="display:flex; align-items:center; opacity:0.7;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/></svg></div>';
         return `
-        <div style="background: rgba(191,148,255,0.12); border: 1px solid var(--accent-color); color: white; padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+        <div style="background: rgba(145,70,255,0.14); border: 1px solid var(--accent-color); color: white; padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
             <div style="display:flex; flex-direction: row; gap: 4px; line-height: 1;">
-                <span onclick="movePriorityGame(${index}, -1)" style="cursor:pointer; opacity: 0.6; display:flex; align-items:center; padding: 2px;" title="Move Up"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
-                <span onclick="movePriorityGame(${index}, 1)" style="cursor:pointer; opacity: 0.6; display:flex; align-items:center; padding: 2px;" title="Move Down"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></span>
+                <span onclick="movePriorityGame(${index}, -1)" style="cursor:pointer; opacity: 0.6; display:flex; align-items:center; padding: 2px;" title="Move Up"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></span>
+                <span onclick="movePriorityGame(${index}, 1)" style="cursor:pointer; opacity: 0.6; display:flex; align-items:center; padding: 2px;" title="Move Down"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
             </div>
             ${imgTag}
-            <span>${game}</span>
-            <span style="cursor: pointer; display:flex; align-items:center; color: var(--danger); margin-left: 2px;" onclick="removePriorityGame('${encodeURIComponent(game)}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+            <span>${escapeHtml(game)}</span>
+            <span style="cursor: pointer; display:flex; align-items:center; color: var(--danger); margin-left: 2px;" onclick="removePriorityGame('${encodeGameParam(game)}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
         </div>`;
     }).join('');
 }
@@ -558,16 +1123,15 @@ window.movePriorityGame = (index, direction) => {
     selectedPriorityGames[newIdx] = temp;
     savePriorityGames();
     renderPriorityChips();
-    addLog(`Moved ${temp} ${direction === -1 ? 'UP' : 'DOWN'} in priority`, 'system');
 };
 
 window.removePriorityGame = (encodedGame) => {
-    const game = decodeURIComponent(encodedGame);
+    const game = decodeGameParam(encodedGame);
     selectedPriorityGames = selectedPriorityGames.filter(g => g.toLowerCase() !== game.toLowerCase());
     savePriorityGames();
     renderPriorityChips();
     renderPriorityGrid();
-    addLog(`Removed ${game} from priority`, 'warn');
+    showToast(`Removed ${game} from priority`, 'info');
 };
 
 function renderPriorityGrid(searchTerm = '') {
@@ -576,7 +1140,6 @@ function renderPriorityGrid(searchTerm = '') {
     const uniqueGames = [];
     const seen = new Set();
     for (const c of allCampaigns) {
-        // Only show REAL watchable games in the quick-add list
         if (c.game && c.game.displayName && !seen.has(c.game.id) && isWatchableCampaign(c)) {
             seen.add(c.game.id);
             uniqueGames.push(c.game);
@@ -584,7 +1147,7 @@ function renderPriorityGrid(searchTerm = '') {
     }
 
     if (uniqueGames.length === 0) {
-        priorityGameGrid.innerHTML = '<p style="color: var(--text-secondary); font-size: 13px; grid-column: 1/-1;">No active campaigns loaded yet. You can still add games manually above.</p>';
+        priorityGameGrid.innerHTML = '<p style="color: var(--text-secondary); font-size: 13px; grid-column: 1/-1;">No active campaigns loaded yet.</p>';
         return;
     }
 
@@ -593,7 +1156,7 @@ function renderPriorityGrid(searchTerm = '') {
         : uniqueGames;
 
     if (filtered.length === 0) {
-        priorityGameGrid.innerHTML = '<p style="color: var(--text-secondary); font-size: 13px; grid-column: 1/-1;">No campaigns match your search. Click <strong>+ Add Game</strong> to add it manually.</p>';
+        priorityGameGrid.innerHTML = '<p style="color: var(--text-secondary); font-size: 13px; grid-column: 1/-1;">No campaigns match your search.</p>';
         return;
     }
 
@@ -602,35 +1165,37 @@ function renderPriorityGrid(searchTerm = '') {
         const imgUrl = getGameImageUrl(game, 144, 192);
 
         return `
-        <div onclick="togglePriorityGame('${encodeURIComponent(game.displayName)}')" style="
+        <div onclick="togglePriorityGame('${encodeGameParam(game.displayName)}')" style="
             position: relative;
             display: flex;
             flex-direction: column;
-            min-height: 180px;
-            background: ${isSelected ? 'rgba(191, 148, 255, 0.08)' : 'var(--bg-tertiary)'};
+            min-height: 160px;
+            background: ${isSelected ? 'rgba(145, 70, 255, 0.15)' : 'var(--bg-tertiary)'};
             border: 2px solid ${isSelected ? 'var(--accent-color)' : 'transparent'};
             border-radius: 10px;
             cursor: pointer;
             overflow: hidden;
-            transition: all 0.15s ease;
+            transition: all 0.2s ease;
         ">
             <img src="${imgUrl}" style="width:100%; aspect-ratio: 144 / 192; object-fit: cover; display:block; flex-shrink: 0;" onerror="this.onerror=null; this.src='https://static-cdn.jtvnw.net/ttv-boxart/488190-144x192.jpg'" />
-           <div style="padding: 8px 10px; flex-shrink: 0; background: ${isSelected ? 'rgba(191, 148, 255, 0.08)' : 'var(--bg-tertiary)'};">
-               <p style="font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;">${game.displayName}</p>
+           <div style="padding: 6px 8px; flex-shrink: 0; background: ${isSelected ? 'rgba(145, 70, 255, 0.1)' : 'var(--bg-tertiary)'};">
+               <p style="font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;">${escapeHtml(game.displayName)}</p>
            </div>
-           ${isSelected ? '<div style="position: absolute; top: 6px; right: 6px; background: var(--accent-color); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; box-shadow: 0 2px 6px rgba(0,0,0,0.4);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>' : ''}
+           ${isSelected ? '<div style="position: absolute; top: 4px; right: 4px; background: var(--accent-color); color: white; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div>' : ''}
        </div>
        `;
     }).join('');
 }
 
 window.togglePriorityGame = (encodedGame) => {
-    const game = decodeURIComponent(encodedGame);
+    const game = decodeGameParam(encodedGame);
     const lower = game.toLowerCase();
     if (selectedPriorityGames.some(g => g.toLowerCase() === lower)) {
         selectedPriorityGames = selectedPriorityGames.filter(g => g.toLowerCase() !== lower);
+        showToast(`Removed ${game} from priority`, 'info');
     } else {
         selectedPriorityGames.push(game);
+        showToast(`Added ${game} to priority`, 'success');
     }
     savePriorityGames();
     renderPriorityChips();
@@ -652,28 +1217,29 @@ if (btnAddCustomGame) {
     btnAddCustomGame.addEventListener('click', addCustomGame);
 }
 
-// Initial render for chips
 if (selectedGamesChips) {
     renderPriorityChips();
 }
 
-
 if (loginBtn) {
     loginBtn.addEventListener('click', () => {
-        loginBtn.innerText = "Waiting for login...";
-        window.electronAPI.openLoginWindow();
+        startDeviceAuthFlow();
     });
 }
 
-
 let farmingInterval = null;
-let progressionTracker = {}; // { campaignId: { mins, time } }
-let stallBlacklist = {}; // campaignId -> timestamp to ignore until
-let campaignBlacklist = {}; // { campaignId: expiryTime }
+let progressionTracker = {};
+let stallBlacklist = {};
+let streamerBlacklist = {};
+let sessionSkippedStreamers = new Set();
+let campaignFailedStreamerCounts = {};
+let preCheckTimer = null;
+let campaignBlacklist = {};
 let campaignIdBeingStarted = null;
 let pendingClaims = new Set();
 let isFetchingCampaigns = false;
 
+// Sidebar Dock Master Farm UI Synchronizer
 function updateMasterAutoFarmUI() {
     updateRPCStatus();
     const status = document.getElementById('masterToggleStatus');
@@ -683,36 +1249,49 @@ function updateMasterAutoFarmUI() {
     const btnStart = document.getElementById('btnStartMaster');
     const btnFarmAll = document.getElementById('btnFarmAll');
 
-    // Reset classes
-    if (btnPriority) btnPriority.classList.remove('active-priority');
-    if (btnGlobal) btnGlobal.classList.remove('active-global');
+    const sidebarMinViewersContainer = document.getElementById('sidebarMinViewersContainer');
+    const campaignsMinViewersContainer = document.getElementById('campaignsMinViewersContainer');
+
+    if (sidebarMinViewersContainer) {
+        sidebarMinViewersContainer.style.display = farmAllMode ? 'flex' : 'none';
+    }
+    if (campaignsMinViewersContainer) {
+        campaignsMinViewersContainer.style.display = farmAllMode ? 'flex' : 'none';
+    }
+
+    if (btnPriority) btnPriority.classList.remove('active-mode');
+    if (btnGlobal) btnGlobal.classList.remove('active-mode');
 
     if (farmAllMode) {
-        if (btnGlobal) btnGlobal.classList.add('active-global');
+        if (btnGlobal) btnGlobal.classList.add('active-mode');
     } else {
-        if (btnPriority) btnPriority.classList.add('active-priority');
+        if (btnPriority) btnPriority.classList.add('active-mode');
+    }
+
+    const statsAutoFarmMode = document.getElementById('statsAutoFarmMode');
+    if (statsAutoFarmMode) {
+        statsAutoFarmMode.innerHTML = farmAllMode ? `${ICONS.zap(12)} Global` : `${ICONS.star(12)} Priority`;
     }
 
     if (masterAutoFarmEnabled) {
         if (btnStart) btnStart.style.display = 'none';
-        if (btnStop) btnStop.style.display = 'block';
-        if (status) status.innerHTML = `<span style="color: var(--success);">Running (${farmAllMode ? 'Global' : 'Priority'}) Mode</span>`;
+        if (btnStop) btnStop.style.display = 'flex';
+        if (status) status.innerHTML = `<span style="color: var(--success); font-weight:700;">Running</span>`;
         if (btnFarmAll) {
-            btnFarmAll.innerText = '⏹ Stop Global Farm';
+            btnFarmAll.innerHTML = `${ICONS.stop(12)} Stop Global Farm`;
             btnFarmAll.style.background = 'var(--danger)';
         }
     } else {
-        if (btnStart) btnStart.style.display = 'block';
+        if (btnStart) btnStart.style.display = 'flex';
         if (btnStop) btnStop.style.display = 'none';
         if (status) status.innerText = 'Idle';
         if (btnFarmAll) {
-            btnFarmAll.innerText = isFetchingCampaigns ? '⏳ Loading Data...' : '⚡ Start Global Auto-Farm';
-            btnFarmAll.style.background = isFetchingCampaigns ? '#333' : 'linear-gradient(135deg, #00e676, #00c853)';
+            btnFarmAll.innerHTML = isFetchingCampaigns ? `${ICONS.spinner(12)} Loading...` : `${ICONS.zap(12)} Farm All Available`;
+            btnFarmAll.style.background = isFetchingCampaigns ? '#333' : 'linear-gradient(135deg, #10b981, #059669)';
         }
     }
 }
 
-// Logic for the new Control Center
 const btnTogglePriority = document.getElementById('btnTogglePriority');
 const btnToggleGlobal = document.getElementById('btnToggleGlobal');
 const btnStopMaster = document.getElementById('btnStopMaster');
@@ -723,6 +1302,7 @@ if (btnTogglePriority) {
         farmAllMode = false;
         localStorage.setItem('farmAllMode', 'false');
         addLog('Switched to PRIORITY auto-farm mode.', 'system');
+        showToast('Switched to PRIORITY mode', 'info');
         updateMasterAutoFarmUI();
     };
 }
@@ -732,6 +1312,7 @@ if (btnToggleGlobal) {
         farmAllMode = true;
         localStorage.setItem('farmAllMode', 'true');
         addLog('Switched to GLOBAL auto-farm mode.', 'system');
+        showToast('Switched to GLOBAL mode', 'info');
         updateMasterAutoFarmUI();
     };
 }
@@ -740,7 +1321,9 @@ if (btnStartMaster) {
     btnStartMaster.onclick = () => {
         masterAutoFarmEnabled = true;
         activeFarmingCampaignId = null;
+        manualOverrideId = null;
         addLog(`Auto-Farm STARTED in ${farmAllMode ? 'GLOBAL' : 'PRIORITY'} mode.`, 'system');
+        showToast(`Auto-Farm Started (${farmAllMode ? 'Global' : 'Priority'})`, 'success');
         updateMasterAutoFarmUI();
         runMasterFarmLoop();
     };
@@ -749,12 +1332,10 @@ if (btnStartMaster) {
 if (btnStopMaster) {
     btnStopMaster.onclick = () => {
         masterAutoFarmEnabled = false;
-        
-        // Use the existing comprehensive stop helper
         stopFarmAction();
-
         currentFarmCampaignId = null;
         addLog('Auto-Farm STOPPED.', 'system');
+        showToast('Auto-Farm Stopped', 'info');
         updateMasterAutoFarmUI();
     };
 }
@@ -762,7 +1343,6 @@ if (btnStopMaster) {
 function isCampaignFinished(c, inventory) {
     if (!c || !c.timeBasedDrops || c.timeBasedDrops.length === 0) return true;
 
-    // METHOD 1: Check in-progress campaign data from inventory
     const ipCamp = inventory?.dropCampaignsInProgress?.find(ip => ip.id === c.id);
     if (ipCamp) {
         const allClaimedOrWatched = ipCamp.timeBasedDrops.every(d =>
@@ -772,7 +1352,6 @@ function isCampaignFinished(c, inventory) {
         if (allClaimedOrWatched) return true;
     }
 
-    // METHOD 2: Check GameEventDrops (Archive) + Timestamps
     const eventDrops = inventory?.gameEventDrops || [];
     let unfinishedFound = false;
 
@@ -787,7 +1366,6 @@ function isCampaignFinished(c, inventory) {
             const dropStart = new Date(drop.startAt || c.startAt);
             const dropEnd = new Date(drop.endAt || c.endAt);
 
-            // Cross-check: Was it awarded during THIS campaign period?
             if (awardedAt >= dropStart && awardedAt <= dropEnd) {
                 continue;
             }
@@ -800,16 +1378,8 @@ function isCampaignFinished(c, inventory) {
     return !unfinishedFound;
 }
 
-/**
- * Comprehensive campaign validation
- * Returns { isValid: boolean, reason: string }
- */
 function isCampaignBadgeOrQuest(c) {
     if (!c) return false;
-
-    // Reliable signal: distributionType from the API
-    // Normal farmable types: null, 'GAME_DROP', 'DIRECT_ENTITLEMENT'
-    // Badge/emote types: 'BADGE', 'EMOTE', 'SUB_EMOTE', etc.
     const NORMAL_DROP_TYPES = [null, undefined, 'GAME_DROP', 'DIRECT_ENTITLEMENT'];
 
     for (const d of (c.timeBasedDrops || [])) {
@@ -823,7 +1393,6 @@ function isCampaignBadgeOrQuest(c) {
         }
     }
 
-    // Reliable signal: requires paid subscription to claim
     const hasSubRequirement = (c.timeBasedDrops || []).some(d => (d.requiredSubs || 0) > 0);
     if (hasSubRequirement) {
         c._badgeReason = 'Requires sub';
@@ -831,7 +1400,6 @@ function isCampaignBadgeOrQuest(c) {
         return true;
     }
 
-    // Reliable signal: 0 total watch minutes across ALL drops (instant/non-farmable)
     const allDrops = c.timeBasedDrops || [];
     const totalMinutes = allDrops.reduce((sum, d) => sum + (d.requiredMinutesWatched || 0), 0);
     if (allDrops.length > 0 && totalMinutes === 0) {
@@ -843,71 +1411,54 @@ function isCampaignBadgeOrQuest(c) {
     return false;
 }
 
-/**
- * Comprehensive campaign validation
- * Returns { isValid: boolean, reason: string }
- */
 function validateCampaign(c, inventory = null) {
     if (!c) return { isValid: false, reason: 'No campaign data' };
 
-    // Classify campaign
     c.isBadgeOrQuest = isCampaignBadgeOrQuest(c);
 
     if (!c.timeBasedDrops || c.timeBasedDrops.length === 0) {
         return { isValid: false, reason: 'No time-based drops' };
     }
 
-    // 2. Status check
     if (c.status !== 'ACTIVE') {
         return { isValid: false, reason: `Status: ${c.status}` };
     }
 
-    // 3. Game linkage
     if (!c.game || !c.game.displayName) {
         return { isValid: false, reason: 'No game linked' };
     }
 
-    // 4. Just Chatting / IRL filter
     const gameName = (c.game.displayName || '').toLowerCase();
     const badGames = ['just chatting', 'общение', 'irl'];
     if (badGames.some(bad => gameName.includes(bad))) {
-        // If it's classified as a badge/special quest, let it pass
         if (!c.isBadgeOrQuest) {
             return { isValid: false, reason: 'Just Chatting (badge-only)' };
         }
     }
 
-    // 5. Date validation
     const now = new Date();
     const start = new Date(c.startAt);
     const end = new Date(c.endAt);
 
-    // Add a 5-minute "buffer" for start/end times to account for clock drift
     if (now < new Date(start.getTime() - 5 * 60000)) return { isValid: false, reason: 'Not started yet' };
     if (now > new Date(end.getTime() + 5 * 60000)) return { isValid: false, reason: 'Already ended' };
 
-    // For badge and special quests, we bypass the feasibility, sub-only, and 0-minute checks
     if (c.isBadgeOrQuest) {
         return { isValid: true, reason: 'OK' };
     }
 
-    // 6. Smart Feasibility Check (Time remaining vs required progress)
     const minutesLeft = (end.getTime() - now.getTime()) / (1000 * 60);
 
-    // If we have inventory data, check if any drop is actually achievable
     if (inventory) {
         const ipCamp = inventory.dropCampaignsInProgress?.find(ip => ip.id === c.id);
 
         const canFinishSomething = c.timeBasedDrops.some(drop => {
-            // Skip claimed
             if (drop.self?.isClaimed) return false;
 
-            // Find current progress
             const ipDrop = ipCamp?.timeBasedDrops?.find(d => d.id === drop.id);
             const currentMins = ipDrop?.self?.currentMinutesWatched || drop.self?.currentMinutesWatched || 0;
             const remainingMins = (drop.requiredMinutesWatched || 0) - currentMins;
 
-            // Returns true if we have enough minutes left in campaign
             return minutesLeft >= remainingMins;
         });
 
@@ -915,17 +1466,14 @@ function validateCampaign(c, inventory = null) {
             return { isValid: false, reason: 'Impossible to complete (Too little time left)' };
         }
     } else {
-        // Fallback: If no inventory provided, just check if campaign end is > 5m
         if (minutesLeft < 5) return { isValid: false, reason: 'Campaign ending in < 5m' };
     }
 
-    // 7. Sub-only filter
     const hasSubRequirement = c.timeBasedDrops.some(d => (d.requiredSubs || 0) > 0);
     if (hasSubRequirement) {
         return { isValid: false, reason: 'Requires subscription' };
     }
 
-    // 8. Valid drops
     const validDrops = c.timeBasedDrops.filter(d => (d.requiredMinutesWatched || 0) > 0);
     if (validDrops.length === 0) {
         return { isValid: false, reason: 'All drops have 0 minutes requirement' };
@@ -934,58 +1482,150 @@ function validateCampaign(c, inventory = null) {
     return { isValid: true, reason: 'OK' };
 }
 
-function isWatchableCampaign(c) {
+function isWatchableCampaign(c, inventory = null) {
     if (c && c.isBadgeOrQuest) return false;
-    const res = validateCampaign(c);
-    if (!res.isValid) {
-        console.log(`[Validator] Skipping ${c?.game?.displayName || 'Unknown'}: ${res.reason}`);
-    }
+    const res = validateCampaign(c, inventory);
     return res.isValid;
 }
 
+function getNavigableCampaigns(options = {}) {
+    if (!allCampaigns || !allCampaigns.length) return [];
 
-async function cycleCampaign(direction, autoStart = false) {
-    if (!allCampaigns.length) return;
+    const savedList = (localStorage.getItem('autoFarmGames') || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+    const now = Date.now();
+    const inv = options.inventory || null;
 
-    // Triple-check: Fetch inventory for precise cycling
-    const inventoryRes = await window.electronAPI.getInventory(accountTokens);
-    const inventory = inventoryRes?.data?.currentUser?.inventory;
-
-    // Manual cycling should ALWAYS allow seeing all active watchable campaigns
     let eligible = allCampaigns.filter(c =>
         c.status === 'ACTIVE' &&
-        isWatchableCampaign(c) &&
-        !isCampaignFinished(c, inventory)
+        isWatchableCampaign(c, inv) &&
+        !isCampaignFinished(c, inv) &&
+        !ignoredGameNames.includes(c.game?.displayName?.toLowerCase() || '') &&
+        !ignoredCampaignIds.includes(c.id) &&
+        (options.ignoreBlacklist || !stallBlacklist[c.id] || now > stallBlacklist[c.id]) &&
+        (minViewersThreshold <= 0 || (c.game?.viewersCount || 0) >= minViewersThreshold)
     );
 
-    if (eligible.length === 0) {
-        addLog("No unfinished campaigns found to cycle to.", "warn");
+    if (farmAllMode) {
+        eligible.sort((a, b) => {
+            const nameA = a.game?.displayName?.toLowerCase();
+            const nameB = b.game?.displayName?.toLowerCase();
+            const indexA = savedList.indexOf(nameA);
+            const indexB = savedList.indexOf(nameB);
+
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+
+            if (campaignSortMode === 'endDate') {
+                return new Date(a.endAt) - new Date(b.endAt);
+            } else {
+                return (b.game?.viewersCount || 0) - (a.game?.viewersCount || 0);
+            }
+        });
+    } else {
+        eligible.sort((a, b) => {
+            const nameA = a.game?.displayName?.toLowerCase();
+            const nameB = b.game?.displayName?.toLowerCase();
+            const indexA = savedList.indexOf(nameA);
+            const indexB = savedList.indexOf(nameB);
+
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+            return (b.game?.viewersCount || 0) - (a.game?.viewersCount || 0);
+        });
+    }
+
+    return eligible;
+}
+
+async function skipStreamerAction() {
+    const currId = activeFarmingCampaignId || currentFarmCampaignId || browsedCampaignId;
+    const curr = allCampaigns?.find(c => c.id === currId);
+    const gameName = curr?.game?.displayName || 'Game';
+    const sLogin = activeFarmingChannelLogin;
+
+    if (sLogin) {
+        sessionSkippedStreamers.add(sLogin.toLowerCase());
+        showToast(`Skipping streamer @${sLogin}...`, 'info');
+        addLog(`[Skip] Skipping streamer @${sLogin} (${gameName}). Switching to next streamer...`, 'system');
+
+        window.electronAPI.stopFarm();
+        currentFarmingChannelId = null;
+        activeFarmingChannelLogin = null;
+
+        if (curr) {
+            startFarmAction(curr, true);
+        } else {
+            cycleCampaign(1, true);
+        }
+    } else {
+        skipCampaignAction();
+    }
+}
+window.skipStreamerAction = skipStreamerAction;
+
+async function skipCampaignAction() {
+    const currId = activeFarmingCampaignId || currentFarmCampaignId || browsedCampaignId;
+    const curr = allCampaigns?.find(c => c.id === currId);
+    const gameName = curr?.game?.displayName || 'Game';
+
+    showToast(`Skipping campaign ${gameName}...`, 'info');
+    addLog(`[Skip] Skipping campaign ${gameName}...`, 'system');
+
+    cycleCampaign(1, true);
+}
+window.skipCampaignAction = skipCampaignAction;
+
+async function cycleCampaign(direction, autoStart = false) {
+    sessionSkippedStreamers.clear();
+    const eligible = getNavigableCampaigns();
+    if (!eligible.length) {
+        showToast("No active campaigns available.", "info");
         return;
     }
 
-    let currentIndex = eligible.findIndex(c => c.id === currentFarmCampaignId);
+    let currentId = activeFarmingCampaignId || currentFarmCampaignId || browsedCampaignId;
+    let currentIndex = eligible.findIndex(c => c.id === currentId);
     let nextIndex;
-    if (currentIndex === -1) {
-        nextIndex = 0;
-    } else {
+
+    if (currentIndex !== -1) {
         nextIndex = (currentIndex + direction + eligible.length) % eligible.length;
+    } else {
+        const unblacklisted = getNavigableCampaigns({ ignoreBlacklist: true });
+        const oldIndex = unblacklisted.findIndex(c => c.id === currentId);
+
+        if (oldIndex !== -1) {
+            if (direction > 0) {
+                const nextCamp = eligible.find(c => {
+                    const idx = unblacklisted.findIndex(u => u.id === c.id);
+                    return idx > oldIndex;
+                });
+                nextIndex = nextCamp ? eligible.indexOf(nextCamp) : 0;
+            } else {
+                const prevCamps = eligible.filter(c => {
+                    const idx = unblacklisted.findIndex(u => u.id === c.id);
+                    return idx < oldIndex;
+                });
+                nextIndex = prevCamps.length ? eligible.indexOf(prevCamps[prevCamps.length - 1]) : eligible.length - 1;
+            }
+        } else {
+            nextIndex = direction > 0 ? 0 : eligible.length - 1;
+        }
     }
 
     const target = eligible[nextIndex];
-    addLog(`Manual Cycle: Switching to ${target.game?.displayName}...`, 'system');
 
-    // 1. HARD STOP previous session
-    window.electronAPI.stopFarm();
-    currentFarmingChannelId = null;
-    currentFarmCampaignId = target.id;
-    manualOverrideId = target.id;
-
-    // 2. Clear panels UI immediately to prevent flickering
-    const farmStatus = document.getElementById('farmStatus');
-    if (farmStatus) farmStatus.innerText = 'Switching...';
-
-    // 3. Just SHOW the info, don't start farming automatically
-    startFarmingSimulation(target, autoStart);
+    if (autoStart) {
+        addLog(`Auto-cycling: Switching to ${target.game?.displayName}...`, 'system');
+        window.electronAPI.stopFarm();
+        currentFarmingChannelId = null;
+        currentFarmCampaignId = target.id;
+        manualOverrideId = target.id;
+        startFarmAction(target, true);
+    } else {
+        openCampaignBrowserModal(target.id);
+    }
 }
 
 let isFarmingLoopBusy = false;
@@ -994,65 +1634,60 @@ async function runMasterFarmLoop() {
     if (isFarmingLoopBusy) return;
     if (!masterAutoFarmEnabled && !activeFarmingCampaignId) return;
 
-    // Safety check: if campaigns aren't loaded yet, try to load them first
     if (!allCampaigns || allCampaigns.length === 0) {
         if (!isFetchingCampaigns) fetchAndUpdateCampaigns();
         return;
     }
 
     isFarmingLoopBusy = true;
-    console.log('[AutoFarm] Starting decision cycle...');
 
     try {
-
-        console.log('[AutoFarm] Loop running. Eligible games: ' + (allCampaigns?.length || 0));
-
-        // Triple-check: Get FRESH inventory before making decisions
         const inventoryRes = await window.electronAPI.getInventory(accountTokens);
         const inventory = inventoryRes?.data?.currentUser?.inventory;
         const now = Date.now();
         const savedList = (localStorage.getItem('autoFarmGames') || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
-        // 1. Monitor progression of CURRENTLY farming campaign
         const curr = allCampaigns.find(c => c.id === activeFarmingCampaignId);
         if (curr) {
             const ipCamp = inventory?.dropCampaignsInProgress?.find(ip => ip.id === curr.id);
             const activeDrop = ipCamp?.timeBasedDrops?.find(d => !d.self?.isClaimed);
 
-            // Track the specific progress of the FIRST unclaimed drop
             const currentMins = activeDrop?.self?.currentMinutesWatched || 0;
             const dropName = activeDrop?.name || 'Unknown';
             const stats = progressionTracker[curr.id] || { mins: -1, time: now, lastDropName: '' };
 
             if (currentMins > stats.mins) {
-                // PROGRESS DETECTED!
                 if (stats.mins !== -1) {
                     const diff = currentMins - stats.mins;
                     addLog(`[${curr.game?.displayName}] Progress on "${dropName}": +${diff}m (${currentMins}m)`, 'farm');
                 }
                 progressionTracker[curr.id] = { mins: currentMins, time: now, lastDropName: dropName };
+                campaignFailedStreamerCounts[curr.id] = 0;
             } else {
-                // Check for STALL 
                 const threshold = stallThresholdSec * 1000;
                 const elapsed = now - stats.time;
 
-                // Dedicated UI Timer
                 if (!uiTimerInterval) {
                     uiTimerInterval = setInterval(() => {
                         const statusArea = document.getElementById('stallStatus');
                         const c = allCampaigns.find(currCamp => currCamp.id === activeFarmingCampaignId);
+
                         if (statusArea && c && progressionTracker[c.id]) {
                             const s = progressionTracker[c.id];
                             const th = stallThresholdSec * 1000;
                             const el = Date.now() - s.time;
                             const rem = Math.max(0, Math.floor((th - el) / 1000));
-                            if (rem > 0) {
-                                statusArea.innerHTML = showStallTimer ? `<span style="color: var(--warning); font-size: 11px; opacity: 0.8; display: flex; align-items: center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Stall check: ${rem}s / ${Math.round(th / 1000)}s</span>` : '';
-                            } else if (rem === 0) {
-                                statusArea.innerHTML = showStallTimer ? `<span style="color: var(--danger); font-size: 11px; display: flex; align-items: center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Stall verified!</span>` : '';
+
+                            // Only show badge as a backup/warning when progress is delayed beyond normal 1m cycle (> 75s)
+                            if (showStallTimer && el > 75000) {
+                                statusArea.innerHTML = (rem > 0)
+                                    ? `<span class="stall-timer-badge warning">${ICONS.clock(11)} Stall check: ${rem}s</span>`
+                                    : `<span class="stall-timer-badge danger">${ICONS.warn(11)} Stall verified!</span>`;
+                            } else {
+                                statusArea.innerHTML = '';
                             }
                         } else if (uiTimerInterval) {
-                            statusArea.innerHTML = '';
+                            if (statusArea) statusArea.innerHTML = '';
                             clearInterval(uiTimerInterval);
                             uiTimerInterval = null;
                         }
@@ -1065,50 +1700,62 @@ async function runMasterFarmLoop() {
                     if (timerArea) timerArea.innerHTML = '';
 
                     const campaignName = curr.name || curr.game?.displayName || 'Unknown';
-                    addLog(`Verified stall on campaign "${campaignName}"! Ignoring for 1 hour.`, 'warn');
-                    stallBlacklist[curr.id] = now + 60 * 60 * 1000; // Ignore for 1 hour
-                    progressionTracker[curr.id] = { mins: currentMins, time: now, lastDropName: dropName };
+                    const sLogin = activeFarmingChannelLogin || '';
 
-                    // Reset broadcaster so we find a new one for the next campaign
+                    if (sLogin) {
+                        streamerBlacklist[sLogin.toLowerCase()] = now + 30 * 60 * 1000;
+                        addLog(`[Stall Check] No progress on @${sLogin} (${campaignName}) after ${stallThresholdSec}s. Blacklisting streamer...`, 'warn');
+                    }
+
+                    campaignFailedStreamerCounts[curr.id] = (campaignFailedStreamerCounts[curr.id] || 0) + 1;
+                    progressionTracker[curr.id] = { mins: currentMins, time: now, lastDropName: dropName };
                     currentFarmingChannelId = null;
 
-                    if (masterAutoFarmEnabled && farmAllMode) {
-                        cycleCampaign(1, true);
+                    if (campaignFailedStreamerCounts[curr.id] >= 3) {
+                        addLog(`[Stall Check] 3 streamers stalled on "${campaignName}". Blacklisting category for 30m.`, 'warn');
+                        showToast(`Stall on ${campaignName}. Switching game...`, 'warn');
+                        stallBlacklist[curr.id] = now + 30 * 60 * 1000;
+                        delete campaignFailedStreamerCounts[curr.id];
+
+                        if (masterAutoFarmEnabled && farmAllMode) {
+                            cycleCampaign(1, true);
+                        } else {
+                            stopFarmAction(curr);
+                        }
                     } else {
-                        stopFarmAction(curr);
+                        showToast(`Stall on @${sLogin}. Trying next streamer...`, 'warn');
+                        startFarmAction(curr, true);
                     }
                     return;
                 }
             }
         }
 
-        // NEW: Persistent Farming Rule - Stick to what we started!
         const activeCamp = allCampaigns.find(c => c.id === activeFarmingCampaignId);
-        if (activeCamp && !manualOverrideId) {
+        if (activeCamp) {
             const isFinished = isCampaignFinished(activeCamp, inventory);
-            const isValid = validateCampaign(activeCamp, inventory).isValid;
+            const validRes = validateCampaign(activeCamp, inventory);
 
-            if (!isFinished && isValid) {
-                // Check if we are stalled. If not stalled, STAY on this campaign.
+            if (isFinished) {
+                addLog(`[AutoFarm] ${activeCamp.game?.displayName} fully finished! Searching for new tasks...`, 'success');
+                activeFarmingCampaignId = null;
+                manualOverrideId = null;
+            } else if (!validRes.isValid) {
+                addLog(`[AutoFarm] Campaign ${activeCamp.game?.displayName} not watchable (${validRes.reason}). Skipping...`, 'warn');
+                stallBlacklist[activeCamp.id] = now + 30 * 60 * 1000;
+                activeFarmingCampaignId = null;
+                manualOverrideId = null;
+            } else if (!manualOverrideId) {
                 const stats = progressionTracker[activeCamp.id];
                 const threshold = stallThresholdSec * 1000;
                 const elapsed = now - (stats?.time || 0);
 
                 if (elapsed < threshold) {
-                    // Check if there is an eligible campaign with a HIGHER priority than the active one
                     const activeGameName = activeCamp.game?.displayName?.toLowerCase();
                     const activeRank = savedList.indexOf(activeGameName);
                     let hasBetterCandidate = false;
 
-                    const tempEligible = allCampaigns.filter(c =>
-                        c.status === 'ACTIVE' &&
-                        !c.isBadgeOrQuest &&
-                        validateCampaign(c, inventory).isValid &&
-                        !isCampaignFinished(c, inventory) &&
-                        !ignoredGameNames.includes(c.game?.displayName?.toLowerCase() || '') &&
-                        !ignoredCampaignIds.includes(c.id) &&
-                        (!stallBlacklist[c.id] || now > stallBlacklist[c.id])
-                    );
+                    const tempEligible = getNavigableCampaigns({ inventory });
 
                     for (const cand of tempEligible) {
                         const candName = cand.game?.displayName?.toLowerCase();
@@ -1122,70 +1769,26 @@ async function runMasterFarmLoop() {
                     }
 
                     if (!hasBetterCandidate) {
-                        // Not stalled, not finished, and no higher priority candidate -> KEEP FARMING
+                        isFarmingLoopBusy = false;
                         return;
                     } else {
                         addLog(`[AutoFarm] Found higher-priority campaign available. Preempting current farm...`, 'system');
+                        activeFarmingCampaignId = null;
                     }
                 }
             }
-
-            // If we reach here, the campaign is either Finished, Stalled, or Invalid (Ended)
-            if (isFinished) addLog(`[AutoFarm] ${activeCamp.game?.displayName} fully finished! Searching for new tasks...`, 'success');
-            activeFarmingCampaignId = null;
         }
 
-        // --- END OF TRACKING SECTION ---
-        
-        // If auto-farm is OFF, do not pick new campaigns:
         if (!masterAutoFarmEnabled) {
             isFarmingLoopBusy = false;
             return;
         }
 
-        // 2. Find eligible campaigns (ACTIVE)
         let eligible = [];
 
         if (farmAllMode) {
-            // Mode: Farm EVERYTHING active, watchable and unfinished
-            eligible = allCampaigns.filter(c =>
-                c.status === 'ACTIVE' &&
-                !c.isBadgeOrQuest &&
-                validateCampaign(c, inventory).isValid &&
-                !isCampaignFinished(c, inventory) &&
-                !ignoredGameNames.includes(c.game?.displayName?.toLowerCase() || '') &&
-                !ignoredCampaignIds.includes(c.id) &&
-                (!stallBlacklist[c.id] || now > stallBlacklist[c.id])
-            );
-
-            // Sort: Priority games first (ordered by their rank in savedList), then others by campaignSortMode
-            eligible.sort((a, b) => {
-                const nameA = a.game?.displayName?.toLowerCase();
-                const nameB = b.game?.displayName?.toLowerCase();
-                const indexA = savedList.indexOf(nameA);
-                const indexB = savedList.indexOf(nameB);
-
-                // Both are priority games -> sort by priority list index
-                if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-                // Only A is a priority game -> A comes first
-                if (indexA !== -1) return -1;
-                // Only B is a priority game -> B comes first
-                if (indexB !== -1) return 1;
-
-                // Neither is priority -> fallback to standard sorting
-                if (campaignSortMode === 'endDate') {
-                    return new Date(a.endAt) - new Date(b.endAt);
-                } else {
-                    return (b.game?.viewersCount || 0) - (a.game?.viewersCount || 0);
-                }
-            });
-
-            if (eligible.length > 0) {
-                const topStr = eligible.slice(0, 3).map(e => `${e.game?.displayName} (${e.game?.viewersCount || 0} viewers)`).join(', ');
-                console.log(`[AutoFarm] Top 3 Candidates: ${topStr}`);
-            }
+            eligible = getNavigableCampaigns({ inventory });
         } else {
-            // Mode: Priority only
             for (const name of savedList) {
                 const matchingCamps = allCampaigns.filter(c =>
                     c.game?.displayName?.toLowerCase() === name &&
@@ -1193,7 +1796,8 @@ async function runMasterFarmLoop() {
                     !c.isBadgeOrQuest &&
                     !ignoredGameNames.includes(c.game?.displayName?.toLowerCase() || '') &&
                     !ignoredCampaignIds.includes(c.id) &&
-                    (!stallBlacklist[c.id] || now > stallBlacklist[c.id])
+                    (!stallBlacklist[c.id] || now > stallBlacklist[c.id]) &&
+                    (minViewersThreshold <= 0 || (c.game?.viewersCount || 0) >= minViewersThreshold)
                 );
                 for (const camp of matchingCamps) {
                     if (validateCampaign(camp, inventory).isValid) {
@@ -1205,28 +1809,34 @@ async function runMasterFarmLoop() {
             }
         }
 
-        if (eligible.length === 0) {
-            if (currentFarmCampaignId) {
-                window.electronAPI.stopFarm();
-                currentFarmCampaignId = null;
-                currentFarmingChannelId = null;
-            }
-            masterToggleStatus.innerHTML = `<span style="color:#ffd700; display:flex; align-items:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Standby: waiting for new drops</span>`;
-            return;
-        }
-
-        // Redundant sort removed. Global Mode and Priority Mode already handled sorting.
-
-        // Determine target: manual override or first eligible
         let targetCampaign = null;
         if (manualOverrideId) {
-            targetCampaign = eligible.find(c => c.id === manualOverrideId);
-            if (!targetCampaign) {
+            targetCampaign = allCampaigns.find(c => c.id === manualOverrideId);
+            if (targetCampaign) {
+                const inv = inventory || null;
+                const isFinished = isCampaignFinished(targetCampaign, inv);
+                const isBlacklisted = stallBlacklist[targetCampaign.id] && now < stallBlacklist[targetCampaign.id];
+                if (isFinished || targetCampaign.status !== 'ACTIVE' || isBlacklisted) {
+                    addLog(`[AutoFarm] Selected campaign ${targetCampaign.game?.displayName || ''} finished or unavailable. Resuming global farm...`, 'info');
+                    manualOverrideId = null;
+                    targetCampaign = null;
+                }
+            } else {
                 manualOverrideId = null;
             }
         }
 
         if (!targetCampaign) {
+            if (eligible.length === 0) {
+                if (currentFarmCampaignId) {
+                    window.electronAPI.stopFarm();
+                    currentFarmCampaignId = null;
+                    currentFarmingChannelId = null;
+                }
+                const masterStatus = getEl('masterToggleStatus');
+                if (masterStatus) masterStatus.innerHTML = `<span style="color:#f59e0b;">Standby</span>`;
+                return;
+            }
             targetCampaign = eligible[0];
         }
 
@@ -1235,19 +1845,15 @@ async function runMasterFarmLoop() {
                 const reason = farmAllMode ? "highest priority (Global Mode)" : "next in priority list";
                 addLog(`Auto-Farm: Switching to ${targetCampaign.game?.displayName} — ${reason}`, 'system');
 
-                // 1. STOP previous session in background
                 haltCurrentFarmWorker();
 
-                // 2. Clear old state
                 activeFarmingCampaignId = targetCampaign.id;
                 activeFarmingChannelLogin = null;
 
-                // 3. START new worker IMMEDIATELY (no timeout)
                 if (masterAutoFarmEnabled) {
                     startFarmAction(targetCampaign, true);
                 }
             } else {
-                // Just update percentages if we are staying on the same game
                 if (!document.hidden) {
                     startFarmingSimulation(targetCampaign, false, true, 'farmPanel');
                 }
@@ -1257,6 +1863,21 @@ async function runMasterFarmLoop() {
         console.error("Farming loop error:", err);
     } finally {
         isFarmingLoopBusy = false;
+    }
+}
+
+function showLoadingPlaceholder(message = "Synchronizing session with Twitch...") {
+    const loadingHtml = `
+      <div class="empty-state fade-in" style="text-align: center; padding: 25px 20px;">
+          <div class="spinner-sm" style="width: 32px; height: 32px; border-width: 3px; margin: 0 auto 14px; border-top-color: var(--accent-color);"></div>
+          <h3 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: #fff;">Connecting & Loading Campaigns...</h3>
+          <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">${message}</p>
+      </div>
+    `;
+
+    const container = document.getElementById('campaignsContainer');
+    if (container && (!allCampaigns || allCampaigns.length === 0)) {
+        container.innerHTML = loadingHtml;
     }
 }
 
@@ -1276,29 +1897,18 @@ async function fetchAndUpdateCampaigns() {
             return false;
         }
         if (response.error === 'INTEGRITY_REQUIRED') {
-            addLog('🔒 [Security] Twitch security check triggered. Automatically resolving in background...', 'warn');
+            addLog('🔒 [Security] Initializing Twitch security token in background...', 'info');
             window.electronAPI.refreshIntegrityToken();
+            showLoadingPlaceholder("Validating security token in background...");
 
-            const container = document.getElementById('campaignsContainer');
-            if (container && !container.innerHTML.includes('Automatically resolving')) {
-                container.innerHTML = `
-              <div style="background: rgba(191, 148, 255, 0.08); border: 1px solid var(--accent-color); padding: 20px; border-radius: 12px; text-align: center; margin: 20px;">
-                  <h3 style="color: var(--accent-hover); margin-bottom: 10px; font-size: 18px;">Security Token Refreshing</h3>
-                  <p style="font-size: 14px; margin-bottom: 16px; color: var(--text-secondary);">Twitch is performing a security check. We are automatically resolving this in the background (8-10 seconds). Please wait...</p>
-                  <div class="loading-dots" style="font-size: 24px; color: var(--accent-color);">...</div>
-              </div>
-            `;
-            }
-            const farmPanel = document.getElementById('farmPanel');
-            if (farmPanel && !farmPanel.innerHTML.includes('Automatically resolving')) {
-                farmPanel.innerHTML = `
-              <div class="empty-state fade-in" style="text-align: center; background: rgba(191, 148, 255, 0.04); border: 1px solid var(--accent-color); padding: 30px; border-radius: 16px; max-width: 500px; margin: 20px auto;">
-                  <div class="icon" style="font-size: 48px; margin-bottom: 15px; filter: drop-shadow(0 0 10px rgba(191, 148, 255, 0.3));">🔒</div>
-                  <h3 style="color: var(--accent-hover); margin-bottom: 10px; font-size: 18px; font-weight: 700;">Security Check in Progress</h3>
-                  <p style="font-size: 13px; margin-bottom: 20px; color: var(--text-secondary); line-height: 1.5;">Twitch security check is being resolved automatically in the background. Active farming will resume automatically once complete.</p>
-              </div>
-            `;
-            }
+            if (integritySafetyTimer) clearTimeout(integritySafetyTimer);
+            integritySafetyTimer = setTimeout(() => {
+                const c = document.getElementById('campaignsContainer');
+                if (c && (!allCampaigns || allCampaigns.length === 0)) {
+                    showIntegrityFailedUI();
+                }
+            }, 14000);
+
             return false;
         }
         let userData;
@@ -1310,6 +1920,8 @@ async function fetchAndUpdateCampaigns() {
 
         if (!userData) {
             console.warn("No userData found", response);
+            renderCampaignsListItems();
+            renderIdlePlaceholder();
             return false;
         }
 
@@ -1392,14 +2004,12 @@ async function fetchAndUpdateCampaigns() {
         allCampaigns.sort((a, b) => (b.game?.viewersCount || 0) - (a.game?.viewersCount || 0));
 
         applyCurrentFilters();
-
         setupCampaignsListEvents();
         renderPriorityChips();
         renderPriorityGrid(autoFarmSearch ? autoFarmSearch.value : '');
 
         const farmPanel = document.getElementById('farmPanel');
         if (farmPanel && allCampaigns.length > 0) {
-            // Only update UI if we are already farming or viewing something specific
             let targetId = activeFarmingCampaignId || currentFarmCampaignId;
             if (targetId) {
                 const target = allCampaigns.find(c => c.id === targetId);
@@ -1407,12 +2017,9 @@ async function fetchAndUpdateCampaigns() {
                     const isSameAsViewed = (currentFarmCampaignId === target.id);
                     startFarmingSimulation(target, false, isSameAsViewed, 'farmPanel');
 
-                    // AUTO-SWITCH LOGIC: If we are farming this campaign and it just finished,
-                    // and we are NOT in global auto-farm mode, we should still try to find the next drop
-                    // to avoid idling.
                     if (targetId === activeFarmingCampaignId && isCampaignFinished(target, inventory)) {
                         addLog(`Campaign for ${target.game?.displayName} finished! Looking for next drops...`, 'system');
-                        masterAutoFarmEnabled = true; // Temporarily enable to let the loop pick next
+                        masterAutoFarmEnabled = true;
                         runMasterFarmLoop();
                     }
                 }
@@ -1429,65 +2036,252 @@ async function fetchAndUpdateCampaigns() {
     } finally {
         isFetchingCampaigns = false;
         updateMasterAutoFarmUI();
+        if (!allCampaigns || allCampaigns.length === 0) {
+            renderCampaignsListItems();
+            renderIdlePlaceholder();
+        }
         if (masterAutoFarmEnabled) runMasterFarmLoop();
     }
 }
 
+let deviceAuthPollInterval = null;
+let deviceAutoOpenTimerInterval = null;
+let currentVerificationUrl = '';
+let currentDeviceUserCode = '';
+
+async function startDeviceAuthFlow() {
+    const modal = document.getElementById('deviceAuthModal');
+    const codeDisplay = document.getElementById('deviceCodeDisplay');
+    const statusText = document.getElementById('deviceAuthStatusText');
+
+    if (!modal || !codeDisplay) return;
+
+    modal.style.display = 'flex';
+    codeDisplay.innerText = 'LOADING...';
+    if (statusText) statusText.innerText = 'Requesting activation code from Twitch...';
+
+    if (deviceAuthPollInterval) {
+        clearInterval(deviceAuthPollInterval);
+        deviceAuthPollInterval = null;
+    }
+    if (deviceAutoOpenTimerInterval) {
+        clearInterval(deviceAutoOpenTimerInterval);
+        deviceAutoOpenTimerInterval = null;
+    }
+
+    try {
+        const data = await window.electronAPI.requestDeviceCode();
+        if (data.error || !data.user_code) {
+            if (statusText) statusText.innerText = `Error: ${data.error || 'Failed to request activation code'}`;
+            return;
+        }
+
+        currentDeviceUserCode = data.user_code;
+        currentVerificationUrl = data.verification_uri || `https://www.twitch.tv/activate?device-code=${data.user_code}`;
+
+        codeDisplay.innerText = currentDeviceUserCode;
+        if (statusText) statusText.innerText = 'Waiting for authorization on Twitch...';
+        addLog(`[DeviceAuth] Activation code: ${currentDeviceUserCode}`, 'system');
+
+        let countdownSec = 3;
+        const timerContainer = document.getElementById('deviceAutoOpenTimer');
+
+        if (timerContainer) {
+            timerContainer.innerHTML = `Opening browser in <span id="autoOpenCountdown">${countdownSec}</span>s...`;
+            timerContainer.style.display = 'block';
+        }
+
+        deviceAutoOpenTimerInterval = setInterval(() => {
+            countdownSec--;
+            const countSpan = document.getElementById('autoOpenCountdown');
+            if (countSpan) countSpan.innerText = countdownSec;
+
+            if (countdownSec <= 0) {
+                clearInterval(deviceAutoOpenTimerInterval);
+                deviceAutoOpenTimerInterval = null;
+                const timerC = document.getElementById('deviceAutoOpenTimer');
+                if (timerC) timerC.innerText = 'Browser opened!';
+                if (currentVerificationUrl) {
+                    window.electronAPI.openExternal(currentVerificationUrl);
+                }
+            }
+        }, 1000);
+
+        const pollInterval = Math.max((data.interval || 5) * 1000, 3000);
+        deviceAuthPollInterval = setInterval(async () => {
+            try {
+                const tokenRes = await window.electronAPI.pollDeviceToken(data.device_code);
+                if (tokenRes.access_token) {
+                    clearInterval(deviceAuthPollInterval);
+                    deviceAuthPollInterval = null;
+                    if (deviceAutoOpenTimerInterval) {
+                        clearInterval(deviceAutoOpenTimerInterval);
+                        deviceAutoOpenTimerInterval = null;
+                    }
+
+                    modal.style.display = 'none';
+                    addLog('⚡ Twitch Device Authorization successful!', 'farm');
+                    showToast('Logged in to Twitch successfully!', 'success');
+
+                    const tokens = {
+                        auth: `OAuth ${tokenRes.access_token}`,
+                        clientId: 'kimne78kx3ncx6brgo4mv6wki5h1ko',
+                        integrity: accountTokens?.integrity || ''
+                    };
+                    tokenProcessingStarted = false;
+                    processTokens(tokens);
+                } else if (tokenRes.error && tokenRes.error !== 'authorization_pending') {
+                    clearInterval(deviceAuthPollInterval);
+                    deviceAuthPollInterval = null;
+                    if (deviceAutoOpenTimerInterval) {
+                        clearInterval(deviceAutoOpenTimerInterval);
+                        deviceAutoOpenTimerInterval = null;
+                    }
+                    if (statusText) statusText.innerText = `Error: ${tokenRes.error_description || tokenRes.error}`;
+                    addLog(`[DeviceAuth] Error: ${tokenRes.error}`, 'error');
+                    showToast(`Auth Error: ${tokenRes.error}`, 'error');
+                }
+            } catch (e) {
+                console.error("Device token poll exception:", e);
+            }
+        }, pollInterval);
+
+    } catch (e) {
+        if (statusText) statusText.innerText = `Failed: ${e.message}`;
+        addLog(`[DeviceAuth] Exception: ${e.message}`, 'error');
+    }
+}
+
+function closeDeviceAuthModal() {
+    if (deviceAuthPollInterval) {
+        clearInterval(deviceAuthPollInterval);
+        deviceAuthPollInterval = null;
+    }
+    if (deviceAutoOpenTimerInterval) {
+        clearInterval(deviceAutoOpenTimerInterval);
+        deviceAutoOpenTimerInterval = null;
+    }
+    const modal = document.getElementById('deviceAuthModal');
+    if (modal) modal.style.display = 'none';
+}
+
+window.startDeviceAuthFlow = startDeviceAuthFlow;
+window.closeDeviceAuthModal = closeDeviceAuthModal;
+
+const btnOpenActivateUrl = document.getElementById('btnOpenActivateUrl');
+if (btnOpenActivateUrl) {
+    btnOpenActivateUrl.onclick = () => {
+        if (deviceAutoOpenTimerInterval) {
+            clearInterval(deviceAutoOpenTimerInterval);
+            deviceAutoOpenTimerInterval = null;
+        }
+        const timerC = document.getElementById('deviceAutoOpenTimer');
+        if (timerC) timerC.innerText = 'Browser opened!';
+        if (currentVerificationUrl) window.electronAPI.openExternal(currentVerificationUrl);
+    };
+}
+
+const btnCopyDeviceCode = document.getElementById('btnCopyDeviceCode');
+if (btnCopyDeviceCode) {
+    btnCopyDeviceCode.onclick = () => {
+        if (currentDeviceUserCode) {
+            navigator.clipboard.writeText(currentDeviceUserCode);
+            btnCopyDeviceCode.innerHTML = `${ICONS.check(13)} Copied!`;
+            showToast('Code copied to clipboard', 'info');
+            setTimeout(() => { btnCopyDeviceCode.innerHTML = `${ICONS.copy(13)} Copy Code`; }, 2000);
+        }
+    };
+}
+
+const btnCloseDeviceAuthModal = document.getElementById('btnCloseDeviceAuthModal');
+if (btnCloseDeviceAuthModal) btnCloseDeviceAuthModal.onclick = closeDeviceAuthModal;
+
+const initialLoginBtn = document.getElementById('loginBtn');
+if (initialLoginBtn) {
+    initialLoginBtn.onclick = () => startDeviceAuthFlow();
+}
+
+function showIntegrityFailedUI() {
+    addLog('[Security] Automatic security check resolution failed. Twitch login required.', 'error');
+    if (integritySafetyTimer) {
+        clearTimeout(integritySafetyTimer);
+        integritySafetyTimer = null;
+    }
+
+    const errorHtml = `
+      <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid var(--danger); padding: 24px; border-radius: 16px; text-align: center; margin: 20px auto; max-width: 500px;" class="fade-in">
+          <div style="display: flex; justify-content: center; margin-bottom: 10px;">${ICONS.lock(44)}</div>
+          <h3 style="color: var(--danger); margin-bottom: 8px; font-size: 18px; font-weight: 700;">Security Check Required</h3>
+          <p style="font-size: 13px; margin-bottom: 18px; color: var(--text-secondary);">
+            Twitch security token could not be refreshed automatically. Interactive login required.
+          </p>
+          <div style="display: flex; gap: 10px; justify-content: center;">
+            <button class="btn-primary" onclick="startDeviceAuthFlow()" style="padding: 8px 18px; width: auto;">Log In Again</button>
+            <button class="btn-secondary" onclick="retryIntegrityCheck()" style="padding: 8px 16px; width: auto;">Retry</button>
+          </div>
+      </div>
+    `;
+
+    const container = document.getElementById('campaignsContainer');
+    if (container) container.innerHTML = errorHtml;
+
+    const farmPanel = document.getElementById('farmPanel');
+    if (farmPanel) farmPanel.innerHTML = errorHtml;
+}
+
+function retryIntegrityCheck() {
+    addLog('🔒 Retrying security token refresh...', 'system');
+    tokenProcessingStarted = false;
+    window.electronAPI.refreshIntegrityToken();
+    fetchAndUpdateCampaigns();
+}
+window.retryIntegrityCheck = retryIntegrityCheck;
+
+window.electronAPI.onIntegrityRefreshFailed((data) => {
+    console.warn("Integrity refresh failed:", data);
+    showIntegrityFailedUI();
+});
+
 function handleAuthExpired() {
     addLog(`Twitch session has expired or is invalid. Please log in again.`, 'error');
+    showToast('Twitch session expired. Please log in again.', 'error');
     
-    // Halt active farming
+    localStorage.removeItem('accountTokens');
+    accountTokens = null;
+
     haltCurrentFarmWorker();
     
-    // Disconnect websocket
     try {
         window.electronAPI.wsDisconnect();
     } catch (e) {
         console.error("Failed to disconnect WebSocket:", e);
     }
     
-    // Clear interval
     if (farmingInterval) {
         clearInterval(farmingInterval);
         farmingInterval = null;
     }
     
-    // Reset login states
     tokenProcessingStarted = false;
     
-    // Update sidebar connection panel
-    if (authSection) {
-        authSection.classList.remove('connected');
-        authSection.innerHTML = `
-            <div style="background: rgba(255, 79, 79, 0.1); border: 1px solid #ff4f4f; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 12px;">
-                <div style="display:flex; align-items:center; justify-content:center; gap:6px;">
-                    <span class="status-indicator red"></span>
-                    <span style="font-size:12px; font-weight:600; color:#ff4f4f;">Session Expired</span>
-                </div>
-            </div>
-            <button id="loginBtn" class="btn-primary" style="width: 100%;">Re-login to Twitch</button>
-        `;
-        document.getElementById('loginBtn').onclick = () => {
-            document.getElementById('loginBtn').innerText = "Waiting for login...";
-            window.electronAPI.openLoginWindow();
-        };
-    }
+    const userText = getEl('headerUserText');
+    const userDot = getEl('headerUserDot');
+    if (userText) userText.innerText = 'Session Expired';
+    if (userDot) userDot.className = 'status-indicator red';
     
-    // Update Control Hub status card
     const statsAccountName = document.getElementById('statsAccountName');
     if (statsAccountName) {
         statsAccountName.innerHTML = 'Session Expired';
-        statsAccountName.style.color = '#ff4f4f';
+        statsAccountName.style.color = 'var(--danger)';
     }
     
-    // Update main campaigns view
     const campaignsContainer = document.getElementById('campaignsContainer');
     if (campaignsContainer) {
         campaignsContainer.innerHTML = `
-            <div style="grid-column: 1/-1; background: rgba(255, 79, 79, 0.1); border: 1px solid #ff4f4f; padding: 24px; border-radius: 12px; text-align: center; margin: 20px 0;">
-                <h3 style="color: #ff4f4f; margin-bottom: 10px; font-size: 18px;">Authentication Expired</h3>
-                <p style="font-size: 14px; margin-bottom: 18px; color: var(--text-secondary); max-width: 500px; margin-left: auto; margin-right: auto;">Your Twitch session has expired or the token is no longer valid. Please log in again to continue auto-farming drops.</p>
-                <button class="btn-primary" onclick="window.electronAPI.openLoginWindow()" style="padding: 10px 24px; background: #ff4f4f; border:none; cursor:pointer; font-weight: 600;">Log In Again</button>
+            <div style="grid-column: 1/-1; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); padding: 24px; border-radius: 12px; text-align: center; margin: 20px 0;">
+                <h3 style="color: var(--danger); margin-bottom: 10px; font-size: 18px;">Authentication Expired</h3>
+                <p style="font-size: 14px; margin-bottom: 18px; color: var(--text-secondary); max-width: 500px; margin-left: auto; margin-right: auto;">Your Twitch session has expired. Please log in again to continue auto-farming.</p>
+                <button class="btn-primary" onclick="startDeviceAuthFlow()" style="padding: 10px 24px; width: auto; margin: 0 auto;">Log In Again</button>
             </div>
         `;
     }
@@ -1497,40 +2291,16 @@ async function processTokens(tokens, fromStorage = false) {
     if (!tokens || !tokens.auth || !tokens.auth.includes('OAuth')) return;
     if (tokenProcessingStarted) return;
 
-    // We need integrity to actually load campaigns. 
-    // If we're capturing fresh, wait for it before closing the login window.
-    if (!fromStorage && !tokens.integrity) return;
-
     tokenProcessingStarted = true;
-
-    // Test token validity before closing the login window
-    if (!fromStorage) {
-        addLog(`Testing captured tokens for integrity...`, 'system');
-        try {
-            const testRes = await window.electronAPI.getCampaigns(tokens);
-            if (testRes && testRes.error) {
-                tokenProcessingStarted = false;
-                if (testRes.error === 'INTEGRITY_REQUIRED') {
-                    addLog(`Captured integrity token is invalid or missing. Waiting for a better one...`, 'warn');
-                } else if (testRes.error === 'AUTH_EXPIRED') {
-                    addLog(`Captured token is expired or unauthorized. Waiting for correct login...`, 'warn');
-                } else {
-                    addLog(`Token validation failed: ${testRes.error}. Waiting for correct login...`, 'warn');
-                }
-                return;
-            }
-        } catch (e) {
-            tokenProcessingStarted = false;
-            addLog(`Error validating tokens: ${e.message}`, 'error');
-            return;
-        }
-    }
-
-    addLog(`Tokens validated and captured`, 'system');
+    accountTokens = tokens;
     localStorage.setItem('accountTokens', JSON.stringify(tokens));
-    window.electronAPI.authSuccess();
 
-    // Fetch user info (avatar + name)
+    if (integritySafetyTimer) {
+        clearTimeout(integritySafetyTimer);
+        integritySafetyTimer = null;
+    }
+    addLog(`Tokens captured and saved`, 'system');
+
     let displayName = 'Connected';
     let login = '';
     let avatarUrl = '';
@@ -1543,15 +2313,11 @@ async function processTokens(tokens, fromStorage = false) {
             avatarUrl = user.profileImageURL || '';
             currentUserId = user.id;
             addLog(`Logged in as ${displayName}`, 'system');
-        } else {
-            addLog('Could not fetch user profile details, using default "Connected"', 'warn');
-            if (userRes.error) console.error("UserInfo Error:", userRes.error);
         }
     } catch (e) {
         console.error("UserInfo Exception:", e);
     }
 
-    // Initialize WebSocket for real-time drop progress
     if (currentUserId && tokens.auth) {
         try {
             await window.electronAPI.wsConnect(currentUserId, tokens.auth);
@@ -1561,45 +2327,38 @@ async function processTokens(tokens, fromStorage = false) {
         }
     }
 
-    // Update stat card
+    // Update Header User Widget
+    const userDot = getEl('headerUserDot');
+    const userText = getEl('headerUserText');
+    const userAvatarEl = getEl('headerUserAvatar');
+    const loginBtnEl = getEl('loginBtn');
+
+    if (userDot) userDot.className = 'status-indicator green';
+    if (userText) userText.innerHTML = `<b>${displayName}</b>`;
+    if (userAvatarEl) {
+        if (avatarUrl) {
+            userAvatarEl.src = avatarUrl;
+            userAvatarEl.style.display = 'block';
+        } else {
+            userAvatarEl.style.display = 'none';
+        }
+    }
+    if (loginBtnEl) {
+        loginBtnEl.innerText = 'Logout';
+        loginBtnEl.className = 'btn-secondary';
+        loginBtnEl.style.padding = '3px 8px';
+        loginBtnEl.style.fontSize = '11px';
+        loginBtnEl.onclick = async () => {
+            localStorage.removeItem('accountTokens');
+            try { await window.electronAPI.wsDisconnect(); } catch (e) {}
+            location.reload();
+        };
+    }
+
     const statsAccountName = document.getElementById('statsAccountName');
     if (statsAccountName) {
         statsAccountName.innerHTML = displayName;
         statsAccountName.style.color = 'var(--success)';
-    }
-
-    // Update sidebar auth with avatar
-    if (authSection) {
-        authSection.classList.add('connected');
-        if (avatarUrl) {
-            authSection.innerHTML = `
-        <div class="user-profile">
-          <img src="${avatarUrl}" alt="avatar"/>
-          <div class="user-info">
-            <div class="user-name">${displayName}</div>
-            <div class="user-login">@${login}</div>
-          </div>
-        </div>
-        <button class="btn-secondary" id="btnDisconnect" style="width: 100%; font-size: 12px;">Disconnect</button>
-      `;
-        } else {
-            authSection.innerHTML = `
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-          <span class="status-indicator green"></span>
-          <span style="font-size:13px; font-weight:600; color:var(--success);">${displayName}</span>
-        </div>
-        <button class="btn-secondary" id="btnDisconnect" style="width: 100%; font-size: 12px;">Disconnect</button>
-      `;
-        }
-        document.getElementById('btnDisconnect').onclick = async () => {
-            localStorage.removeItem('accountTokens');
-            try {
-                await window.electronAPI.wsDisconnect();
-            } catch (e) {
-                console.error("Failed to disconnect WebSocket on logout:", e);
-            }
-            location.reload();
-        };
     }
 
     const campaignsContainer = document.getElementById('campaignsContainer');
@@ -1607,16 +2366,15 @@ async function processTokens(tokens, fromStorage = false) {
 
     const success = await fetchAndUpdateCampaigns();
 
-    // Only show "No campaigns" if the fetch succeeded but returned nothing
     if (success && allCampaigns.length === 0 && campaignsContainer) {
         campaignsContainer.innerHTML = '<p style="color: var(--text-secondary);">No active campaigns found.</p>';
         renderIdlePlaceholder();
     }
-    farmingInterval = setInterval(fetchAndUpdateCampaigns, 30000); // Polling fallback (30s)
+    farmingInterval = setInterval(fetchAndUpdateCampaigns, 30000);
+    triggerAutoStartFarm();
 }
 
 window.electronAPI.onTokenCaptured(async (data) => {
-    const hadIntegrity = accountTokens && !!accountTokens.integrity;
     const oldAuth = accountTokens ? accountTokens.auth : null;
     const oldIntegrity = accountTokens ? accountTokens.integrity : null;
 
@@ -1627,7 +2385,6 @@ window.electronAPI.onTokenCaptured(async (data) => {
     if (data.clientId) accountTokens.clientId = data.clientId;
     if (data.deviceId) accountTokens.deviceId = data.deviceId;
 
-    // Save most recent tokens
     localStorage.setItem('accountTokens', JSON.stringify(accountTokens));
 
     const authChanged = oldAuth && data.auth && oldAuth !== data.auth;
@@ -1643,17 +2400,11 @@ window.electronAPI.onTokenCaptured(async (data) => {
             }
             processTokens(accountTokens);
         } else if (data.integrity && data.integrity !== oldIntegrity) {
-            // If we just got a new integrity token, force a refresh and close window if successful
-            console.log("Integrity token captured, refreshing campaigns...");
-            const success = await fetchAndUpdateCampaigns();
-            if (success) {
-                window.electronAPI.authSuccess();
-            }
+            await fetchAndUpdateCampaigns();
         }
     }
 });
 
-// Set a recurring loop for fast decision making (every 10s)
 setInterval(() => {
     if (masterAutoFarmEnabled || activeFarmingCampaignId) runMasterFarmLoop();
 }, 10000);
@@ -1662,7 +2413,6 @@ function setupCampaignsListEvents() {
     const campaignsContainer = document.getElementById('campaignsContainer');
     if (!campaignsContainer) return;
 
-    // Update search input handler (only once)
     const campaignSearch = document.getElementById('campaignSearch');
     if (campaignSearch && !campaignSearch.oninput) {
         campaignSearch.oninput = () => applyCurrentFilters();
@@ -1677,20 +2427,150 @@ function setupCampaignsListEvents() {
                 masterAutoFarmEnabled = false;
                 window.electronAPI.stopFarm();
                 addLog('Global Farm Stopped.', 'system');
+                showToast('Global Farm Stopped', 'info');
             } else {
                 farmAllMode = true;
                 masterAutoFarmEnabled = true;
-                activeFarmingCampaignId = null; // Clean start!
+                activeFarmingCampaignId = null;
+                manualOverrideId = null;
                 addLog('Global Farm mode activated.', 'system');
+                showToast('Global Farm Started', 'success');
                 updateMasterAutoFarmUI();
                 btnNavDashboard.click();
 
-                // Trigger immediately! If allCampaigns is empty, it will wait for the fetch.
                 runMasterFarmLoop();
                 fetchAndUpdateCampaigns();
             }
         };
     }
+}
+
+// Side Preview Drawer Logic
+function openPreviewDrawer(campaign) {
+    const drawer = getEl('previewDrawer');
+    const content = getEl('previewDrawerContent');
+    if (!drawer || !content || !campaign) return;
+
+    previewCampaignId = campaign.id;
+    drawer.classList.add('drawer-open');
+
+    const drops = (campaign.timeBasedDrops || []).slice().sort((a, b) => a.requiredMinutesWatched - b.requiredMinutesWatched);
+    const totalDrops = drops.length;
+    const claimedDrops = drops.filter(d => d.self?.isClaimed).length;
+    const imgUrl = getGameImageUrl(campaign.game, 120, 160);
+    const isPriority = selectedPriorityGames.some(g => g.toLowerCase() === campaign.game?.displayName?.toLowerCase());
+    const isBanned = ignoredGameNames.includes(campaign.game?.displayName?.toLowerCase() || '');
+
+    const isFarmingThisModal = (activeFarmingCampaignId === campaign.id);
+    let modalFoundUnfinished = false;
+
+    const dropsListHtml = drops.map((drop, index) => {
+        const dropName = drop.benefitEdges?.[0]?.benefit?.name || drop.name || 'Reward';
+        let dropImg = drop.benefitEdges?.[0]?.benefit?.imageAssetURL || '';
+        if (dropImg && dropImg.startsWith('//')) dropImg = 'https:' + dropImg;
+        if (!dropImg) dropImg = 'https://static-cdn.jtvnw.net/ttv-boxart/488190-144x192.jpg';
+
+        const reqMins = drop.requiredMinutesWatched || 0;
+        const curMins = Math.min(reqMins, drop.self?.currentMinutesWatched || 0);
+        const isClaimed = drop.self?.isClaimed || false;
+        const percent = reqMins > 0 ? Math.floor((curMins / reqMins) * 100) : 0;
+        const isCompleted = isClaimed || (percent >= 100 && reqMins > 0);
+
+        let isActiveDrop = false;
+        if (isFarmingThisModal && !isCompleted && !modalFoundUnfinished && reqMins > 0) {
+            modalFoundUnfinished = true;
+            isActiveDrop = true;
+        }
+
+        let containerClass = 'drop-progress-bar';
+        let fillClass = 'drop-progress-bar-fill';
+        const delayStyle = `--delay: -${(index * 0.45).toFixed(2)}s;`;
+
+        if (isFarmingThisModal) {
+            if (isActiveDrop) {
+                containerClass += ' is-farming';
+                fillClass += ' progress-active';
+            } else if (!isCompleted) {
+                containerClass += ' is-farming-secondary';
+                fillClass += ' progress-secondary-active';
+            } else if (percent === 100 && !isClaimed) {
+                containerClass += ' is-claimable';
+                fillClass += ' progress-claimable-active';
+            }
+        } else if (percent === 100 && !isClaimed) {
+            containerClass += ' is-claimable';
+            fillClass += ' progress-claimable-active';
+        }
+
+        return `
+        <div class="drop-item-row" style="margin-bottom: 8px;">
+            <img src="${dropImg}" onerror="this.onerror=null; this.src='https://static-cdn.jtvnw.net/ttv-boxart/488190-72x96.jpg'"/>
+            <div class="drop-info">
+                <h4>${dropName}</h4>
+                <div class="${containerClass}" style="${delayStyle}">
+                    <div class="${fillClass}" style="width:${percent}%; ${isClaimed ? 'background: var(--success);' : (percent === 100 ? 'background: var(--warning);' : '')} ${delayStyle}"></div>
+                </div>
+            </div>
+            <div class="drop-status">
+                ${isClaimed ? `<span style="color:var(--success); display:inline-flex; align-items:center; gap:3px;">${ICONS.check(12)} Claimed</span>` : (percent === 100 ? `<span style="color:var(--warning); display:inline-flex; align-items:center; gap:3px;">${ICONS.gift(12)} Ready</span>` : `<span style="color:var(--text-secondary);">${curMins}m / ${reqMins}m</span>`)}
+            </div>
+        </div>
+        `;
+    }).join('');
+
+    content.innerHTML = `
+        <div style="display: flex; gap: 14px; align-items: center;">
+            <img src="${imgUrl}" style="width: 64px; height: 86px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-color);" />
+            <div style="flex: 1;">
+                <h3 style="margin: 0 0 4px 0; font-size: 18px; color: white;">${campaign.game?.displayName}</h3>
+                <p style="color: var(--text-secondary); font-size: 12px; margin: 0 0 8px 0;">${totalDrops} Total Rewards · ${claimedDrops} Claimed</p>
+                <div style="display: flex; gap: 6px;">
+                    <span class="badge ${isPriority ? 'badge-green' : 'badge-purple'}">${isPriority ? `${ICONS.star(11)} Priority` : 'Standard'}</span>
+                    ${isBanned ? '<span class="badge badge-live" style="background:rgba(239,68,68,0.2);">Banned</span>' : ''}
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+            <button id="btnDrawerStartFarm" class="btn-primary" style="flex: 1; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 5px;">${ICONS.zap(13)} Farm This Game</button>
+            <button id="btnDrawerPriorityToggle" class="btn-secondary" style="width: auto; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">${ICONS.star(12)} ${isPriority ? 'Remove Priority' : 'Set Priority'}</button>
+        </div>
+
+        <div style="margin-top: 16px;">
+            <h4 style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px;">Drop Rewards Breakdown</h4>
+            ${dropsListHtml}
+        </div>
+    `;
+
+    const btnDrawerStartFarm = getEl('btnDrawerStartFarm');
+    if (btnDrawerStartFarm) {
+        btnDrawerStartFarm.onclick = () => {
+            drawer.classList.remove('drawer-open');
+            btnNavDashboard.click();
+            if (campaign) {
+                manualOverrideId = campaign.id;
+                masterAutoFarmEnabled = true;
+                updateMasterAutoFarmUI();
+                startFarmAction(campaign);
+            }
+        };
+    }
+
+    const btnDrawerPriorityToggle = getEl('btnDrawerPriorityToggle');
+    if (btnDrawerPriorityToggle) {
+        btnDrawerPriorityToggle.onclick = () => {
+            togglePriorityGame(campaign.game?.displayName);
+            openPreviewDrawer(campaign);
+        };
+    }
+}
+
+const btnClosePreviewDrawer = getEl('btnClosePreviewDrawer');
+if (btnClosePreviewDrawer) {
+    btnClosePreviewDrawer.onclick = () => {
+        const drawer = getEl('previewDrawer');
+        if (drawer) drawer.classList.remove('drawer-open');
+    };
 }
 
 function renderCampaignsListItems() {
@@ -1703,10 +2583,6 @@ function renderCampaignsListItems() {
     const savedList = (localStorage.getItem('autoFarmGames') || '').split(',').map(s => s.trim().toLowerCase());
 
     try {
-        // Check if initial render
-        const isInitial = campaignsContainer.children.length === 0 || campaignsContainer.querySelector('.campaign-card') === null;
-
-        // Apply manual sorting choice
         filteredCampaigns.sort((a, b) => {
             if (campaignSortMode === 'viewers') {
                 const vA = a.game?.viewersCount || 0;
@@ -1724,20 +2600,12 @@ function renderCampaignsListItems() {
             return;
         }
 
-        // Pin current height to prevent visual collapsing during update
-        const currentHeight = campaignsContainer.offsetHeight;
-        if (currentHeight > 0) {
-            campaignsContainer.style.minHeight = `${currentHeight}px`;
-        }
-
         const fragment = document.createDocumentFragment();
 
-        let renderedCount = 0;
         filteredCampaigns.forEach(c => {
             try {
                 if (!c || !c.game) return;
 
-                renderedCount++;
                 const imgUrl = getGameImageUrl(c.game, 144, 192);
                 const totalDrops = c.timeBasedDrops?.length || 0;
                 const claimedDrops = c.timeBasedDrops?.filter(d => d.self?.isClaimed).length || 0;
@@ -1749,32 +2617,25 @@ function renderCampaignsListItems() {
                 const isIgnored = isGameBanned || isCampIgnored;
 
                 const card = document.createElement('div');
-                card.className = isInitial ? 'campaign-card fade-in' : 'campaign-card';
-                card.onclick = () => startFarmingSimulationById(c.id, false);
+                card.className = 'campaign-card';
+                card.onclick = () => openPreviewDrawer(c);
 
                 if (isFinished) {
-                    card.style.opacity = '0.35';
+                    card.style.opacity = '0.4';
                     card.style.filter = 'grayscale(0.8)';
                 } else if (isGameBanned) {
-                    card.style.opacity = '0.2';
+                    card.style.opacity = '0.25';
                     card.style.filter = 'grayscale(1)';
-                } else if (isCampIgnored) {
-                    card.style.opacity = '0.4';
-                    card.style.filter = 'grayscale(0.5)';
                 } else if (isPriority) {
-                    card.style.borderColor = 'var(--success)';
-                    card.style.boxShadow = '0 0 10px rgba(0, 230, 118, 0.1)';
+                    card.style.borderColor = 'var(--accent-color)';
+                    card.style.boxShadow = '0 0 14px rgba(145, 70, 255, 0.2)';
                 }
 
                 const endDate = new Date(c.endAt);
                 const day = String(endDate.getDate()).padStart(2, '0');
                 const month = String(endDate.getMonth() + 1).padStart(2, '0');
                 const endStr = `${day}.${month}`;
-                const statusLabel = isFinished
-                    ? '<span style="color:var(--success); font-weight:700;">COMPLETED</span>'
-                    : isIgnored ? '<span style="color:var(--text-secondary); opacity:0.6;">IGNORED</span>' : `<span style="color:var(--warning);">Ends ${endStr}</span>`;
 
-                // Calculate aggregate progress
                 let totalReq = 0;
                 let totalWatched = 0;
                 (c.timeBasedDrops || []).forEach(d => {
@@ -1786,32 +2647,30 @@ function renderCampaignsListItems() {
                 const barColor = isFinished ? 'var(--success)' : (isIgnored ? '#444' : 'var(--accent-color)');
 
                 card.innerHTML = `
-          <div style="display:flex; gap:12px; padding:12px; position: relative;">
-            <div style="position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; z-index: 10;">
-                <button class="btn-ignore-campaign" style="position: static; opacity: 1; padding: 4px;" title="${isCampIgnored ? 'Unignore Campaign' : 'Ignore Campaign'}" onclick="event.stopPropagation(); toggleIgnoreCampaign('${c.id}')">
-                    ${isCampIgnored ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'}
-                </button>
-                <button class="btn-ignore-campaign" style="position: static; opacity: 1; padding: 4px;" title="${isGameBanned ? 'Unban Game' : 'Ban Game'}" onclick="event.stopPropagation(); toggleIgnoreGame('${c.game?.displayName?.replace(/'/g, "\\'")}')">
-                    ${isGameBanned ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20z"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>' : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>'}
-                </button>
-            </div>
-            <img src="${imgUrl}" style="width:48px; height:64px; border-radius:8px; object-fit:cover; flex-shrink:0; background:#2a2a2e; ${isFinished || isIgnored ? 'filter: grayscale(1);' : ''}" onerror="this.onerror=null; this.src='https://static-cdn.jtvnw.net/ttv-boxart/488190-144x192.jpg'"/>
-            <div style="flex:1; min-width:0;">
-              <div style="font-weight:600; font-size:13px; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${c.name} · ${c.game?.displayName}">
-                <span style="color: var(--text-secondary); font-size: 11px; font-weight: 500;">${c.game?.displayName}</span><br/>
-                ${c.name}
+          <div style="position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; z-index: 10;">
+              <button class="btn-ignore-campaign ${isCampIgnored ? 'active-ignore' : ''}" title="${isCampIgnored ? 'Unignore Campaign' : 'Ignore Campaign'}" onclick="event.stopPropagation(); toggleIgnoreCampaign('${c.id}')">
+                  ${isCampIgnored ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'}
+              </button>
+              <button class="btn-ignore-campaign ${isGameBanned ? 'active-ignore' : ''}" title="${isGameBanned ? 'Unban Game' : 'Ban Game'}" onclick="event.stopPropagation(); toggleIgnoreGame('${encodeGameParam(c.game?.displayName)}')">
+                  ${isGameBanned ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>' : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>'}
+              </button>
+          </div>
+          
+          <div class="campaign-card-header">
+            <img src="${imgUrl}" class="campaign-cover-img" onerror="this.onerror=null; this.src='https://static-cdn.jtvnw.net/ttv-boxart/488190-144x192.jpg'"/>
+            <div class="campaign-title-block">
+              <div class="campaign-game-name">${c.game?.displayName}</div>
+              <div style="font-size: 11px; color: var(--text-secondary); display: flex; gap: 6px;">
+                <span>${totalDrops} Rewards</span> · <span>${claimedDrops} Claimed</span>
               </div>
-              <div style="font-size:12px; margin-top:4px;">${statusLabel}</div>
-              ${c.isBadgeOrQuest ? `<div style="font-size:10px; margin-top:3px; display:flex; align-items:center; gap:4px;">
-                <span style="padding: 1px 6px; border-radius: 4px; font-weight: 600; letter-spacing: 0.3px; ${c._badgePaid ? 'background: rgba(255,82,82,0.15); color: #ff5252; border: 1px solid rgba(255,82,82,0.3);' : 'background: rgba(0,230,118,0.12); color: #69f0ae; border: 1px solid rgba(0,230,118,0.25);'}">${c._badgePaid ? '💰 Paid' : '🆓 Free'}</span>
-                <span style="color: var(--text-secondary); opacity: 0.7; font-size: 9px;">${c._badgeReason || ''}</span>
-              </div>` : ''}
-              <div style="font-size:11px; color:var(--text-secondary); margin-top:4px;">${totalDrops} Items · ${claimedDrops} Claimed</div>
-              
-              <div style="margin-top: 6px; height: 4px; width: 100%; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden;">
-                  <div style="height: 100%; width: ${totalPercent}%; background: ${barColor}; border-radius: 2px; transition: width 0.3s ease;"></div>
+              <div style="font-size: 11px; margin-top: 2px;">
+                ${isFinished ? `<span style="color:var(--success); font-weight:700; display:inline-flex; align-items:center; gap:3px;">${ICONS.check(11)} Completed</span>` : `<span style="color:var(--warning); display:inline-flex; align-items:center; gap:3px;">${ICONS.clock(11)} Ends ${endStr}</span>`}
               </div>
             </div>
+          </div>
+
+          <div class="campaign-progress-track ${c.id === activeFarmingCampaignId ? 'is-farming' : ''}" style="margin-top: 4px; height: 5px; width: 100%; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; position: relative;">
+              <div class="${c.id === activeFarmingCampaignId ? 'progress-active' : ''}" style="height: 100%; width: ${totalPercent}%; background: ${barColor}; border-radius: 3px; transition: width 0.3s ease;"></div>
           </div>
         `;
                 fragment.appendChild(card);
@@ -1820,29 +2679,23 @@ function renderCampaignsListItems() {
             }
         });
 
-        // Clear and append fragment in one batch
         campaignsContainer.innerHTML = '';
         campaignsContainer.appendChild(fragment);
-
-        // Reset minHeight in the next frame
-        requestAnimationFrame(() => {
-            campaignsContainer.style.minHeight = '';
-        });
     } catch (globalErr) {
         addLog(`UI Rendering failed: ${globalErr.message}`, 'error');
-        console.error(globalErr);
     }
 }
 
 function haltCurrentFarmWorker() {
+    if (preCheckTimer) { clearTimeout(preCheckTimer); preCheckTimer = null; }
     window.electronAPI.stopFarm();
     currentFarmingChannelId = null;
     activeFarmingCampaignId = null;
     activeFarmingChannelLogin = null;
-    manualOverrideId = null;
     campaignIdBeingStarted = null;
     
     window.electronAPI.updateTrayTooltip('Idle');
+    updateHeaderFarmWidget();
 
     const farmStatus = document.getElementById('farmStatus');
     if (farmStatus) farmStatus.innerText = 'Idle';
@@ -1853,24 +2706,38 @@ function haltCurrentFarmWorker() {
 
 function stopFarmAction(campaign) {
     addLog(`Stopping farm session...`, 'system');
-    masterAutoFarmEnabled = false; // User manually clicked stop, halt auto-farm too
+    masterAutoFarmEnabled = false;
     campaignIdBeingStarted = null;
     
+    const targetCamp = campaign || allCampaigns.find(c => c.id === (currentFarmCampaignId || activeFarmingCampaignId));
+
     haltCurrentFarmWorker();
 
-    const btnRunFarm = document.getElementById('btnRunFarm');
-    const btnStopFarm = document.getElementById('btnStopFarm');
-    if (btnRunFarm) btnRunFarm.style.display = 'block';
-    if (btnStopFarm) btnStopFarm.style.display = 'none';
-    
     updateMasterAutoFarmUI();
-
-    if (campaign) startFarmingSimulation(campaign);
+    if (targetCamp) {
+        startFarmingSimulation(targetCamp);
+    } else {
+        renderIdlePlaceholder();
+    }
 }
+
+function startFarmActionById(id, isAuto = false) {
+    const campaign = allCampaigns.find(c => c.id === id);
+    if (campaign) {
+        manualOverrideId = campaign.id;
+        masterAutoFarmEnabled = true;
+        updateMasterAutoFarmUI();
+        startFarmAction(campaign, isAuto);
+    }
+}
+
+window.startFarmActionById = startFarmActionById;
+window.startFarmAction = startFarmAction;
+window.stopFarmAction = stopFarmAction;
 
 async function startFarmAction(campaign, isAuto = false) {
     campaignIdBeingStarted = campaign.id;
-    // Update the Dashboard view immediately to ensure UI responsiveness
+    activeFarmingCampaignId = campaign.id;
     startFarmingSimulation(campaign, false, false, 'farmPanel');
 
     const btnRunFarm = document.getElementById('btnRunFarm');
@@ -1878,51 +2745,114 @@ async function startFarmAction(campaign, isAuto = false) {
     const farmStatus = document.getElementById('farmStatus');
 
     if (btnRunFarm) btnRunFarm.style.display = 'none';
-    if (btnStopFarm) btnStopFarm.style.display = 'block';
+    if (btnStopFarm) btnStopFarm.style.display = 'flex';
 
-    if (farmStatus) farmStatus.innerHTML = `<span style="color: var(--text-secondary);">🔍 Searching for streamer...</span>`;
+    if (farmStatus) farmStatus.innerHTML = `<span style="color: var(--text-secondary); display:inline-flex; align-items:center; gap:4px;">${ICONS.search(12)} Searching for streamer...</span>`;
 
     try {
         let whitelistedLogins = null;
         if (campaign.allow?.isEnabled && campaign.allow?.channels && campaign.allow.channels.length > 0) {
             whitelistedLogins = campaign.allow.channels.map(ch => ch.name);
-            console.log(`Campaign has channel whitelist: ${whitelistedLogins.join(', ')}`);
         }
 
         const res = await window.electronAPI.findStreamer(campaign.game?.displayName || '', accountTokens, whitelistedLogins);
-        if (campaignIdBeingStarted !== campaign.id) {
-            console.log("Streamer search finished but campaign start was aborted.");
-            return;
-        }
+        if (campaignIdBeingStarted !== campaign.id) return;
+
         const streams = res?.data?.game?.streams?.edges || [];
 
         const validStreams = streams.filter(s => {
-            if (whitelistedLogins) return true; // If we explicitly searched for whitelist channels, they are already valid
+            if (whitelistedLogins) return true;
 
             const tags = (s.node.freeformTags || []).map(t => t.name.toLowerCase());
             const title = (s.node.title || '').toLowerCase();
 
-            // Look for "drops" in tags (localized like "Drops有効" or "DropsВключены") or in title
             return tags.some(t => t.includes('drops')) ||
                 title.includes('drops') ||
                 title.includes('!drops') ||
                 title.includes('дропс');
         });
 
-        if (validStreams.length === 0) {
-            addLog(`No live streamers for ${campaign.game?.displayName}`, 'warn');
-            if (farmStatus) farmStatus.innerText = 'No live streamers found.';
-            if (btnRunFarm) btnRunFarm.style.display = 'block';
-            if (btnStopFarm) btnStopFarm.style.display = 'none';
-            if (isAuto) {
-                stallBlacklist[campaign.id] = Date.now() + 60 * 60 * 1000; // Ignore for 1 hour
-                setTimeout(() => runMasterFarmLoop(), 1000);
-            }
-            return;
+        if (activeFarmingCampaignId !== campaign.id) {
+            sessionSkippedStreamers.clear();
         }
 
-        // Just pick the first candidate and START - no more blocking checks
-        const targetStreamer = validStreams[0].node.broadcaster;
+        const now = Date.now();
+        const availableStreams = validStreams.filter(s => {
+            const login = (s.node?.broadcaster?.login || '').toLowerCase();
+            const isBlacklisted = streamerBlacklist[login] && now <= streamerBlacklist[login];
+            const isSessionSkipped = sessionSkippedStreamers.has(login);
+            return !login || (!isBlacklisted && !isSessionSkipped);
+        });
+
+        let targetStreamerNode = null;
+        const targetGameId = campaign.game?.id;
+        const targetGameName = (campaign.game?.displayName || '').toLowerCase();
+
+        // GQL Pre-Check: verify active drops on channel before starting stream
+        for (const candidate of availableStreams.slice(0, 5)) {
+            const streamerId = candidate.node?.broadcaster?.id;
+            const login = candidate.node?.broadcaster?.login;
+            if (!streamerId || !login) continue;
+
+            const isWhitelisted = whitelistedLogins && whitelistedLogins.length > 0;
+
+            try {
+                const dropCheck = await window.electronAPI.checkChannelDrops(streamerId, accountTokens);
+                const activeCampaignsOnChannel = dropCheck?.data?.channelDropCampaignsProgress || [];
+
+                const isConfirmed = isWhitelisted || (activeCampaignsOnChannel.length > 0 && activeCampaignsOnChannel.some(dc =>
+                    (dc.game?.id && String(dc.game.id) === String(targetGameId)) ||
+                    (dc.game?.name && dc.game.name.toLowerCase() === targetGameName) ||
+                    (dc.name && dc.name.toLowerCase().includes(targetGameName)) ||
+                    dc.id === campaign.id
+                ));
+
+                if (isConfirmed) {
+                    const tagInfo = isWhitelisted ? ' (Whitelisted Channel)' : '';
+                    addLog(`✓ [GQL Pre-Check] @${login} has confirmed active Drops for ${campaign.game?.displayName || campaign.name}${tagInfo}!`, 'success');
+                    targetStreamerNode = candidate.node;
+                    break;
+                } else if (dropCheck?.data) {
+                    addLog(`⚠️ [GQL Pre-Check] @${login} drops inactive for ${campaign.game?.displayName || campaign.name}. Trying next candidate...`, 'warn');
+                    sessionSkippedStreamers.add(login.toLowerCase());
+                } else {
+                    // Query error or challenge: fallback to watching this stream
+                    targetStreamerNode = candidate.node;
+                    break;
+                }
+            } catch (err) {
+                console.error("GQL Pre-check error:", err);
+                targetStreamerNode = candidate.node;
+                break;
+            }
+        }
+
+        if (!targetStreamerNode) {
+            if (availableStreams.length > 0) {
+                targetStreamerNode = availableStreams[0].node;
+            } else if (streams.length > 0) {
+                targetStreamerNode = streams[0].node;
+            } else {
+                const gameName = campaign.game?.displayName || 'Game';
+                addLog(`No live streamers found for ${gameName}.`, 'warn');
+                showToast(`No live streamers found for ${gameName}`, 'warn');
+                if (farmStatus) farmStatus.innerText = 'No live streamers found.';
+                if (btnRunFarm) btnRunFarm.style.display = 'flex';
+                if (btnStopFarm) btnStopFarm.style.display = 'none';
+
+                if (!manualOverrideId) {
+                    stallBlacklist[campaign.id] = Date.now() + 30 * 60 * 1000;
+                    delete campaignFailedStreamerCounts[campaign.id];
+
+                    setTimeout(() => {
+                        cycleCampaign(1, true);
+                    }, 600);
+                }
+                return;
+            }
+        }
+
+        const targetStreamer = targetStreamerNode.broadcaster;
         const streamerLogin = targetStreamer.login;
         const streamerId = targetStreamer.id;
 
@@ -1930,56 +2860,62 @@ async function startFarmAction(campaign, isAuto = false) {
         activeFarmingCampaignId = campaign.id;
         activeFarmingChannelLogin = streamerLogin;
 
-        // SYNC UI: Now that we found a streamer, ensure Dashboard shows this campaign
         if (masterAutoFarmEnabled) {
             startFarmingSimulation(campaign, false, false, 'farmPanel');
         }
 
         window.electronAPI.startFarm(streamerLogin);
         window.electronAPI.updateTrayTooltip(`Farming: ${campaign.game?.displayName || 'Game'}`);
-        addLog(`Watching ${streamerLogin}... (Grace period 45s started)`, 'farm');
-        if (farmStatus) farmStatus.innerHTML = `<span style="color: #00e676; display: flex; align-items: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><polygon points="5 3 19 12 5 21 5 3"/></svg> <span>Watching <b>${streamerLogin}</b></span></span>`;
+        addLog(`Watching ${streamerLogin}...`, 'farm');
+        showToast(`Farming ${campaign.game?.displayName} on ${streamerLogin}`, 'success');
 
-        // Reset progression tracker: -1 tells the loop this is a NEW session
         progressionTracker[campaign.id] = { mins: -1, time: Date.now() };
 
+        updateHeaderFarmWidget();
         setTimeout(fetchAndUpdateCampaigns, 3000);
     } catch (e) {
-        if (btnRunFarm) btnRunFarm.style.display = 'block';
+        if (btnRunFarm) btnRunFarm.style.display = 'flex';
     }
 }
 
 window.startFarmingSimulationById = (id, autoStart = false) => {
     const campaign = allCampaigns.find(c => c.id === id);
     if (campaign) {
+        browsedCampaignId = campaign.id;
         if (autoStart) {
+            manualOverrideId = campaign.id;
+            masterAutoFarmEnabled = true;
+            updateMasterAutoFarmUI();
             btnNavDashboard.click();
-            startFarmingSimulation(campaign, true);
+            startFarmAction(campaign);
         } else {
-            // Just PREVIEW in the campaigns tab
-            previewCampaignId = campaign.id;
-            const previewEl = document.getElementById('previewPanel');
-            if (previewEl) previewEl.style.display = 'block';
-            startFarmingSimulation(campaign, false, false, 'previewPanel');
+            openPreviewDrawer(campaign);
         }
     }
 }
 
 function startFarmingSimulation(campaign, autoStart = false, updateOnly = false, targetPanelId = 'farmPanel') {
     if (targetPanelId === 'farmPanel') {
-        if (!updateOnly) currentFarmCampaignId = campaign.id;
-    } else {
-        previewCampaignId = campaign.id;
+        if (!updateOnly) {
+            currentFarmCampaignId = campaign.id;
+            browsedCampaignId = campaign.id;
+        }
     }
 
     const targetPanel = document.getElementById(targetPanelId);
+    const heroCard = getEl('heroMonitorCard');
     if (!targetPanel) return;
 
     const drops = (campaign.timeBasedDrops || []).slice().sort((a, b) => a.requiredMinutesWatched - b.requiredMinutesWatched);
-
     const isFarmingThis = (activeFarmingCampaignId === campaign.id);
     let currentlyFoundUnfinished = false;
     let activeDropNameForUI = '';
+
+    // Calculate progress statistics
+    let activeDropObj = null;
+    let activePercent = 0;
+    let activeCurrentMins = 0;
+    let activeReqMins = 0;
 
     let itemsHtml = drops.map((drop, index) => {
         const dropName = drop.benefitEdges?.[0]?.benefit?.name || `Reward ${index + 1}`;
@@ -2010,19 +2946,37 @@ function startFarmingSimulation(campaign, autoStart = false, updateOnly = false,
             currentlyFoundUnfinished = true;
             isActiveDrop = true;
             activeDropNameForUI = dropName;
+            activeDropObj = drop;
+            activePercent = percent;
+            activeCurrentMins = currentMins;
+            activeReqMins = requiredMins;
         }
 
         let statusHtml;
-        let barColor;
+        let barColor = 'var(--accent-color)';
+        let containerClass = 'drop-progress-bar';
+        let fillClass = 'drop-progress-bar-fill';
+        const delayStyle = `--delay: -${(index * 0.45).toFixed(2)}s;`;
+
         if (isClaimed) {
-            statusHtml = `<span style="color: var(--success); display: flex; align-items: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Claimed</span>`;
+            statusHtml = `<span style="color: var(--success); display:inline-flex; align-items:center; gap:3px;">${ICONS.check(12)} Claimed</span>`;
             barColor = 'var(--success)';
         } else if (percent === 100) {
-            statusHtml = `<span style="color: var(--warning); display: flex; align-items: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg> Ready to claim</span>`;
+            statusHtml = `<span style="color: var(--warning); display:inline-flex; align-items:center; gap:3px;">${ICONS.gift(12)} Ready to claim</span>`;
             barColor = 'var(--warning)';
+            containerClass += ' is-claimable';
+            fillClass += ' progress-claimable-active';
         } else {
             statusHtml = `<span style="color: var(--text-secondary);">${percent}% · ${currentMins}m / ${requiredMins}m</span>`;
-            barColor = 'var(--accent-color)';
+            if (isFarmingThis) {
+                if (isActiveDrop) {
+                    containerClass += ' is-farming';
+                    fillClass += ' progress-active';
+                } else {
+                    containerClass += ' is-farming-secondary';
+                    fillClass += ' progress-secondary-active';
+                }
+            }
         }
 
         return `
@@ -2030,8 +2984,8 @@ function startFarmingSimulation(campaign, autoStart = false, updateOnly = false,
          <img src="${dropImg}" onerror="this.onerror=null; this.src='https://static-cdn.jtvnw.net/ttv-boxart/488190-72x96.jpg'" />
          <div class="drop-info">
              <h4>${dropName}</h4>
-             <div class="drop-progress-bar">
-                 <div class="drop-progress-bar-fill ${isActiveDrop ? 'progress-active' : ''}" style="width:${percent}%; background:${barColor};"></div>
+             <div class="${containerClass}" style="${delayStyle}">
+                 <div class="${fillClass}" style="width:${percent}%; ${isClaimed ? 'background: var(--success);' : (percent === 100 ? 'background: var(--warning);' : '')} ${delayStyle}"></div>
              </div>
          </div>
          <div class="drop-status">
@@ -2040,68 +2994,180 @@ function startFarmingSimulation(campaign, autoStart = false, updateOnly = false,
      </div>`;
     }).join('');
 
-    if (!updateOnly) {
-        const isDashboard = (targetPanelId === 'farmPanel');
-        const isIgnored = ignoredGameNames.includes(campaign.game?.displayName?.toLowerCase() || '');
+    // Update Dashboard Hero Card Skeleton
+    if (heroCard) {
+        const dropsContainer = getEl('currentFarmDropsContainer');
+        if (isFarmingThis && activeFarmingChannelLogin) {
+            if (dropsContainer) dropsContainer.style.display = 'block';
 
-        targetPanel.innerHTML = `
-        <div style="width: 100%; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px; position: relative;">
-            <div id="gameHeaderUIArea" style="display: flex; align-items: center; gap: 20px; width: 100%; max-width: 600px;">
-                <img src="${getGameImageUrl(campaign.game, 120, 160)}" style="width: 80px; height: 106px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);" />
-                <div style="flex: 1;">
-                    <h2 style="margin: 0 0 5px 0; font-size: ${isDashboard ? '22px' : '18px'};">${campaign.game?.displayName}</h2>
-                    <p style="color: var(--text-secondary); font-size: 13px; margin: 0 0 15px 0;">Status: <b>${campaign.status}</b></p>
-                    
-                    <div id="farmingControlsArea" style="display: flex; align-items: center; gap: 12px;">
-                        ${isDashboard ? '<button id="btnPrevGame" class="btn-secondary" style="padding: 8px 12px; font-size: 14px; display: flex; align-items: center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>' : ''}
-                        
-                        <div id="mainActionArea" style="display: flex; gap: 8px;">
-                            <button id="btnRunFarm" class="btn-primary" style="width: auto; padding: 0 16px; height: 38px; display: ${isFarmingThis ? 'none' : 'block'}; white-space: nowrap; font-size: 13px;">Start Farming</button>
-                            <button id="btnStopFarm" class="btn-outline" style="display: ${isFarmingThis ? 'block' : 'none'}; width: auto; padding: 0 16px; height: 38px; color: var(--danger); border-color: var(--danger); white-space: nowrap; font-size: 13px;">Stop Farming</button>
-                            ${!isDashboard ? `<button id="btnIgnoreCampaign" class="btn-outline" style="width: auto; padding: 0 16px; height: 38px; color: var(--text-secondary); border-color: var(--border-color); white-space: nowrap; font-size: 13px;"><div style="display: flex; align-items: center; gap: 6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> ${isIgnored ? 'Unban Game' : 'Ban Game'}</div></button>` : ''}
+            const existingHeroStreamInfo = heroCard.querySelector('.hero-stream-info');
+            const currentChannel = heroCard.getAttribute('data-farming-channel');
+
+            if (existingHeroStreamInfo && currentChannel === activeFarmingChannelLogin) {
+                // In-place update existing DOM elements! Smooth width transition & continuous keyframe animation
+                const metaEl = heroCard.querySelector('.hero-streamer-meta');
+                if (metaEl) {
+                    const newMetaHtml = `<span>Farming: <b>${activeDropNameForUI || 'Drop Reward'}</b></span><span>· ${activePercent}% (${activeCurrentMins}m / ${activeReqMins}m)</span>`;
+                    if (metaEl.innerHTML !== newMetaHtml) metaEl.innerHTML = newMetaHtml;
+                }
+                const heroBar = heroCard.querySelector('.progress-bar');
+                if (heroBar) {
+                    const targetWidth = `${activePercent}%`;
+                    if (heroBar.style.width !== targetWidth) heroBar.style.width = targetWidth;
+                }
+            } else {
+                heroCard.setAttribute('data-farming-channel', activeFarmingChannelLogin || '');
+                heroCard.innerHTML = `
+                    <img src="${getGameImageUrl(campaign.game, 120, 160)}" class="hero-game-cover" onerror="this.onerror=null; this.src='assets/icon.png'"/>
+                    <div class="hero-stream-info" style="display: flex; flex-direction: column; justify-content: space-between; flex: 1; min-width: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; width: 100%;">
+                            <div style="display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                    <span class="badge badge-live">STREAMING NOW</span>
+                                    <span class="badge badge-purple">${campaign.game?.displayName}</span>
+                                </div>
+                                <div class="hero-game-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Watching <span class="streamer-link" title="Open twitch.tv/${activeFarmingChannelLogin} in browser" onclick="event.stopPropagation(); window.electronAPI.openExternal('https://www.twitch.tv/${activeFarmingChannelLogin}')">@${activeFarmingChannelLogin}</span></div>
+                                <div class="hero-streamer-meta">
+                                    <span>Farming: <b>${activeDropNameForUI || 'Drop Reward'}</b></span>
+                                    <span>· ${activePercent}% (${activeCurrentMins}m / ${activeReqMins}m)</span>
+                                </div>
+                            </div>
+                            <div class="hero-actions" style="display: flex; gap: 8px; align-items: center; flex-shrink: 0; margin-top: 2px;">
+                                <button class="btn-danger" onclick="stopFarmAction()" title="Stop Farm" style="width: auto; padding: 7px 16px; font-size: 12.5px;">Stop</button>
+                                <button class="btn-secondary" onclick="skipCampaignAction()" title="Skip Campaign" style="width: auto; padding: 7px 14px; font-size: 12.5px; display: inline-flex; align-items: center; gap: 4px;">Skip ${ICONS.skip(12)}</button>
+                            </div>
                         </div>
-
-                        ${isDashboard ? '<button id="btnNextGame" class="btn-secondary" style="padding: 8px 12px; font-size: 14px; display: flex; align-items: center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>' : ''}
+                        <div class="progress-container is-farming" style="margin-top: 14px; width: 100%;">
+                            <div class="progress-bar progress-active" style="width: ${activePercent}%;"></div>
+                        </div>
+                    </div>
+                `;
+            }
+        } else if (campaign && campaign.game) {
+            if (dropsContainer) dropsContainer.style.display = 'block';
+            heroCard.removeAttribute('data-farming-channel');
+            heroCard.innerHTML = `
+                <img src="${getGameImageUrl(campaign.game, 120, 160)}" class="hero-game-cover" onerror="this.onerror=null; this.src='assets/icon.png'"/>
+                <div class="hero-stream-info" style="display: flex; flex-direction: column; justify-content: space-between; flex: 1; min-width: 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; width: 100%;">
+                        <div style="display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                <span class="badge badge-purple">READY TO FARM</span>
+                            </div>
+                            <div class="hero-game-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${campaign.game?.displayName}</div>
+                            <div class="hero-streamer-meta">
+                                <span>Click Start Farming to connect worker</span>
+                            </div>
+                        </div>
+                        <div class="hero-actions" style="display: flex; gap: 8px; align-items: center; flex-shrink: 0; margin-top: 2px;">
+                            <button class="btn-primary" onclick="startFarmActionById('${campaign.id}', true)" title="Start Farming" style="width: auto; padding: 7px 18px; font-size: 13px;">Start Farming</button>
+                        </div>
+                    </div>
+                    <div class="progress-container" style="margin-top: 14px; width: 100%;">
+                        <div class="progress-bar" style="width: 0%;"></div>
                     </div>
                 </div>
+            `;
+        } else {
+            heroCard.removeAttribute('data-farming-channel');
+            renderIdlePlaceholder();
+        }
+    }
+
+    if (!updateOnly) {
+        targetPanel.innerHTML = `
+        <div style="width: 100%; display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-size: 15px; font-weight: 700; color: white;">${campaign.game?.displayName}</h3>
             </div>
-            ${isFarmingThis ? `
-                <div id="farmStatus" style="margin-top: 15px; font-size: 13px; color: #00e676; display: flex; align-items: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><polygon points="5 3 19 12 5 21 5 3"/></svg> <span>Watching <b>${activeFarmingChannelLogin || '...'}</b> for <b>${activeDropNameForUI || 'Drop'}</b></span></div>
-                <div id="stallStatus" style="position: absolute; top: 0px; right: 0px; background: rgba(0,0,0,0.3); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text-secondary); pointer-events: none; backdrop-filter: blur(4px);"></div>
-            ` : `
-                <div id="farmStatus" style="margin-top: 15px; font-size: 13px; color: var(--text-secondary);">Idle. Press Start Farming to attach a worker.</div>
-            `}
+            <div id="dropItemsList" style="width: 100%;" data-campaign-id="${campaign.id}">
+                ${itemsHtml}
+            </div>
         </div>
-        <div id="dropItemsList" style="width: 100%; max-width: 600px;">
-            ${itemsHtml}
-        </div>
-    `;
-
-        const btnRunFarm = targetPanel.querySelector('#btnRunFarm');
-        const btnStopFarm = targetPanel.querySelector('#btnStopFarm');
-        const btnPrevGame = targetPanel.querySelector('#btnPrevGame');
-        const btnNextGame = targetPanel.querySelector('#btnNextGame');
-        const btnIgnoreCampaign = targetPanel.querySelector('#btnIgnoreCampaign');
-
-        if (btnRunFarm) btnRunFarm.onclick = () => {
-            if (targetPanelId === 'previewPanel') btnNavDashboard.click();
-            startFarmAction(campaign);
-        };
-        if (btnStopFarm) btnStopFarm.onclick = () => stopFarmAction(campaign);
-        if (btnPrevGame) btnPrevGame.onclick = () => cycleCampaign(-1);
-        if (btnNextGame) btnNextGame.onclick = () => cycleCampaign(1);
-        if (btnIgnoreCampaign) btnIgnoreCampaign.onclick = () => {
-            toggleIgnoreGame(campaign.game?.displayName);
-            startFarmingSimulation(campaign, false, false, targetPanelId);
-        };
+        `;
     } else {
-        // Partial update (updateOnly=true)
         const list = targetPanel.querySelector('#dropItemsList');
-        if (list) list.innerHTML = itemsHtml;
+        if (list) {
+            const existingRows = list.querySelectorAll('.drop-item-row');
+            const listCampaignId = list.getAttribute('data-campaign-id');
+            if (listCampaignId === campaign.id && existingRows.length === drops.length) {
+                // In-place DOM update of existing drop rows! Smooth CSS width transitions & no keyframe resets
+                let foundUnfinished = false;
+                drops.forEach((drop, index) => {
+                    const row = existingRows[index];
+                    if (!row) return;
 
-        const statusText = targetPanel.querySelector('#farmStatus');
-        if (statusText && isFarmingThis) {
-            statusText.innerHTML = `<div style="display:flex; align-items:center; color: #00e676;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><polygon points="5 3 19 12 5 21 5 3"/></svg> <span>Watching <b>${activeFarmingChannelLogin || '...'}</b></span></div>`;
+                    const dropName = drop.benefitEdges?.[0]?.benefit?.name || `Reward ${index + 1}`;
+                    let requiredMins = drop.requiredMinutesWatched;
+                    const selfStats = drop.self || {};
+                    let currentMins = selfStats.currentMinutesWatched || 0;
+                    let isClaimed = selfStats.isClaimed || false;
+
+                    if (currentGlobalDropSession && (currentGlobalDropSession.game?.id === campaign.game?.id || currentGlobalDropSession.game?.displayName === campaign.game?.displayName)) {
+                        if (!isClaimed && currentGlobalDropSession.requiredMinutesWatched === requiredMins) {
+                            if (currentGlobalDropSession.currentMinutesWatched !== undefined && currentGlobalDropSession.currentMinutesWatched !== null) {
+                                currentMins = currentGlobalDropSession.currentMinutesWatched;
+                            }
+                        }
+                    }
+
+                    if (currentMins > requiredMins) currentMins = requiredMins;
+                    if (isClaimed) currentMins = requiredMins;
+                    let percent = requiredMins > 0 ? Math.floor((currentMins / requiredMins) * 100) : 0;
+                    const isCompleted = isClaimed || (percent >= 100 && requiredMins > 0);
+
+                    let isActive = false;
+                    if (isFarmingThis && !isCompleted && !foundUnfinished && requiredMins > 0) {
+                        foundUnfinished = true;
+                        isActive = true;
+                    }
+
+                    let containerClass = 'drop-progress-bar';
+                    let fillClass = 'drop-progress-bar-fill';
+                    if (isClaimed) {
+                        // claimed
+                    } else if (percent === 100) {
+                        containerClass += ' is-claimable';
+                        fillClass += ' progress-claimable-active';
+                    } else if (isFarmingThis) {
+                        if (isActive) {
+                            containerClass += ' is-farming';
+                            fillClass += ' progress-active';
+                        } else {
+                            containerClass += ' is-farming-secondary';
+                            fillClass += ' progress-secondary-active';
+                        }
+                    }
+
+                    const track = row.querySelector('.drop-progress-bar, .is-farming, .is-farming-secondary, .is-claimable');
+                    if (track && track.className !== containerClass) {
+                        track.className = containerClass;
+                    }
+
+                    const fill = row.querySelector('.drop-progress-bar-fill, .progress-active, .progress-secondary-active, .progress-claimable-active');
+                    if (fill) {
+                        if (fill.className !== fillClass) fill.className = fillClass;
+                        const targetW = `${percent}%`;
+                        if (fill.style.width !== targetW) fill.style.width = targetW;
+                    }
+
+                    const statusEl = row.querySelector('.drop-status');
+                    if (statusEl) {
+                        let statusHtml;
+                        if (isClaimed) {
+                            statusHtml = `<span style="color: var(--success); display:inline-flex; align-items:center; gap:3px;">${ICONS.check(12)} Claimed</span>`;
+                        } else if (percent === 100) {
+                            statusHtml = `<span style="color: var(--warning); display:inline-flex; align-items:center; gap:3px;">${ICONS.gift(12)} Ready to claim</span>`;
+                        } else {
+                            statusHtml = `<span style="color: var(--text-secondary);">${percent}% · ${currentMins}m / ${requiredMins}m</span>`;
+                        }
+                        if (statusEl.innerHTML !== statusHtml) statusEl.innerHTML = statusHtml;
+                    }
+                });
+            } else {
+                list.setAttribute('data-campaign-id', campaign.id);
+                list.innerHTML = itemsHtml;
+            }
         }
     }
 
@@ -2110,18 +3176,12 @@ function startFarmingSimulation(campaign, autoStart = false, updateOnly = false,
             const btn = document.getElementById('btnRunFarm');
             if (btn && btn.style.display !== 'none') {
                 startFarmAction(campaign, true);
-                window.electronAPI.updateTrayTooltip(`Farming: ${campaign.game?.displayName || 'Game'}`);
             }
         }, 100);
     }
 }
 
-// ============================================================
-// WebSocket Real-Time Drop Progress
-// ============================================================
-
 function setupWebSocketListeners() {
-    // Real-time drop progress updates
     window.electronAPI.onWsDropProgress((data) => {
         if (data.dropId) {
             const oldData = wsDropProgress[data.dropId];
@@ -2134,17 +3194,18 @@ function setupWebSocketListeners() {
                 timestamp: Date.now()
             };
 
-            // Explicitly log the progress when it increases
             if (newMins > oldMins && oldMins !== -1) {
                 const diff = newMins - oldMins;
                 const curr = allCampaigns.find(c => c.id === currentFarmCampaignId);
                 const gameName = curr?.game?.displayName || 'Game';
                 addLog(`[${gameName}] Real-time progress: +${diff}m (${newMins}m)`, 'farm');
-            } else if (oldMins === -1) {
-                addLog(`[WS] Real-time tracking active for drop. Current: ${newMins}m`, 'system');
             }
 
-            // Immediately update the UI progress bars without full refresh
+            if (activeFarmingCampaignId && progressionTracker[activeFarmingCampaignId]) {
+                progressionTracker[activeFarmingCampaignId].time = Date.now();
+                campaignFailedStreamerCounts[activeFarmingCampaignId] = 0;
+            }
+
             const curr = allCampaigns.find(c => c.id === currentFarmCampaignId);
             if (curr && !document.hidden) {
                 startFarmingSimulation(curr, false, true);
@@ -2153,26 +3214,22 @@ function setupWebSocketListeners() {
         }
     });
 
-    // Drop claimed notification
     window.electronAPI.onWsDropClaim((data) => {
         addLog(`[Drop Claimed] Reward claimed via WebSocket! (${data.dropId})`, 'farm');
-        // Force inventory refresh
+        showToast('Reward claimed successfully!', 'success');
         fetchAndUpdateCampaigns();
     });
 
-    // WebSocket disconnection
     window.electronAPI.onWsDisconnected((data) => {
         if (data.permanent) {
             addLog('⚠️ WebSocket permanently disconnected. Using polling only.', 'warn');
         }
     });
 
-    // Generic drop event (for debugging)
     window.electronAPI.onWsDropEvent((data) => {
         console.log('[WS Event]', data.type, data.raw);
     });
 }
-
 
 async function processAutoClaims(inventory = null) {
     if (!autoClaimEnabled || !accountTokens) return;
@@ -2180,7 +3237,6 @@ async function processAutoClaims(inventory = null) {
     let claimSuccessCount = 0;
     let windowClaimNeeded = false;
 
-    // Use passed inventory or fetch fresh inventory if not provided
     let activeInventory = inventory;
     if (!activeInventory) {
         try {
@@ -2191,21 +3247,17 @@ async function processAutoClaims(inventory = null) {
         }
     }
 
-    // Collect all campaigns to check for claims
     const campaignsToCheck = new Map();
 
-    // 1. Add all campaigns from allCampaigns
     for (const c of allCampaigns) {
         campaignsToCheck.set(c.id, c);
     }
 
-    // 2. Add all campaigns from inventory.dropCampaignsInProgress
     if (activeInventory && activeInventory.dropCampaignsInProgress) {
         for (const c of activeInventory.dropCampaignsInProgress) {
             if (!campaignsToCheck.has(c.id)) {
                 campaignsToCheck.set(c.id, c);
             } else {
-                // Merge drop info (ensure we have latest self state)
                 const existing = campaignsToCheck.get(c.id);
                 for (const d of (c.timeBasedDrops || [])) {
                     const existingDrop = existing.timeBasedDrops?.find(ed => ed.id === d.id);
@@ -2225,20 +3277,17 @@ async function processAutoClaims(inventory = null) {
                 const claimId = self.dropInstanceID;
                 const dropId = drop.id;
 
-                // If we already tried this recently, skip
                 if (pendingClaims.has(dropId)) continue;
                 pendingClaims.add(dropId);
-                // Mark as pending for 10 minutes
                 setTimeout(() => pendingClaims.delete(dropId), 10 * 60 * 1000);
 
                 if (!claimId) {
-                    // Fall back to window-claim if dropInstanceID is missing
                     windowClaimNeeded = true;
                     continue;
                 }
 
-                const dropName = drop.name || `Reward in campaign ${campaign.name || campaign.id}`;
-                addLog(`[Auto-Claim] Attempting to claim "${dropName}" via GraphQL API...`, 'system');
+                const dropName = drop.name || `Reward in ${campaign.name || campaign.id}`;
+                addLog(`[Auto-Claim] Attempting to claim "${dropName}"...`, 'system');
 
                 let claimSuccess = false;
                 let lastError = 'Unknown error';
@@ -2253,26 +3302,25 @@ async function processAutoClaims(inventory = null) {
                         const claimDropResult = res?.data?.claimDrop;
                         if (claimDropResult && !claimDropResult.error && claimDropResult.dropSelf?.isClaimed) {
                             addLog(`🎉 [Auto-Claim] Successfully claimed "${dropName}"!`, 'success');
+                            showToast(`Claimed reward: ${dropName}`, 'success');
                             self.isClaimed = true;
                             self.currentMinutesWatched = drop.requiredMinutesWatched;
                             claimSuccessCount++;
                             claimSuccess = true;
                             break;
                         } else {
-                            lastError = claimDropResult?.error?.message || res?.error || 'Unknown GQL error';
+                            lastError = claimDropResult?.error?.message || res?.error || 'Unknown error';
                         }
                     } catch (err) {
                         lastError = err.message;
                     }
 
                     if (attempt < 3) {
-                        addLog(`⚠️ [Auto-Claim] GraphQL claim attempt ${attempt} failed: ${lastError}. Retrying in 5 seconds...`, 'warn');
                         await new Promise(r => setTimeout(r, 5000));
                     }
                 }
 
                 if (!claimSuccess) {
-                    addLog(`⚠️ [Auto-Claim] All GraphQL claim attempts failed for "${dropName}": ${lastError}. Falling back to browser claim...`, 'warn');
                     windowClaimNeeded = true;
                 }
             }
@@ -2280,7 +3328,6 @@ async function processAutoClaims(inventory = null) {
     }
 
     if (claimSuccessCount > 0) {
-        // Refresh UI & campaign states
         fetchAndUpdateCampaigns();
     }
 
@@ -2299,14 +3346,35 @@ window.electronAPI.onLogMsg((data) => {
     }
 });
 
-// Tray initialization
 window.electronAPI.updateTrayTooltip('Idle');
 
-// Minimize to tray button
 const btnMinimizeTray = document.getElementById('btnMinimizeTray');
 if (btnMinimizeTray) {
     btnMinimizeTray.onclick = () => {
         window.electronAPI.minimizeToTray();
+    };
+}
+
+// Inventory Search
+let inventorySearchQuery = '';
+
+const inventorySearchInput = getEl('inventorySearch');
+const btnClearInventorySearch = getEl('btnClearInventorySearch');
+
+if (inventorySearchInput) {
+    inventorySearchInput.oninput = (e) => {
+        inventorySearchQuery = e.target.value.toLowerCase();
+        if (btnClearInventorySearch) btnClearInventorySearch.style.display = inventorySearchQuery ? 'flex' : 'none';
+        renderInventory();
+    };
+}
+
+if (btnClearInventorySearch) {
+    btnClearInventorySearch.onclick = () => {
+        if (inventorySearchInput) inventorySearchInput.value = '';
+        inventorySearchQuery = '';
+        btnClearInventorySearch.style.display = 'none';
+        renderInventory();
     };
 }
 
@@ -2319,7 +3387,6 @@ async function renderInventory() {
         return;
     }
 
-    // Refresh inventory data
     const res = await window.electronAPI.getInventory(accountTokens);
     if (res && res.error === 'AUTH_EXPIRED') {
         handleAuthExpired();
@@ -2333,7 +3400,6 @@ async function renderInventory() {
         return;
     }
 
-    // 1. Map benefit IDs to images from ALL available sources (current campaigns + in-progress)
     const itemImageMap = new Map();
     const allKnownCampaigns = [...allCampaigns, ...inProgress];
 
@@ -2347,16 +3413,13 @@ async function renderInventory() {
         });
     });
 
-    // 2. Grouping & finding most recent date per game
-    const groups = {}; // { gameName: { img, maxDate, rewards: [] } }
+    const groups = {};
 
     history.forEach(item => {
         let gameName = "Other Rewards";
         let gameBoxArt = "";
 
-        // Find matching campaign for game info
         const camp = allKnownCampaigns.find(c => {
-            // Check if ANY benefit in this campaign matches the history item's ID
             return c.timeBasedDrops?.some(d => d.benefitEdges?.some(be => be.benefit?.id === item.id));
         });
 
@@ -2364,12 +3427,17 @@ async function renderInventory() {
             gameName = camp.game?.displayName || gameName;
             gameBoxArt = getGameImageUrl(camp.game, 60, 80);
         } else {
-            // Fallback: check if the item name or ID suggests a game we know
             const nameMatch = allKnownCampaigns.find(c => item.name.toLowerCase().includes(c.game?.displayName?.toLowerCase()));
             if (nameMatch) {
                 gameName = nameMatch.game?.displayName;
                 gameBoxArt = getGameImageUrl(nameMatch.game, 60, 80);
             }
+        }
+
+        if (inventorySearchQuery) {
+            const matchesGame = gameName.toLowerCase().includes(inventorySearchQuery);
+            const matchesReward = item.name.toLowerCase().includes(inventorySearchQuery);
+            if (!matchesGame && !matchesReward) return;
         }
 
         const awardDate = new Date(item.lastAwardedAt);
@@ -2384,7 +3452,6 @@ async function renderInventory() {
         });
     });
 
-    // 3. Sorting groups: Identified games by recency, "Other" ALWAYS at the bottom
     const sortedGroupNames = Object.keys(groups).sort((a, b) => {
         const otherName = "Other Rewards";
         if (a === otherName && b !== otherName) return 1;
@@ -2392,109 +3459,83 @@ async function renderInventory() {
         return groups[b].maxDate - groups[a].maxDate;
     });
 
-    // 3. Calculate metrics for stats header
-    let totalMinutes = 0;
-    history.forEach(item => {
-        let minutes = 60; // default fallback
-        const matchedCamp = allKnownCampaigns.find(c => 
-            c.timeBasedDrops?.some(d => d.benefitEdges?.some(be => be.benefit?.id === item.id))
-        );
-        if (matchedCamp) {
-            const matchedDrop = matchedCamp.timeBasedDrops?.find(d => 
-                d.benefitEdges?.some(be => be.benefit?.id === item.id)
-            );
-            if (matchedDrop) {
-                minutes = matchedDrop.requiredMinutesWatched || 60;
-            }
-        }
-        totalMinutes += minutes;
-    });
-    const hoursFarmed = (totalMinutes / 60).toFixed(1);
-    const uniqueGames = Object.keys(groups).filter(g => g !== 'Other Rewards').length;
-
-    const statsHeaderHtml = `
-      <div class="stats-row" style="margin-bottom: 25px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; width: 100%;">
-        <div class="stat-card fade-in" style="background: rgba(255, 255, 255, 0.015); border: 1px solid rgba(255,255,255,0.04); border-radius: 14px; padding: 18px 22px;">
-          <h3 style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary); margin: 0 0 8px 0; font-weight: 700; letter-spacing: 0.8px;">Total Drops Claimed</h3>
-          <div style="font-size: 30px; font-weight: 800; color: white; line-height: 1.1;">${history.length}</div>
-        </div>
-        <div class="stat-card fade-in" style="background: rgba(255, 255, 255, 0.015); border: 1px solid rgba(255,255,255,0.04); border-radius: 14px; padding: 18px 22px;">
-          <h3 style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary); margin: 0 0 8px 0; font-weight: 700; letter-spacing: 0.8px;">Games Farmed</h3>
-          <div style="font-size: 30px; font-weight: 800; color: var(--accent-color); line-height: 1.1;">${uniqueGames}</div>
-        </div>
-        <div class="stat-card fade-in" style="background: rgba(255, 255, 255, 0.015); border: 1px solid rgba(255,255,255,0.04); border-radius: 14px; padding: 18px 22px;">
-          <h3 style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary); margin: 0 0 8px 0; font-weight: 700; letter-spacing: 0.8px;">Est. Time Farmed</h3>
-          <div style="font-size: 30px; font-weight: 800; color: var(--success); line-height: 1.1;">${hoursFarmed} <span style="font-size: 14px; font-weight: 500; color: var(--text-secondary);">Hours</span></div>
-        </div>
-      </div>
-    `;
+    if (sortedGroupNames.length === 0 && inventorySearchQuery) {
+        container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-secondary);">No rewards matching "${inventorySearchQuery}".</div>`;
+        return;
+    }
 
     const panelsHtml = sortedGroupNames.map(gn => {
         const group = groups[gn];
-        // Sort rewards within group (Newest First)
         const rewardsSorted = group.rewards.sort((a, b) => new Date(b.lastAwardedAt) - new Date(a.lastAwardedAt));
 
         const rewardsHtml = rewardsSorted.map(r => {
             const d = new Date(r.lastAwardedAt);
             const dateStr = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getFullYear()).slice(-2)}`;
             const itemIcon = r.image
-                ? `<img src="${r.image}" style="width: 48px; height: 48px; border-radius: 8px; object-fit: contain; background: rgba(0,0,0,0.3); margin-bottom: 8px;">`
-                : `<div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 8px;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></div>`;
+                ? `<img src="${r.image}" style="width: 44px; height: 44px; border-radius: 8px; object-fit: contain; background: rgba(0,0,0,0.3); margin-bottom: 6px;">`
+                : `<div style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 6px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V22H4V12"/><rect x="2" y="7" width="20" height="5" rx="1"/></svg></div>`;
 
             return `
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; align-items: center; text-align: center; overflow: hidden; min-width: 0;" class="inventory-tile">
+                <div class="drop-item-row" style="margin-bottom: 0;">
                     ${itemIcon}
-                    <div style="font-size: 11px; color: #fff; font-weight: 600; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px;" title="${r.name}">${r.name}</div>
-                    <div style="font-size: 9px; color: var(--text-secondary); opacity: 0.6;">${dateStr}</div>
+                    <div class="drop-info">
+                        <h4>${r.name}</h4>
+                        <div style="font-size: 11px; color: var(--text-secondary);">${dateStr}</div>
+                    </div>
                 </div>
             `;
         }).join('');
 
         const gameCover = group.img
-            ? `<img src="${group.img}" style="width: 52px; height: 70px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 6px 15px rgba(0,0,0,0.5);">`
-            : `<div style="width: 52px; height: 70px; background: linear-gradient(135deg, #444, #222); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 28px; border: 1px solid rgba(255,255,255,0.1);">🎮</div>`;
+            ? `<img src="${group.img}" style="width: 44px; height: 58px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-color);">`
+            : `<div style="width: 44px; height: 58px; background: var(--bg-tertiary); border-radius: 8px; display: flex; align-items: center; justify-content: center;">${ICONS.gamepad(22)}</div>`;
 
         return `
-            <div class="farm-panel" style="margin-bottom: 30px; padding: 25px; border: 1px solid rgba(191,148,255,0.12); background: rgba(255,255,255,0.025); border-radius: 18px; align-items: stretch; display: block; width: 100%;">
-                <div style="display: flex; gap: 22px; align-items: center; margin-bottom: 25px;">
+            <div class="farm-panel settings-panel" style="margin-bottom: 20px; width: 100%; display: flex; flex-direction: column; gap: 14px;">
+                <div style="display: flex; gap: 14px; align-items: center;">
                     ${gameCover}
-                    <div style="flex: 1; min-width: 0;">
-                        <h3 style="margin: 0; font-size: 22px; color: var(--accent-color); font-weight: 800; letter-spacing: -0.6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${gn}</h3>
-                        <p style="margin: 4px 0 0; font-size: 13px; color: var(--text-secondary); opacity: 0.8; display: flex; align-items: center; gap: 6px;">
-                           <span style="color: var(--success); font-size: 8px;">●</span> Collected ${group.rewards.length} Drops
+                    <div>
+                        <h3 style="margin: 0; font-size: 16px; color: white; font-weight: 800;">${gn}</h3>
+                        <p style="margin: 2px 0 0; font-size: 12px; color: var(--text-secondary);">
+                           Collected ${group.rewards.length} Drops
                         </p>
                     </div>
                 </div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; width: 100%;">
+                <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
                     ${rewardsHtml}
                 </div>
             </div>
         `;
     }).join('');
 
-    container.innerHTML = statsHeaderHtml + panelsHtml;
+    container.innerHTML = panelsHtml;
 }
 
 function renderIdlePlaceholder() {
-    const farmPanel = document.getElementById('farmPanel');
-    if (!farmPanel) return;
+    if (activeFarmingCampaignId || browsedCampaignId) return;
 
-    if (activeFarmingCampaignId) return;
-
-    farmPanel.innerHTML = `
-        <div class="empty-state fade-in" style="text-align: center;">
-            <div class="icon" style="font-size: 54px; margin-bottom: 25px; opacity: 0.9; filter: drop-shadow(0 0 15px rgba(145, 70, 255, 0.4));">🎮</div>
-            <h2 style="margin-bottom: 12px; font-size: 24px; font-weight: 800; color: white;">Ready to Farm</h2>
-            <p style="color: var(--text-secondary); max-width: 340px; margin: 0 auto 30px; line-height: 1.6; font-size: 14px;">
-                Your bot is standing by. Activate <b>Global Mode</b> or select a specific game from the <b>Campaigns</b> tab to start earning rewards.
-            </p>
-            <div style="display: flex; gap: 15px; justify-content: center;">
-                <button class="btn-primary" onclick="document.getElementById('btnNavCampaigns').click()" style="width: auto; padding: 12px 24px; border-radius: 12px; font-size: 14px;">Browse Campaigns</button>
+    const heroCard = getEl('heroMonitorCard');
+    if (heroCard) {
+        heroCard.innerHTML = `
+            <div class="empty-state fade-in" style="width: 100%; text-align: center; padding: 28px 20px;">
+                <div class="icon" style="margin-bottom: 12px; filter: drop-shadow(0 0 16px rgba(145, 70, 255, 0.45)); color: var(--accent-hover); display: flex; justify-content: center;">${ICONS.gamepad(48)}</div>
+                <h2 style="margin-bottom: 8px; font-size: 20px; font-weight: 800; color: white;">Ready to Auto-Farm</h2>
+                <p style="color: var(--text-secondary); max-width: 440px; margin: 0 auto 20px; line-height: 1.5; font-size: 13.5px;">
+                    Bot standing by. Click <b>Start Farm</b> in the sidebar or browse active campaigns to start earning Twitch drops automatically.
+                </p>
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <button class="btn-primary" onclick="document.getElementById('btnNavCampaigns').click()" style="width: auto; padding: 10px 22px; font-size: 13px;">Browse Active Campaigns</button>
+                </div>
             </div>
-        </div>
-    `;
+        `;
+    }
+
+    const dropsContainer = getEl('currentFarmDropsContainer');
+    if (dropsContainer) dropsContainer.style.display = 'none';
 }
 
-// Setup WebSocket real-time listeners exactly once at startup
 setupWebSocketListeners();
-
+updateMinViewersUI();
+updateMasterAutoFarmUI();
+updatePriorityStatsCount();
+renderIdlePlaceholder();
