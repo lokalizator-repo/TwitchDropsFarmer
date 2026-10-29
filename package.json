@@ -2,7 +2,7 @@
   "name": "twitch-drop-farmer",
   "version": "1.3.0",
   "description": "Auto Farm Twitch Drops Dashboard",
-  "main": "main.js",
+  "main": "src/main.js",
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
@@ -33,15 +33,7 @@
       "ru"
     ],
     "files": [
-      "main.js",
-      "renderer.js",
-      "preload.js",
-      "index.html",
-      "style.css",
-      "gql-manager.js",
-      "websocket-manager.js",
-      "discord-rpc-manager.js",
-      "gql-queries.json",
+      "src/**/*",
       "assets/**/*",
       "node_modules/ws/**/*"
     ],

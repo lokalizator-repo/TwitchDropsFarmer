@@ -57,7 +57,7 @@ function buildHeaders(tokens) {
 }
 
 function createTray() {
-  const iconPath = path.join(__dirname, 'assets/icon.png');
+  const iconPath = path.join(__dirname, '../assets/icon.png');
   let icon;
   if (fs.existsSync(iconPath)) {
     icon = nativeImage.createFromPath(iconPath);
@@ -167,7 +167,7 @@ const createWindow = () => {
     height: 800,
     minWidth: 1080,
     minHeight: 700,
-    icon: path.join(__dirname, 'assets/icon.png'),
+    icon: path.join(__dirname, '../assets/icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -214,7 +214,7 @@ const createWindow = () => {
     }
   });
 
-  mainWindow.loadFile('index.html')
+  mainWindow.loadFile(path.join(__dirname, 'index.html'))
 
 let lastCapturedAuth = '';
 let lastCapturedIntegrity = '';

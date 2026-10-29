@@ -40,25 +40,25 @@ You can set game priorities and exclude games in Settings. Windows startup, laun
 
 The current stream, drop progress, and activity log.
 
-![Control Hub](imghub.png)
+![Control Hub](docs/screenshots/control-hub.png)
 
 ### Campaigns
 
 Available campaigns and their rewards.
 
-![Campaigns](imgcampaigns.png)
+![Campaigns](docs/screenshots/campaigns.png)
 
 ### Inventory
 
 Drop progress and claimed items.
 
-![Inventory](imginventory.png)
+![Inventory](docs/screenshots/inventory.png)
 
 ### Settings
 
 Game priorities, exclusions, startup options, and notifications.
 
-![Settings](imgsettings.png)
+![Settings](docs/screenshots/settings.png)
 
 ## Running from source
 

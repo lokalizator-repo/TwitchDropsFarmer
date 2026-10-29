@@ -3018,7 +3018,7 @@ function startFarmingSimulation(campaign, autoStart = false, updateOnly = false,
             } else {
                 heroCard.setAttribute('data-farming-channel', activeFarmingChannelLogin || '');
                 heroCard.innerHTML = `
-                    <img src="${getGameImageUrl(campaign.game, 120, 160)}" class="hero-game-cover" onerror="this.onerror=null; this.src='assets/icon.png'"/>
+                    <img src="${getGameImageUrl(campaign.game, 120, 160)}" class="hero-game-cover" onerror="this.onerror=null; this.src='../assets/icon.png'"/>
                     <div class="hero-stream-info" style="display: flex; flex-direction: column; justify-content: space-between; flex: 1; min-width: 0;">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; width: 100%;">
                             <div style="display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1;">
@@ -3047,7 +3047,7 @@ function startFarmingSimulation(campaign, autoStart = false, updateOnly = false,
             if (dropsContainer) dropsContainer.style.display = 'block';
             heroCard.removeAttribute('data-farming-channel');
             heroCard.innerHTML = `
-                <img src="${getGameImageUrl(campaign.game, 120, 160)}" class="hero-game-cover" onerror="this.onerror=null; this.src='assets/icon.png'"/>
+                <img src="${getGameImageUrl(campaign.game, 120, 160)}" class="hero-game-cover" onerror="this.onerror=null; this.src='../assets/icon.png'"/>
                 <div class="hero-stream-info" style="display: flex; flex-direction: column; justify-content: space-between; flex: 1; min-width: 0;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; width: 100%;">
                         <div style="display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1;">
