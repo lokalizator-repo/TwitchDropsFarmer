@@ -16,7 +16,7 @@ build/
 *.blockmap
 *.builder-effective-config.yaml
 
-# Local data, tokens & debug files (Sensitive!)
+# Local data, tokens & debug files
 debug_campaigns.json
 debug_inventory.json
 debug_inventory_raw.json
